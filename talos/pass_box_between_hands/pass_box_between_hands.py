@@ -63,8 +63,6 @@ vf.loadObjectModel (Object, 'box')
 # vf.loadObjectModel (Brick, 'box')
 robot.setJointBounds ("box/root_joint", [-1, 1, -1, 1, 0, 2])
 
-graph = ConstraintGraph(robot, "graph", False)
-
 qq = [-0.7671778026566639, 0.0073267002287253635, 1.0035168727631776, -0.003341673452654457, -0.021566597515109524, 0.0002183620894239602, 0.9997618053357284, -0.00020053128587844821, -0.0021365695604276275, -0.4415951773681094, 0.9659230706255528, -0.48119003672520416, 0.007109157982067145, -0.00020095991543181877, -0.002126639473414498, -0.4382848597339842, 0.9589221865248464, -0.4774994711722908, 0.007099218648561522, 0.0, 0.025235347910697536, -0.06985947194357875, 0.0, -0.12446173084176845, -1.5808415926365578, 0.014333078135875619, -0.0806417043955706, -0.37124401660668394, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.25955282922987977, -0.1618313202464181, 0.002447883426630002, -0.5149037074691503, -0.00010703274362664899, 0.0008742582163227642, 0.10168585913285667, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.785398163397, 0.32250041955468695, -0.2569883469655496, 0.18577095561452217, 1.164388709412583, 0.0694401264431558, 0.5475575114527793, -0.11842286843715424, 0.8254301089264399]
 
 half_sitting = [
@@ -114,18 +112,6 @@ ps.createRelativeComConstraint ("com_talos_box", "talos_box", robot.leftAnkle, c
 ps.createRelativeComConstraint ("com_talos"    , "talos"    , robot.leftAnkle, com_la.tolist(), (True, True, True))
 
 ps.createPositionConstraint ("gaze", "talos/rgbd_optical_joint", "box/root_joint", (0,0,0), (0,0,0), (True, True, False))
-
-graph.createGrasp("left", "talos/left_gripper", Object.handles[0])
-
-# Check constraints
-ps.setNumericalConstraints("test", 
-        ["balance/relative-com", "left" ] + foot_placement)
-res1, q1, err1 = ps.applyConstraints (half_sitting)
-
-ps.resetConstraints()
-ps.setNumericalConstraints("test", 
-        ["com_talos_box", "left" ] + foot_placement)
-res2, q2, err2 = ps.applyConstraints (half_sitting)
 
 left_gripper_lock = []
 right_gripper_lock = []
