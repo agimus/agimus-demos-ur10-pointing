@@ -7,7 +7,7 @@ import CORBA, sys, numpy as np
 
 newProblem()
 
-Robot.packageName = "talos-data"
+Robot.packageName = "talos_data"
 Robot.urdfName = "talos"
 Robot.urdfSuffix = '_full'
 Robot.srdfSuffix= ''
