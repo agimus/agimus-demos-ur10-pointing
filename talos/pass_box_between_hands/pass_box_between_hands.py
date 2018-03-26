@@ -28,6 +28,7 @@ robot.rightAnkle = "talos/leg_right_6_joint"
 robot.setJointBounds ("talos/root_joint", [-1, 1, -1, 1, 0.5, 1.5])
 
 ps = ProblemSolver (robot)
+ps.setRandomSeed(123)
 ps.selectPathProjector("Progressive", 0.2)
 ps.setErrorThreshold (1e-3)
 ps.setMaxIterProjection (40)
