@@ -18,7 +18,7 @@ def hpTasks(sotrobot):
 
 def makeSupervisorWithFactory (robot):
     from sot_hpp import Supervisor
-    from sot_hpp.factory import Factory
+    from sot_hpp.factory import Factory, Affordance
     from sot_hpp.tools import Manifold
     from hpp.corbaserver.manipulation import Rule
 
@@ -36,6 +36,12 @@ def makeSupervisorWithFactory (robot):
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
     factory.setupFrames (hppclient, robot)
+    factory.addAffordance (
+        Affordance ("talos/left_gripper", "box/top",
+          refOpen=(0,), refClose=(-0.2,)))
+    factory.addAffordance (
+        Affordance ("talos/right_gripper", "box/bottom",
+          refOpen=(0,), refClose=(-0.2,)))
     factory.generate ()
     factory.finalize (hppclient)
 
@@ -49,4 +55,4 @@ re = RosQueuedSubscribe ('ros_export')
 
 supervisor.plugTopics(re)
 supervisor.setupEvents ()
-supervisor.plugSot(-1)
+supervisor.plugSot("")

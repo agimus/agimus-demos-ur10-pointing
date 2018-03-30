@@ -1,0 +1,24 @@
+<launch>
+  <!-- Which robot are we controlling ? -->
+  <arg name="robot" default="pyrene" />
+  <arg name="libsot" default="libsot-pyrene-controller.so" />   
+
+  <include file="$(find sot_pyrene_bringup)/launch/geometric_simu.launch" >
+    <arg name="robot" value="$(arg robot)" />       
+    <arg name="libsot" value="$(arg libsot)" />
+  </include>
+
+  <group ns="hpp" >
+    <node name="hpp_interface" pkg="hpp_ros_interface" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      output="screen" />
+  </group>
+
+  <group ns="sot_hpp" >
+    <node name="sot_hpp_interface" pkg="hpp_ros_interface"
+      type="smach_node.py"
+      output="screen" />
+  </group>
+
+</launch>
+
