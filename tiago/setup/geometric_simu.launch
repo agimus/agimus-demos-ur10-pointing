@@ -1,5 +1,6 @@
 <launch>
   <!-- Which robot are we controlling ? -->
+  <arg name="script_file" doc="Full path to the script which initialize the supervisor" />
   <arg name="robot" default="tiago" />
   <arg name="libsot" default="libsot-tiago-steel-controller.so" />
   <arg name="sot_launch_prefix" default="" />
@@ -16,15 +17,20 @@
   </include>
 
   <group ns="hpp" >
-    <node name="hpp_interface" pkg="hpp_ros_interface" type="hpp_node.py"
+    <node name="hpp_node" pkg="hpp_ros_interface" type="hpp_node.py"
       args="hpp-manipulation-server" respawn="true"
       output="screen" />
   </group>
 
   <group ns="sot_hpp" >
-    <node name="sot_hpp_interface" pkg="hpp_ros_interface"
+    <node name="smach_node" pkg="hpp_ros_interface"
       type="smach_node.py"
       output="screen" />
+    <node name="start_supervisor" pkg="sot_hpp"
+      type="start_supervisor.py"
+      output="screen"
+      args="--input $(arg script_file) --prefix tiago/"
+      />
   </group>
 
 </launch>
