@@ -9,49 +9,46 @@ class Client:
         self.basic = Client.BasicClient()
         self.manipulation = Client.ManipClient()
 
-def hpTasks(sotrobot):
-    from sot_hpp.tools import COM, Foot, Manifold
-    com = COM ("talos", sotrobot)
-    lf = Foot ("talos/leg_left_6_joint", sotrobot) # Feet placement make the robot fall down.
-    rf = Foot ("talos/leg_right_6_joint", sotrobot)
-    return com + lf + rf
-
 def makeSupervisorWithFactory (robot):
     from sot_hpp import Supervisor
     from sot_hpp.factory import Factory, Affordance
     from sot_hpp.tools import Manifold
     from hpp.corbaserver.manipulation import Rule
 
+    holes = range(12)
+    # holes = [ 11, ]
     hppclient = Client()
 
-    grippers = [ "talos/left_gripper", "talos/right_gripper" ]
-    objects = [ "box" ]
-    handlesPerObjects = [ [ "box/top", "box/bottom" ], ]
-    rules = [ Rule([ "talos/left_gripper", ], [ "box/top", ], True),
-              Rule([ "talos/right_gripper", ], [ "box/bottom", ], True), ]
+    grippers = [ "tiago/center", ]
+    objects = [ "workspace" ]
+    handlesPerObjects = [ [ "workspace/hole2_" + str(i) for i in holes ], ]
+    rules = [ Rule([ "tiago/center", ], [ ".*", ], True), ]
 
-    supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
+    supervisor = Supervisor (robot)
     factory = Factory(supervisor)
     factory.setGrippers (grippers)
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
     factory.setupFrames (hppclient, robot)
-    factory.addAffordance (
-        Affordance ("talos/left_gripper", "box/top",
-          refOpen=(0,), refClose=(-0.2,)))
-    factory.addAffordance (
-        Affordance ("talos/right_gripper", "box/bottom",
-          refOpen=(0,), refClose=(-0.2,)))
+    # This for loop could be omitted and are here for educational purpose.
+    for i in holes:
+        factory.addAffordance (
+                Affordance ("tiago/center", "workspace/hole2_"+str(i),
+                    refOpen=(), refClose=()))
     factory.generate ()
     factory.finalize (hppclient)
 
     supervisor.makeInitialSot ()
     return supervisor
 
-# Set initial config
-robot.device.set (tuple([-0.74,] + list(robot.device.state.value[1:])))
+# q = list(robot.dynamic.position.value)
+# q[0:6] = [2.4, -0.5, -3.3, 0.0, 0.0, 0.0]
+# robot.dynamic.position.value = q
+# robot.device.state.value = q
+
 supervisor = makeSupervisorWithFactory (robot)
 
+# from dynamic_graph.ros import RosExport
 from dynamic_graph_hpp.sot import RosQueuedSubscribe
 re = RosQueuedSubscribe ('ros_export')
 

@@ -39,7 +39,7 @@ def makeRosInterface():
     import rospy
     rospy.init_node ('sot')
     ri = RosInterface ()
-    ri.setupHppJoints (prefix = "talos/")
+    ri.setupHppJoints (prefix = "tiago/")
     return ri
 
 
