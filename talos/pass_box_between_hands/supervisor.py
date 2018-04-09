@@ -2,13 +2,6 @@ import sys
 if not hasattr(sys, "argv"):
     sys.argv = []
 
-class Client:
-    from hpp.corbaserver import Client as BasicClient
-    from hpp.corbaserver.manipulation import Client as ManipClient
-    def __init__(self):
-        self.basic = Client.BasicClient()
-        self.manipulation = Client.ManipClient()
-
 def hpTasks(sotrobot):
     from sot_hpp.tools import COM, Foot, Manifold
     com = COM ("talos", sotrobot)
@@ -20,9 +13,8 @@ def makeSupervisorWithFactory (robot):
     from sot_hpp import Supervisor
     from sot_hpp.factory import Factory, Affordance
     from sot_hpp.tools import Manifold
+    from sot_hpp.srdf_parser import parse_srdf
     from hpp.corbaserver.manipulation import Rule
-
-    hppclient = Client()
 
     grippers = [ "talos/left_gripper", "talos/right_gripper" ]
     objects = [ "box" ]
@@ -30,12 +22,22 @@ def makeSupervisorWithFactory (robot):
     rules = [ Rule([ "talos/left_gripper", ], [ "box/top", ], True),
               Rule([ "talos/right_gripper", ], [ "box/bottom", ], True), ]
 
+    srdf = {}
+    srdfTalos = parse_srdf ("srdf/talos.srdf", packageName = "talos_data", prefix="talos")
+    # Full path can be provided with
+    # srdfBox   = parse_srdf ("cup.srdf")
+    srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "hpp_tutorial", prefix="box")
+    for w in [ "grippers", "handles" ]:
+        srdf[w] = dict()
+        for d in [ srdfTalos, srdfBox ]:
+            srdf[w].update (d[w])
+
     supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
     factory = Factory(supervisor)
     factory.setGrippers (grippers)
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
-    factory.setupFrames (hppclient, robot)
+    factory.setupFrames (srdf["grippers"], srdf["handles"], robot)
     factory.addAffordance (
         Affordance ("talos/left_gripper", "box/top",
           refOpen=(0,), refClose=(-0.2,)))
@@ -43,7 +45,6 @@ def makeSupervisorWithFactory (robot):
         Affordance ("talos/right_gripper", "box/bottom",
           refOpen=(0,), refClose=(-0.2,)))
     factory.generate ()
-    factory.finalize (hppclient)
 
     supervisor.makeInitialSot ()
     return supervisor
