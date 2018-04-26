@@ -34,6 +34,7 @@ def makeSupervisorWithFactory (robot):
 
     supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
     factory = Factory(supervisor)
+    # factory.addTimerToSotControl = True
     factory.setGrippers (grippers)
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
