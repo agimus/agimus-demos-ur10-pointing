@@ -2,7 +2,7 @@
   <!--<machine name="controller" address="talos-1c"-->
     <!--env-loader="/home/pal/deployed_ws/install/setup.bash"/>-->
   <machine name="multimedia" address="talos-1m"
-    env-loader="/home/pal/devel_hpp/config.sh"/>
+    env-loader="/home/pal/devel_hpp/config_roslaunch.sh"/>
 
   <!-- Which robot are we controlling ? -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
@@ -31,6 +31,4 @@
       args="--input $(arg script_file) --prefix talos/"
       />
   </group>
-
-  <node pkg="rviz" type="rviz" name="rviz" />
 </launch>
