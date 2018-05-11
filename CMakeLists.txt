@@ -25,6 +25,11 @@ install(FILES
   RENAME talos_pass_box_between_hands_geomtric_simu.launch
 )
 install(FILES
+  talos/pass_box_between_hands/gazebo.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pass_box_between_hands_gazebo.launch
+)
+install(FILES
   talos/pass_box_between_hands/on_pyrene.launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   RENAME talos_pass_box_between_hands_on_pyrene.launch
