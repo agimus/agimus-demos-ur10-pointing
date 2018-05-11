@@ -5,11 +5,11 @@
     <link name="base_link"/>
   </handle>
   <handle name="top" clearance="0">
-    <position> 0 0 -0.025 -0.7071067811865476 0 .7071067811865476 0 </position>
+    <position> 0 0 -0.045 -0.7071067811865476 0 .7071067811865476 0 </position>
     <link name="base_link"/>
   </handle>
   <handle name="bottom" clearance="0">
-    <position> 0 0  0.025 0.7071067811865476 0 .7071067811865476 0 </position>
+    <position> 0 0  0.045 0.7071067811865476 0 .7071067811865476 0 </position>
     <link name="base_link"/>
   </handle>
   <contact name="box_surface">
