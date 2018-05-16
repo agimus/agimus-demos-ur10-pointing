@@ -5,7 +5,7 @@
 
   <include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >
   </include>
-  <include file="$(find talos_roscontrol_sot_talos)/launch/sot_talos_controller_gazebo.launch" >
+  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller_gazebo.launch" >
   </include>
 
   <group ns="hpp" >

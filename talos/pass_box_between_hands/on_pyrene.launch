@@ -8,7 +8,7 @@
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find sot_hpp_demo)/talos/pass_box_between_hands/supervisor.py" />
 
-  <include file="$(find talos_roscontrol_sot_talos)/launch/sot_talos_controller.launch" >
+  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller.launch" >
   </include>
 
   <group ns="hpp" >
