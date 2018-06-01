@@ -25,9 +25,7 @@ def makeSupervisorWithFactory (robot):
     srdf = {}
     srdfTalos = parse_srdf ("srdf/talos.srdf", packageName = "talos_data", prefix="talos")
     # Full path can be provided with
-    # srdfBox   = parse_srdf ("cup.srdf")
-    # srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "hpp_tutorial", prefix="box")
-    srdfBox   = parse_srdf ("talos/pass_box_between_hands/cup.srdf", packageName = "sot_hpp_demo", prefix="box")
+    srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "sot_hpp_demo", prefix="box")
     for w in [ "grippers", "handles" ]:
         srdf[w] = dict()
         for d in [ srdfTalos, srdfBox ]:

@@ -36,7 +36,7 @@ install(FILES
 )
 
 # Install other files with the same hierarchy as here.
-install(DIRECTORY talos tiago
+install(DIRECTORY talos tiago urdf srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   FILES_MATCHING
   PATTERN "*"

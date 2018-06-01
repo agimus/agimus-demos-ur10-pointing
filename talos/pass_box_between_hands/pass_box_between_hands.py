@@ -14,8 +14,7 @@ Robot.srdfSuffix= ''
 
 class Box (object):
   rootJointType = 'freeflyer'
-  packageName = 'hpp_tutorial'
-  meshPackageName = 'hpp_tutorial'
+  packageName = 'sot_hpp_demo'
   urdfName = 'cup'
   urdfSuffix = ""
   srdfSuffix = ""
