@@ -23,8 +23,8 @@
   </group>
 
   <group ns="sot_hpp" >
-    <node name="smach_node" pkg="hpp_ros_interface"
-      type="smach_node.py"
+    <node name="path_execution_fsm" pkg="hpp_ros_interface"
+      type="path_execution_fsm.py"
       output="screen" />
     <!-- From lunar, it is possible to use $(dirname) to get the directory
          of this launch file. So we could change

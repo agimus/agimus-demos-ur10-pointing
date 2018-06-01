@@ -108,7 +108,7 @@ res, q_goal, err = graph.applyNodeConstraints("talos/right_gripper grasps box/bo
 print ps.directPath(q_init, q_init, True)
 ps.setInitialConfig(q_init)
 ps.addGoalConfig(q_goal)
-ps.setParameter("SimpleTimeParameterization/safety", CORBA.Any(CORBA.TC_double, 0.5))
-ps.setParameter("SimpleTimeParameterization/velocity", CORBA.Any(CORBA.TC_boolean, True))
+ps.setParameter("SimpleTimeParameterization/safety", 0.5)
+ps.setParameter("SimpleTimeParameterization/order", 2)
 
 ps.solve()
