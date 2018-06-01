@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="calibration_mire">
+  <handle name="left" clearance="0.04">
+    <position>  0.21 0 0 1 0 0 0 </position>
+    <link name="base_link"/>
+  </handle>
+  <handle name="right" clearance="0.04">
+    <!--<position> -0.20 0 0 -0.7071067811865476 0 .7071067811865476 0 </position>-->
+    <position> -0.21 0 0 0 0 0 1 </position>
+    <link name="base_link"/>
+  </handle>
+</robot>
