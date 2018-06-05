@@ -22,7 +22,7 @@ catkin_package(
 install(FILES
   talos/pass_box_between_hands/geometric_simu.launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pass_box_between_hands_geomtric_simu.launch
+  RENAME talos_pass_box_between_hands_geometric_simu.launch
 )
 install(FILES
   talos/pass_box_between_hands/gazebo.launch
