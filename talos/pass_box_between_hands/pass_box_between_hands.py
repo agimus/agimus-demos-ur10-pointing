@@ -110,5 +110,105 @@ ps.setInitialConfig(q_init)
 ps.addGoalConfig(q_goal)
 ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
 ps.solve()
+
+def createInitializationGraph (name):
+    graph = ConstraintGraph.buildGenericGraph(robot, name,
+            [ "talos/left_gripper", "talos/right_gripper", ],
+            [ "box", ],
+            [ Object.handles, ],
+            [ [ ], ],
+            [ ],
+            [ Rule([ "talos/left_gripper", ], [ Object.handles[0], ], True),
+                Rule([ "talos/right_gripper", ], [ Object.handles[1], ], True), ]
+            )
+    return graph
+
+def setGaussianShooter (q, dev):
+    robot.setCurrentConfig (q)
+    selected = ps.getSelected("configurationshooter")[0]
+    ps.setParameter ("ConfigurationShooter/Gaussian/standardDeviation", dev)
+    ps.client.basic.problem.selectConfigurationShooter ("Gaussian")
+    return selected
+
+def restoreProblem ():
+    # Restore the state of the problem
+    ps.client.manipulation.graph.selectGraph(graph.name)
+    ps.client.basic.problem.selectConfigurationShooter ("Uniform")
+
+def applySemantic (state, qsensor, dev):
+    """
+    Given an estimated state of the world, generate a configuration that
+    make 'sense':
+    - no collisions (between objects, robots and world)
+    - the objects are either grasped or in stable placement.
+    """
+
+    setGaussianShooter(qsensor, dev)
+
+    # Apply semantic information
+    ps.client.manipulation.graph.selectGraph(initializationGraph.name)
+    qsemantic = qsensor[:]
+    while True:
+        valid, qsemantic, err = initializationGraph.applyNodeConstraints(state, qsemantic)
+        if valid:
+            valid, msg = robot.isConfigValid (qsemantic)
+            if valid: break
+        qsemantic = robot.shootRandomConfig()
+
+    restoreProblem()
+    return qsemantic
+
+def goToGraph (state, q):
+    dev = 0.005
+    qsemantic = applyObjectSemantic (state, q, dev)
+
+    setGaussianShooter(qsemantic, dev)
+
+    qgoal = qsemantic[:]
+    # Try to generate a configuration from q
+    while True:
+        valid, qgoal, err = graph.applyNodeConstraints(state, qgoal)
+        if valid:
+            valid, msg = robot.isConfigValid (qgoal)
+            if valid: break
+        qgoal = robot.shootRandomConfig()
+
+    # graphs = ps.getAvailable("constraintgraph")
+    # if "initialization" in graphs:
+        # newGraph = ConstraintGraph (robot, "initialization")
+        # newGraph.createNode ("free")
+        # newGraph.createEdge ("free", "free", "transition")
+    # else:
+        # ps.client.manipulation.graph.selectGraph("initialization")
+
+    ps.client.manipulation.graph.selectGraph(initializationGraph.name)
+    ps.resetGoalConfigs ()
+    ps.setInitialConfig (qsemantic)
+    ps.addGoalConfig (qgoal)
+    ps.solve ()
+    pid = ps.numberPaths()-1
+
+    # Restore the state of the problem
+    restoreProblem()
+
+    return pid
+
+def testGoToGraph (state, q, dev):
+    selected = setGaussianShooter(q, dev)
+    qsensor = robot.shootRandomConfig()
+
+    ps.client.basic.problem.selectConfigurationShooter (selected)
+    pid = goToGraph (state, qsensor)
+
+    return qsensor, pid
+
+initializationGraph = createInitializationGraph("initialization")
+ps.client.manipulation.graph.selectGraph(graph.name)
+
+try:
+    v = vf.createViewer()
+except Exception as e:
+    print "Could not connect to the viewer:", str(e)
