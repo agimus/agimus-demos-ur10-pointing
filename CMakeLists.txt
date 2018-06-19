@@ -35,6 +35,18 @@ install(FILES
   RENAME talos_pass_box_between_hands_on_pyrene.launch
 )
 
+# Install launch files in launch directory
+install(FILES
+  talos/pickup_object/geometric_simu.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_object_geometric_simu.launch
+)
+install(FILES
+  talos/pickup_object/gazebo.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_object_gazebo.launch
+)
+
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
