@@ -1,6 +1,11 @@
+# Theses variables are defined:
+# - robot, a SoT device
+# - simulateTorqueFeedbackForEndEffector, a boolean
+
 import sys
 if not hasattr(sys, "argv"):
     sys.argv = []
+import rospy
 
 def hpTasks(sotrobot):
     from sot_hpp.tools import COM, Foot, Manifold
@@ -33,17 +38,32 @@ def makeSupervisorWithFactory (robot):
 
     supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
     factory = Factory(supervisor)
-    # factory.addTimerToSotControl = True
+    factory.parameters["period"] = rospy.get_param("/sot_controller/dt")
+    factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
+    factory.parameters["addTracerToAdmittanceController"] = True
+    # factory.parameters["addTimerToSotControl"] = True
     factory.setGrippers (grippers)
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
     factory.setupFrames (srdf["grippers"], srdf["handles"], robot)
+    # Left gripper
+    # Use admittance control when closing
     factory.addAffordance (
         Affordance ("talos/left_gripper", "box/top",
-          refOpen=(0,), refClose=(-0.2,)))
+            openControlType="position_torque", closeControlType="position_torque",
+            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-5.,) },
+            simuParams = { "refPos": (-0.2,) }))
+    # Use position control for opening
+    factory.addAffordance (
+        Affordance ("talos/left_gripper", None,
+            openControlType="position", closeControlType="position",
+            refs = { "angle_open": (0,), "angle_close": (-0.5,), }))
+    # Right gripper
+    # Use position control
     factory.addAffordance (
         Affordance ("talos/right_gripper", "box/bottom",
-          refOpen=(0,), refClose=(-0.2,)))
+            openControlType="position", closeControlType="position",
+            refs = { "angle_open": (0,), "angle_close": (-0.2,) }))
     factory.generate ()
 
     supervisor.makeInitialSot ()
@@ -53,7 +73,7 @@ def makeSupervisorWithFactory (robot):
 robot.device.set (tuple([-0.74,] + list(robot.device.state.value[1:])))
 supervisor = makeSupervisorWithFactory (robot)
 
-from dynamic_graph_hpp.sot import RosQueuedSubscribe
+from dynamic_graph.ros.ros_queued_subscribe import RosQueuedSubscribe
 re = RosQueuedSubscribe ('ros_export')
 
 supervisor.plugTopics(re)
