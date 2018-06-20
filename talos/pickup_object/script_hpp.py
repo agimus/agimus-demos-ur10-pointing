@@ -25,7 +25,7 @@ class Box (object):
 
 class Brick (object):
   rootJointType = 'freeflyer'
-  packageName = 'gerard-bauzil'
+  packageName = 'gerard_bauzil'
   urdfName = 'cobblestone'
   urdfSuffix = ""
   srdfSuffix = ""
@@ -33,7 +33,7 @@ class Brick (object):
   poses = [ "box/pose1", "box/pose2" ]
 
 class Table (object):
-  packageName = 'gerard-bauzil'
+  packageName = 'gerard_bauzil'
   urdfName = 'pedestal_table'
   urdfSuffix = ""
   srdfSuffix = ""
@@ -150,8 +150,9 @@ res, q_init, err = graph.applyNodeConstraints("table/pose grasps box/pose2", hal
 ps.setInitialConfig(q_init)
 # ps.addGoalConfig(q_goal)
 ps.setTargetState (graph.nodes["talos/left_gripper grasps box/handle1"])
-ps.setParameter("SimpleTimeParameterization/safety", CORBA.Any(CORBA.TC_double, 0.5))
+ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
 ps.setParameter ("ConfigurationShooter/Gaussian/standardDeviation", 0.05)
 ps.client.basic.problem.selectConfigurationShooter ("Gaussian")
