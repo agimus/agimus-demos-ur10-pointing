@@ -73,9 +73,6 @@ def makeSupervisorWithFactory (robot):
 robot.device.set (tuple([-0.74,] + list(robot.device.state.value[1:])))
 supervisor = makeSupervisorWithFactory (robot)
 
-from dynamic_graph.ros.ros_queued_subscribe import RosQueuedSubscribe
-re = RosQueuedSubscribe ('ros_export')
-
-supervisor.plugTopics(re)
+supervisor.plugTopicsToRos()
 supervisor.setupEvents ()
 supervisor.plugSot("")
