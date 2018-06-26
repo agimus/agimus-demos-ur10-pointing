@@ -3,10 +3,18 @@
   <group ns="gazebo">
     <node name="spawn_table_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gerard_bauzil)/urdf/pedestal_table.urdf -urdf -model table" />
-    <!-- xyzrpy of cobblestone on table: 0,0,1.167,0.2,1.52,0.2 -->
+    <!-- xyzrpy of cobblestone on table -->
+    <!---x -0.075 -z 0.024 -z 1.168 -R 4.712 -P 1.57-->
     <node name="spawn_cobblestone_urdf" pkg="gazebo_ros" type="spawn_model"
-      args="-file $(find gerard_bauzil)/urdf/cobblestone.urdf -urdf -z 1.167 -pitch 1.52
-      -model cobblestone" />
+      args="-file $(find gerard_bauzil)/urdf/cobblestone.urdf -urdf
+      -x -0.075 -z 0.024 -z 1.1671 -R 4.712 -P 1.57
+      -model box" />
+    <node name="box_to_tf" pkg="sot_hpp_demo" type="gazebo_object_to_tf.py"
+        args="box base_link world" required="true"
+        />
+    <node pkg="tf" type="static_transform_publisher"
+        name="odom_to_world"
+        args="0 0 0 0 0 0 1 world odom 100" />
   </group>
 
   <!-- Which robot are we controlling ? -->
@@ -14,6 +22,44 @@
     default="$(find sot_hpp_demo)/talos/pickup_object/supervisor.py" />
 
   <include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >
+    <arg name="paused" value="true"/>
+    <!---x -0.6340 -y -0.2027 -z 1.05 -R -0.034 -P 0.027 -Y 0.125-->
+    <!---x -0.6 -y -0.2 -z 1.0192720229567027-->
+    <arg name="gzpose" value="
+      -x -0.6 -y -0.2 -z 1.0193
+      -J leg_left_1_joint 0.0
+      -J leg_left_2_joint 0.0
+      -J leg_left_3_joint -0.411354
+      -J leg_left_4_joint 0.859395
+      -J leg_left_5_joint -0.448041
+      -J leg_left_6_joint -0.001708
+      -J leg_right_1_joint 0.0
+      -J leg_right_2_joint 0.0
+      -J leg_right_3_joint -0.411354
+      -J leg_right_4_joint 0.859395
+      -J leg_right_5_joint -0.448041
+      -J leg_right_6_joint -0.001708
+      -J torso_1_joint 0
+      -J torso_2_joint 0.006761
+      -J arm_left_1_joint 0.25847
+      -J arm_left_2_joint 0.173046
+      -J arm_left_3_joint -0.0002
+      -J arm_left_4_joint -0.525366
+      -J arm_left_5_joint 0
+      -J arm_left_6_joint 0
+      -J arm_left_7_joint 0.1
+      -J arm_right_1_joint -0.25847
+      -J arm_right_2_joint -0.173046
+      -J arm_right_3_joint 0.0002
+      -J arm_right_4_joint -0.525366
+      -J arm_right_5_joint 0
+      -J arm_right_6_joint 0
+      -J arm_right_7_joint 0.1
+      -J head_1_joint 0
+      -J head_2_joint 0
+      "/>
+    <!---0.017683184544140064, 0.012418080940971276, 0.06250270795619342, 0.997810857702132,-->
+
   </include>
   <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller_gazebo.launch" >
   </include>
