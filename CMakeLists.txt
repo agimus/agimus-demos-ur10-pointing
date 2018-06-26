@@ -54,3 +54,6 @@ install(DIRECTORY talos tiago urdf srdf
   PATTERN "*"
   PATTERN "*.launch" EXCLUDE
 )
+
+install(PROGRAMS scripts/gazebo_object_to_tf.py
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
