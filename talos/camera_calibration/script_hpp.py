@@ -14,7 +14,7 @@ Robot.srdfSuffix= ''
 
 class Mire (object):
   rootJointType = 'freeflyer'
-  packageName = 'sot_hpp_demo'
+  packageName = 'agimus_demos'
   urdfName = 'calibration_mire'
   urdfSuffix = ""
   srdfSuffix = ""

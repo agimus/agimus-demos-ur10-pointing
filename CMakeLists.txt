@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(sot_hpp_demo)
+project(agimus_demos)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES sot_hpp_demo
+#  LIBRARIES agimus_demos
 #  CATKIN_DEPENDS roslaunch
 #  DEPENDS system_lib
 )

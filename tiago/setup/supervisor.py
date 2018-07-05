@@ -10,9 +10,9 @@ class Client:
         self.manipulation = Client.ManipClient()
 
 def makeSupervisorWithFactory (robot):
-    from sot_hpp import Supervisor
-    from sot_hpp.factory import Factory, Affordance
-    from sot_hpp.tools import Manifold
+    from agimus_sot import Supervisor
+    from agimus_sot.factory import Factory, Affordance
+    from agimus_sot.tools import Manifold
     from hpp.corbaserver.manipulation import Rule
 
     holes = range(12)
@@ -48,10 +48,6 @@ def makeSupervisorWithFactory (robot):
 
 supervisor = makeSupervisorWithFactory (robot)
 
-# from dynamic_graph.ros import RosExport
-from dynamic_graph_hpp.sot import RosQueuedSubscribe
-re = RosQueuedSubscribe ('ros_export')
-
-supervisor.plugTopics(re)
+supervisor.plugTopicsToRos()
 supervisor.setupEvents ()
 supervisor.plugSot("")

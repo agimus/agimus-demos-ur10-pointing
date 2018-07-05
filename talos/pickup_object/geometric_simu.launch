@@ -1,7 +1,7 @@
 <launch>
   <!-- Which robot are we controlling ? -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
-    default="$(find sot_hpp_demo)/talos/pickup_object/supervisor.py" />
+    default="$(find agimus_demos)/talos/pickup_object/supervisor.py" />
   <arg name="robot" default="pyrene" />
   <arg name="libsot" default="libsot-pyrene-controller.so" />   
   <arg name="sot-launch-prefix" default="" />   
@@ -22,7 +22,7 @@
       output="screen" />
   </group>
 
-  <group ns="sot_hpp" >
+  <group ns="agimus" >
     <node name="path_execution_fsm" pkg="hpp_ros_interface"
       type="path_execution_fsm.py"
       output="screen" />
@@ -32,7 +32,7 @@
          into
          $(arg dirname)/supervisor.py
          -->
-    <node name="start_supervisor" pkg="sot_hpp"
+    <node name="start_supervisor" pkg="agimus_sot"
       type="start_supervisor.py"
       output="screen"
       args="--input $(arg script_file) --prefix talos/ --simulate-torque-feedback"
@@ -41,7 +41,7 @@
 
   <!-- To view the reference position used by SoT, one must call the service /sot/publishState -->
   <include file="$(find roscontrol_sot_talos)/launch/display_sot.launch" >
-    <arg name="input_topic" value="/sot_hpp/reference_state"/>
+    <arg name="input_topic" value="/agimus/sot/reference_state"/>
     <arg name="output_prefix" value="/sot_ref"/>
   </include>
 

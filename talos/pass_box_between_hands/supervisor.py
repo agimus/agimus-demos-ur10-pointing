@@ -8,17 +8,17 @@ if not hasattr(sys, "argv"):
 import rospy
 
 def hpTasks(sotrobot):
-    from sot_hpp.tools import COM, Foot, Manifold
+    from agimus_sot.tools import COM, Foot, Manifold
     com = COM ("talos", sotrobot)
     lf = Foot ("talos/leg_left_6_joint", sotrobot) # Feet placement make the robot fall down.
     rf = Foot ("talos/leg_right_6_joint", sotrobot)
     return com + lf + rf
 
 def makeSupervisorWithFactory (robot):
-    from sot_hpp import Supervisor
-    from sot_hpp.factory import Factory, Affordance
-    from sot_hpp.tools import Manifold
-    from sot_hpp.srdf_parser import parse_srdf
+    from agimus_sot import Supervisor
+    from agimus_sot.factory import Factory, Affordance
+    from agimus_sot.tools import Manifold
+    from agimus_sot.srdf_parser import parse_srdf
     from hpp.corbaserver.manipulation import Rule
 
     grippers = [ "talos/left_gripper", "talos/right_gripper" ]
@@ -30,7 +30,7 @@ def makeSupervisorWithFactory (robot):
     srdf = {}
     srdfTalos = parse_srdf ("srdf/talos.srdf", packageName = "talos_data", prefix="talos")
     # Full path can be provided with
-    srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "sot_hpp_demo", prefix="box")
+    srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "agimus_demos", prefix="box")
     for w in [ "grippers", "handles" ]:
         srdf[w] = dict()
         for d in [ srdfTalos, srdfBox ]:

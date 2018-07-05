@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>sot_hpp_demo</name>
+  <name>agimus_demos</name>
   <version>0.0.0</version>
-  <description>The sot_hpp_demo package</description>
+  <description>The agimus_demos package</description>
 
   <maintainer email="jmirabel@laas.fr">Joseph Mirabel</maintainer>
 
@@ -12,7 +12,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/sot_hpp_demo</url> -->
+  <!-- <url type="website">http://wiki.ros.org/agimus_demos</url> -->
 
 
   <author email="jmirabel@laas.fr">Joseph Mirabel</author> 
