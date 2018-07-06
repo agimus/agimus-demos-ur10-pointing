@@ -50,14 +50,20 @@ def makeSupervisorWithFactory (robot):
     factory.parameters["useMeasurementOfObjectsPose"] = True
     # factory.parameters["addTimerToSotControl"] = True
     factory.setGrippers (grippers)
-    factory.disableGrippers (["table/pose"])
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
     factory.setRules (rules)
-    factory.setupFrames (srdf["grippers"], srdf["handles"], robot)
+    factory.setupFrames (srdf["grippers"], srdf["handles"], robot, disabledGrippers = ["table/pose"])
     factory.addAffordance (
         Affordance ("talos/left_gripper", "box/handle1",
             openControlType="position_torque", closeControlType="position_torque",
-            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-100.,) },
+            # openControlType="position", closeControlType="position",
+            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-10.,) },
+            simuParams = { "refPos": (-0.2,) }))
+    factory.addAffordance (
+        Affordance ("talos/left_gripper", None,
+            openControlType="position", closeControlType="position",
+            # openControlType="position", closeControlType="position",
+            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-10.,) },
             simuParams = { "refPos": (-0.2,) }))
     factory.generate ()
 
