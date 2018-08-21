@@ -7,10 +7,13 @@
     <!---x -0.075 -z 0.024 -z 1.168 -R 4.712 -P 1.57-->
     <node name="spawn_cobblestone_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gerard_bauzil)/urdf/cobblestone.urdf -urdf
-      -x -0.075 -z 0.024 -z 1.1671 -R 4.712 -P 1.57
+      -x -0.040 -z 0.024 -z 1.1671 -R 4.712 -P 1.57
       -model box" />
     <node name="box_to_tf" pkg="agimus_demos" type="gazebo_object_to_tf.py"
         args="box base_link world" required="true"
+        />
+    <node name="table_to_tf" pkg="agimus_demos" type="gazebo_object_to_tf.py"
+        args="table base_link world" required="true"
         />
     <node pkg="tf" type="static_transform_publisher"
         name="odom_to_world"
@@ -22,7 +25,11 @@
     default="$(find agimus_demos)/talos/pickup_object/supervisor.py" />
 
   <include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >
-    <arg name="paused" value="true"/>
+    <!--<arg name="paused" value="true"/>-->
+    <!-- Gazebo args:
+         -u: paused
+      -->
+    <arg name="extra_gazebo_args" value="-u"/>
     <!---x -0.6340 -y -0.2027 -z 1.05 -R -0.034 -P 0.027 -Y 0.125-->
     <!---x -0.6 -y -0.2 -z 1.0192720229567027-->
     <arg name="gzpose" value="
@@ -59,28 +66,22 @@
       -J head_2_joint 0
       "/>
     <!---0.017683184544140064, 0.012418080940971276, 0.06250270795619342, 0.997810857702132,-->
-
   </include>
+
   <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller_gazebo.launch" >
   </include>
 
-  <group ns="hpp" >
-    <node
-      name="hpp_node" pkg="hpp_ros_interface" type="hpp_node.py"
-      args="hpp-manipulation-server" respawn="true"
-      output="screen" />
-  </group>
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <include file="$(find agimus_hpp)/launch/hpp_interface.launch" >
+  </include>
 
-  <group ns="agimus" >
-    <node name="path_execution_fsm" pkg="hpp_ros_interface"
-      type="path_execution_fsm.py"
-      output="screen" />
-      <!--machine="controller"-->
-    <node
-      name="start_supervisor" pkg="agimus_sot"
-      type="start_supervisor.py"
-      output="screen"
-      args="--input $(arg script_file) --prefix talos/ --simulate-torque-feedback"
-      />
-  </group>
+  <!--This starts sot supervisor in namespace agimus/sot-->
+  <include file="$(find agimus_sot)/launch/supervisor.launch" >
+    <arg name="script_file" value="$(arg script_file)"/>
+    <arg name="robot_prefix" value="talos/"/>
+    <arg name="simulate_torque_feedback" value="true"/>
+  </include>
+
+  <include file="$(find agimus)/launch/path_execution.launch">
+  </include>
 </launch>
