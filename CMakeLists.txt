@@ -46,6 +46,11 @@ install(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   RENAME talos_pickup_object_gazebo.launch
 )
+install(FILES
+  talos/pickup_object/on_pyrene_no_vision.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_on_pyrene_no_vision.launch
+)
 
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
