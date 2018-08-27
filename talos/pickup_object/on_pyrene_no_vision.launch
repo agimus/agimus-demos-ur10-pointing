@@ -1,6 +1,6 @@
 <launch>
   <machine name="multimedia" address="talos-1m"
-    env-loader="/home/pal/devel_hpp/config_roslaunch.sh"/>
+    env-loader="/home/pal/devel/config_roslaunch.sh"/>
 
   <!-- Simulate the vision -->
   <group ns="vision_simulation">
@@ -19,7 +19,6 @@
     <!--args="table base_link world" required="true"-->
     <!--/>-->
     <node name="box_to_tf" pkg="tf" type="static_transform_publisher"
-          args="box base_link world"
           required="true"
           args="-0.03999999910593033 0.024000000208616257 1.167000025510788 0.5 -0.5 -0.5 -0.5 world box/base_link 100"
           />
@@ -32,7 +31,7 @@
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/talos/pickup_object/supervisor.py" />
 
-  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller_gazebo.launch" >
+  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller.launch" >
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
@@ -44,10 +43,11 @@
   <include file="$(find agimus_sot)/launch/supervisor.launch" >
     <arg name="script_file" value="$(arg script_file)"/>
     <arg name="robot_prefix" value="talos/"/>
-    <arg name="simulate_torque_feedback" value="true"/>
+    <arg name="simulate_torque_feedback" value="false"/>
   </include>
 
   <include file="$(find agimus)/launch/path_execution.launch">
     <arg name="machine" value="multimedia"/>
+    <arg name="gui" value="false"/>
   </include>
 </launch>
