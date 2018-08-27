@@ -2,11 +2,6 @@
 # - robot, a SoT device
 # - simulateTorqueFeedbackForEndEffector, a boolean
 
-import sys
-if not hasattr(sys, "argv"):
-    sys.argv = []
-import rospy
-
 def hpTasks(sotrobot):
     from agimus_sot.tools import COM, Foot, Manifold
     com = COM ("talos", sotrobot)
@@ -44,7 +39,7 @@ def makeSupervisorWithFactory (robot):
 
     supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
     factory = Factory(supervisor)
-    factory.parameters["period"] = rospy.get_param("/sot_controller/dt")
+    factory.parameters["period"] = 0.001 # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = True
     factory.parameters["useMeasurementOfObjectsPose"] = True
