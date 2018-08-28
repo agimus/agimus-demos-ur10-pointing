@@ -52,6 +52,23 @@ install(FILES
   RENAME talos_pickup_object_on_pyrene_no_vision.launch
 )
 
+# Install launch files in launch directory
+install(FILES
+  talos/pickup_cardboard_box/geometric_simu.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_cardboard_box_geometric_simu.launch
+)
+install(FILES
+  talos/pickup_cardboard_box/gazebo.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_cardboard_box_gazebo.launch
+)
+install(FILES
+  talos/pickup_cardboard_box/on_pyrene_no_vision.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_cardboard_box_on_pyrene_no_vision.launch
+)
+
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
@@ -60,5 +77,7 @@ install(DIRECTORY talos tiago urdf srdf
   PATTERN "*.launch" EXCLUDE
 )
 
-install(PROGRAMS scripts/gazebo_object_to_tf.py
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
+install(PROGRAMS
+  scripts/gazebo_object_to_tf.py
+  scripts/visual_tag_initializer.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
