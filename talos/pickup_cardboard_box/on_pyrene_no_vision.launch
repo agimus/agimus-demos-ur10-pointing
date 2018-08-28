@@ -33,10 +33,10 @@
     <node pkg="agimus_vision" type="tracker_object"
         name="tag_tracker"
         machine="multimedia" />
-    <node pkg="agimus_demos" type="visual_tag_initializer" name="tag36_11_00001_init"
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00001_init"
         args="1 63.5 table/tag36_11_00001"
         machine="multimedia" />
-    <node pkg="agimus_demos" type="visual_tag_initializer" name="tag36_11_00002_init"
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00002_init"
         args="2 63.5 table/tag36_11_00002"
         machine="multimedia" />
   </group>
