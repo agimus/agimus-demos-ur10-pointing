@@ -25,11 +25,11 @@
   </group> -->
 
   <!-- Setup vision -->
-  <param name="imageTopic" value="/rgbd/rgb/image_rect" />
-  <param name="cameraInfoTopic" value="/rgbd/rgb/camera_info" />
-  <param name="parentNode" value="rgbd_rgb_optical_frame" />
-
   <group ns="vision">
+    <param name="imageTopic" value="/rgbd/rgb/image_rect" />
+    <param name="cameraInfoTopic" value="/rgbd/rgb/camera_info" />
+    <param name="parentNode" value="rgbd_rgb_optical_frame" />
+
     <node pkg="agimus_vision" type="tracker_object"
         name="tag_tracker"
         machine="multimedia" />

@@ -18,14 +18,13 @@ def makeSupervisorWithFactory (robot):
 
     grippers = [ "talos/left_gripper", ]
     objects = [ "box" ]
-    handlesPerObjects = [ [ "box/handle1", "box/handle2", "box/pose1", "box/pose2" ], ]
-    rules = [ Rule([ "table/pose", ], [ "box/handle[12]", ], False),
-              Rule([ "talos/left_gripper", ], [ "box/pose[12]", ], False),
-              Rule([ "table/pose", ], [ "box/pose1", ], False),
+    handlesPerObjects = [ [ "box/handle1", "box/handle2" ], ]
+    contactPerObjects = [ [ "box/bottom_surface", ] ]
+    rules = [
               Rule([ "talos/left_gripper", ], [ "box/handle2", ], False),
-              Rule([ "talos/left_gripper", ], [ "box/handle1", ], True),
+              # Rule([ "talos/left_gripper", ], [ Object.handles[0], ], True),
+              Rule([ "talos/left_gripper", ], [ ".*", ], True),
               # Rule([ "talos/right_gripper", ], [ Object.handles[1], ], True),
-              Rule([ "table/pose", ], [ "box/pose2", ], True),
               ]
 
     srdf = {}
@@ -45,7 +44,8 @@ def makeSupervisorWithFactory (robot):
     factory.parameters["useMeasurementOfObjectsPose"] = True
     # factory.parameters["addTimerToSotControl"] = True
     factory.setGrippers (grippers)
-    factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
+    factory.setObjects (objects, handlesPerObjects, contactPerObjects)
+    factory.environmentContacts (["table/support",])
     factory.setRules (rules)
     factory.setupFrames (srdf["grippers"], srdf["handles"], robot, disabledGrippers=["table/pose",])
     factory.addAffordance (

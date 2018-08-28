@@ -11,7 +11,8 @@ args = parser.parse_args(sys.argv[1:4])
 
 if __name__ == "__main__":
     rospy.init_node ("visual_tag_initializer", anonymous=True)
-    rospy.wait_for_service ("/add_april_tag_detector")
+    ns = rospy.get_namespace()
+    rospy.wait_for_service (ns+"add_april_tag_detector")
 
-    add_april_tag_detector = rospy.ServiceProxy ("/add_april_tag_detector", AddAprilTagService)
+    add_april_tag_detector = rospy.ServiceProxy (ns+"add_april_tag_detector", AddAprilTagService)
     add_april_tag_detector (int(args.id), float(args.size), str(args.node_name))

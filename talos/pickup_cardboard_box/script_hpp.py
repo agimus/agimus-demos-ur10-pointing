@@ -73,14 +73,15 @@ def makeRobotProblemAndViewerFactory ():
     return robot, ps, vf
 
 def makeGraph (robot):
-    graph = ConstraintGraph.buildGenericGraph(robot, 'graph',
-            # [ "talos/left_gripper", "talos/right_gripper", "table/pose", ],
-            [ "talos/left_gripper", ],
-            [ "box", ],
+    from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
+    graph = ConstraintGraph(robot, 'graph')
+    factory = ConstraintGraphFactory (graph)
+    factory.setGrippers ([ "talos/left_gripper", ])
+    factory.setObjects ([ "box", ],
             [ Object.handles, ],
-            [ Object.contacts, ],
-            # [ [], ],
-            Table.contacts,
+            [ Object.contacts, ])
+    factory.environmentContacts (Table.contacts)
+    factory.setRules (
             [
               Rule([ "talos/left_gripper", ], [ Object.handles[1], ], False),
               # Rule([ "talos/left_gripper", ], [ Object.handles[0], ], True),
@@ -88,6 +89,7 @@ def makeGraph (robot):
               # Rule([ "talos/right_gripper", ], [ Object.handles[1], ], True),
               ]
             )
+    factory.generate ()
     return graph
 
 robot, ps, vf = makeRobotProblemAndViewerFactory()
