@@ -68,6 +68,11 @@ install(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   RENAME talos_pickup_cardboard_box_on_pyrene_no_vision.launch
 )
+install(FILES
+  talos/pickup_cardboard_box/on_pyrene.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_pickup_cardboard_box_on_pyrene.launch
+)
 
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
