@@ -63,6 +63,10 @@ def makeSupervisorWithFactory (robot):
     factory.generate ()
 
     supervisor.makeInitialSot ()
+
+    # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
+    sot_loop =supervisor.sots['Loop | f']
+    supervisor.addSot("starting_motion", sot_loop, sot_loop.control)
     return supervisor
 
 # Set initial config
