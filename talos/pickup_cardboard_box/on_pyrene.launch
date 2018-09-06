@@ -28,7 +28,7 @@
   <group ns="vision">
     <param name="imageTopic"      value="/rgbd/rgb/image_rect" />
     <param name="cameraInfoTopic" value="/rgbd/rgb/camera_info" />
-    <param name="parentNode"      value="rgbd_rgb_optical_frame" />
+    <param name="parentNode"      value="talos/rgbd_rgb_optical_joint" />
     <param name="displayDebug"    value="false" />
     <param name="broadcastTopic"  value="true" />
 
@@ -36,10 +36,10 @@
         name="tag_tracker"
         machine="multimedia" />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00001_init"
-        args="1 63.5 /table/tag36_11_00001"
+        args="1 63.5 table/tag36_11_00001_joint"
         machine="multimedia" />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00002_init"
-        args="2 63.5 /box/tag36_11_00002"
+        args="2 63.5 box/tag36_11_00002_joint"
         machine="multimedia" />
   </group>
 
