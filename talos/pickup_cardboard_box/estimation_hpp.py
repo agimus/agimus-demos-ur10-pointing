@@ -1,12 +1,12 @@
 #/usr/bin/env python
 from common_hpp import *
+
 from hpp.corbaserver.manipulation.robot import CorbaClient
 from hpp.corbaserver.manipulation import ProblemSolver
 from hpp import Transform
-
 import sys, numpy as np
 
-clients = CorbaClient (postContextId = "")
+clients = CorbaClient (postContextId = "_estimation")
 clients.manipulation.problem.resetProblem()
 
 robot, ps, vf = makeRobotProblemAndViewerFactory(clients)
@@ -50,51 +50,19 @@ for n in robot.jointNames:
 
 graph = makeGraph (robot)
 
-for nodename, nodeid in graph.nodes.iteritems():
-    graph.addConstraints (node=nodename,
-        numConstraints = [ "com_talos_box", "gaze"])
-
-graph.createNode("starting_state")
-graph.createEdge("starting_state", "free", "starting_motion", isInNode="starting_state")
-graph.addConstraints(node="starting_state",
-	numConstraints = ["place_box", ] )
-graph.addConstraints(edge="starting_motion",
-	numConstraints = ["place_box/complement", ] )
-for edgename, edgeid in graph.edges.iteritems():
-    graph.addConstraints (edge=edgename,
-        numConstraints = foot_placement_complement)
-
 graph.setConstraints (graph=True,
-        lockDof = left_gripper_lock + right_gripper_lock + other_lock,
+        #lockDof = left_gripper_lock + right_gripper_lock + other_lock,
         numConstraints = foot_placement)
 graph.initialize()
 
-res, hs_proj, err = graph.applyNodeConstraints("starting_state", half_sitting)
-# res, q_init, err = graph.applyNodeConstraints("free", half_sitting)
-res, q_init, err = graph.generateTargetConfig("Loop | f", hs_proj, hs_proj)
-res, q_init, err = graph.applyNodeConstraints("free", q_init)
-# res, q_goal, err = graph.generateTargetConfig("Loop | f", q_tmp, q_tmp)
-res, q_goal, err = graph.generateTargetConfig("talos/left_gripper > box/handle1 | f_23", q_init, q_init)
-# res, q_goal, err = graph.applyNodeConstraints("talos/right_gripper grasps box/bottom", half_sitting)
-# print ps.directPath(q_init, q_init, True)
-ps.setInitialConfig(q_init)
-# ps.addGoalConfig(q_goal)
-ps.setTargetState (graph.nodes["talos/left_gripper grasps box/handle1"])
+res, q_init, err = graph.generateTargetConfig("Loop | f", half_sitting, half_sitting)
+
 ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
 ps.setParameter ("ConfigurationShooter/Gaussian/standardDeviation", 0.05)
 ps.client.basic.problem.selectConfigurationShooter ("Gaussian")
+
+# Set initial guess for the current configuration
 robot.setCurrentConfig(q_init)
-# ps.setRandomSeed(1)
-# sys.exit(1)
-
-
-res, pid, msg = ps.directPath (hs_proj, q_init, True)
-if not res:
-  print "Could not compute path from half_sitting to init"
-else:
-  ps.optimizePath (pid)
-
-print ps.solve()
