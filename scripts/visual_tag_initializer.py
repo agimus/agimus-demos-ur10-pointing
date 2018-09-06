@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from agimus_vision.srv import AddAprilTagService
+from agimus_hpp.ros_tools import wait_for_service
 import rospy, argparse, sys
 
 parser = argparse.ArgumentParser()
@@ -11,8 +12,9 @@ args = parser.parse_args(sys.argv[1:4])
 
 if __name__ == "__main__":
     rospy.init_node ("visual_tag_initializer", anonymous=True)
-    ns = rospy.get_namespace()
-    rospy.wait_for_service (ns+"add_april_tag_detector")
+    wait_for_service ("add_april_tag_detector")
 
-    add_april_tag_detector = rospy.ServiceProxy (ns+"add_april_tag_detector", AddAprilTagService)
+    add_april_tag_detector = rospy.ServiceProxy ("add_april_tag_detector", AddAprilTagService)
     add_april_tag_detector (int(args.id), float(args.size), str(args.node_name))
+
+    rospy.loginfo ('Added APRIL tag {0}, size {1}mm, {2}'.format(args.id, args.size, args.node_name))
