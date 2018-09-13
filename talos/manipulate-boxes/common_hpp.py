@@ -17,7 +17,7 @@ class Box (object):
     self.handles = [ name + "/" + h for h in self.__class__.handles ]
     self.contacts = [ name + "/" + h for h in self.__class__.contacts ]
     vf.loadObjectModel (self.__class__, name)
-    
+
   rootJointType = 'freeflyer'
   packageName = 'gerard_bauzil'
   urdfName = 'plank_of_wood'
@@ -103,3 +103,25 @@ def makeGraph (robot, table, objects):
     factory.environmentContacts (table.contacts)
     factory.generate ()
     return graph
+
+def shootConfig (robot, q, i):
+  """
+  Shoot a random config if i > 0, return input configuration otherwise
+  """
+  if i==0: return q
+  return robot.shootRandomConfig ()
+
+def createConnection (ps, graph, e, q, maxIter):
+  """
+  Try to build a path along a transition from a given configuration
+  """
+  for i in range (maxIter):
+    q_rand = shootConfig (ps.robot, q, i)
+    res, q1, err = graph.generateTargetConfig (e, q, q_rand)
+    if not res: continue
+    res, p, msg = ps.directPath (q, q1, True)
+    if not res: continue
+    ps.addConfigToRoadmap (q1)
+    ps.addEdgeToRoadmap (q, q1, p, True)
+    return p, q1
+  return (None, None)

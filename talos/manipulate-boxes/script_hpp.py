@@ -7,6 +7,9 @@ import sys, numpy as np
 
 footPlacement = True
 comConstraint = True
+constantWaistYaw = True
+lockedTorso = False
+fixedArmWhenGrasping = True
 
 clients = CorbaClient (postContextId = "")
 clients.manipulation.problem.resetProblem()
@@ -18,27 +21,64 @@ q_neutral = robot.getCurrentConfig()
 ps.addPartialCom ("talos", ["talos/root_joint"])
 ps.addPartialCom ("talos_box", ["talos/root_joint", "box/root_joint"])
 
-#ps.createStaticStabilityConstraints ("balance", half_sitting, "talos", ProblemSolver.FIXED_ON_THE_GROUND)
-#foot_placement = [ "balance/pose-left-foot", "balance/pose-right-foot" ]
-#foot_placement_complement = [ ]
-ps.createStaticStabilityConstraints ("balance", half_sitting, "talos", ProblemSolver.SLIDING)
-foot_placement = [ "balance/relative-orientation", "balance/relative-position", "balance/orientation-left-foot", "balance/position-left-foot" ]
-foot_placement_complement = [ "balance/orientation-left-foot-complement", "balance/position-left-foot-complement" ]
+# Sliding static stability constraint
+ps.createStaticStabilityConstraints ("balance", half_sitting, "talos",
+                                     ProblemSolver.SLIDING)
+foot_placement = [ "balance/relative-orientation",
+                   "balance/relative-position",
+                   "balance/orientation-left-foot",
+                   "balance/position-left-foot" ]
+foot_placement_complement = [ "balance/orientation-left-foot-complement",
+                              "balance/position-left-foot-complement" ]
 
 robot.setCurrentConfig(half_sitting)
+# Position of COM with respect to left ankle
 com_wf = np.array(ps.getPartialCom("talos"))
 tf_la = Transform (robot.getJointPosition(robot.leftAnkle))
 com_la = tf_la.inverse().transform(com_wf)
 
-ps.createRelativeComConstraint ("com_talos_box", "talos_box", robot.leftAnkle, com_la.tolist(), (True, True, True))
-ps.createRelativeComConstraint ("com_talos"    , "talos"    , robot.leftAnkle, com_la.tolist(), (True, True, True))
+# COM constraints: robot and robot + box
+ps.createRelativeComConstraint ("com_talos_box", "talos_box",
+                                robot.leftAnkle, com_la.tolist(),
+                                (True, True, True))
+ps.createRelativeComConstraint ("com_talos", "talos", robot.leftAnkle,
+                                com_la.tolist(), (True, True, True))
 
-ps.createPositionConstraint ("gaze", "talos/rgbd_optical_joint", "box/root_joint", (0,0,0), (0,0,0), (True, True, False))
+# Gaze constraint
+ps.createPositionConstraint ("gaze", "talos/rgbd_optical_joint",
+                             "box/root_joint", (0,0,0), (0,0,0),
+                             (True, True, False))
+
+# Constraint of constant yaw of the waist
+ps.createOrientationConstraint ("waist_yaw", "", "talos/root_joint",
+                                (0,0,0,1), [True, True, True])
+ps.setConstantRightHandSide ("waist_yaw", False)
 
 # Create lock joints for grippers
-left_gripper_lock = []
-right_gripper_lock = []
-other_lock = ["talos/torso_1_joint"]
+other_lock = list ()
+# Create locked joint for torso
+if lockedTorso:
+    other_lock.append ("talos/torso_1_joint")
+
+# Create locked joint for left arm
+left_arm_lock = list ()
+for n in robot.jointNames:
+    if n.startswith ("talos/arm_left"):
+        ps.createLockedJoint (n, n, [0,])
+        ps.setConstantRightHandSide (n, False)
+        left_arm_lock.append (n)
+
+# Create locked joint for right arm
+right_arm_lock = list ()
+for n in robot.jointNames:
+    if n.startswith ("talos/arm_right"):
+        ps.createLockedJoint (n, n, [0,])
+        ps.setConstantRightHandSide (n, False)
+        right_arm_lock.append (n)
+
+# Create locked joint for grippers
+left_gripper_lock = list ()
+right_gripper_lock = list ()
 for n in robot.jointNames:
     s = robot.getJointConfigSize(n)
     r = robot.rankInConfiguration[n]
@@ -55,34 +95,71 @@ for n in robot.jointNames:
 robot.setCurrentConfig (q_neutral)
 graph = makeGraph (robot, table, objects)
 
+# On the real robot, the initial configuration as measured by sensors is very
+# likely not in any state of the graph. State "starting_state" and transition
+# "starting_motion" are aimed at coping with this issue.
+graph.createNode ("starting_state")
+graph.createEdge ("starting_state", "free", "starting_motion",
+                  isInNode="starting_state")
+graph.addConstraints (node="starting_state", constraints = \
+                      Constraints (numConstraints = ["place_box"]) )
+graph.addConstraints (edge="starting_motion", constraints = \
+                      Constraints (numConstraints = ["place_box/complement"]))
+
+# Add gaze and and COM constraints to each node of the graph
 if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
         graph.addConstraints (node=nodename, constraints =
                               Constraints (numConstraints =
                                            [ "com_talos_box", "gaze"]))
 
-graph.createNode("starting_state")
-graph.createEdge("starting_state", "free", "starting_motion", isInNode="starting_state")
-graph.addConstraints(node="starting_state",
-	numConstraints = ["place_box", ] )
-graph.addConstraints(edge="starting_motion",
-	numConstraints = ["place_box/complement", ] )
-
+# Add locked joints and foot placement constraints in the graph,
+# add foot placement complement in each edge.
 if footPlacement:
     for edgename, edgeid in graph.edges.iteritems():
-        graph.addConstraints (edge=edgename,
-                              numConstraints = foot_placement_complement)
+        graph.addConstraints (edge=edgename, constraints = Constraints \
+                              (numConstraints = foot_placement_complement))
 
-    graph.setConstraints (graph=True,
-                          lockDof = left_gripper_lock + right_gripper_lock\
-                          + other_lock,
-                          numConstraints = foot_placement)
+if constantWaistYaw:
+    for edgename, edgeid in graph.edges.iteritems():
+        graph.addConstraints (edge = edgename, constraints = Constraints
+                              (numConstraints = ["waist_yaw"]))
+
+graph.setConstraints (graph=True,
+                      constraints = Constraints \
+                      (numConstraints = foot_placement,
+                       lockedJoints = left_gripper_lock + right_gripper_lock +\
+                       other_lock))
+
+# Transitions from state 'free'
+e1 = 'talos/left_gripper > box/handle1 | f'
+e2 = 'talos/right_gripper > box/handle3 | f'
+e3 = 'talos/left_gripper > box/handle4 | f'
+e4 = 'talos/right_gripper > box/handle2 | f'
+
+# Transition from 'free' to first waypoint
+e1_app = e1 + '_01'
+e2_app = e2 + '_01'
+e3_app = e3 + '_01'
+e4_app = e4 + '_01'
+
+if fixedArmWhenGrasping:
+    leftArmConstraint = Constraints (lockedJoints = left_arm_lock)
+    rightArmConstraint = Constraints (lockedJoints = right_arm_lock)
+
+    graph.addConstraints (edge = e1_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e2_app, constraints = leftArmConstraint)
+    graph.addConstraints (edge = e3_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e4_app, constraints = leftArmConstraint)
+    graph.initialize ()
+
+
 ps.setRandomSeed(123)
 ps.selectPathProjector("Progressive", 0.2)
 ps.selectPathValidation("Progressive", 0.01)
 graph.initialize()
 
-q_init = [0.5402763680625408, -0.833196863501999, 1.0199316910041052, -0.03128842007165536, 0.013789190720970665, 0.7297271046306221, 0.6828830395873728, -0.002517657851415276, 0.03462520266527989, -0.5316498053579248, 0.8402250533557625, -0.3730641123290547, -0.011780954381969872, -0.0025270209724267243, 0.034480300571697056, -0.5168007496652326, 0.8113706150231745, -0.3590584062316795, -0.011635750462120158, 0.0, 0.4392076095335054, 0.2806705510519144, 0.18306255865650514, 0.0019674899062759165, -0.5194264855927397, 1.2349417194832937e-05, 0.0007850050683513623, 0.10090925286890041, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2814831804277627, -0.19465310763470348, -0.004238959829568303, -0.5200522586579716, 0.00014996678886283413, -0.0015425422291322729, 0.10092910629223316, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5143008291852817, 0.0455661913503581, 0.45891797741593393, -0.19025700845205984, 0.832, 0.0, a, 0.0, a]
+q_init = [0.5402763680625408, -0.833196863501999, 1.0199316910041052, -0.03128842007165536, 0.013789190720970665, 0.7297271046306221, 0.6828830395873728, -0.002517657851415276, 0.03462520266527989, -0.5316498053579248, 0.8402250533557625, -0.3730641123290547, -0.011780954381969872, -0.0025270209724267243, 0.034480300571697056, -0.5168007496652326, 0.8113706150231745, -0.3590584062316795, -0.011635750462120158, 0.0, 0.4392076095335054, 0.2806705510519144, 0.5, 0.0019674899062759165, -0.5194264855927397, 1.2349417194832937e-05, 0.0007850050683513623, 0.10090925286890041, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.2814831804277627, -0.5, -0.004238959829568303, -0.5200522586579716, 0.00014996678886283413, -0.0015425422291322729, 0.10092910629223316, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5143008291852817, 0.0455661913503581, 0.45891797741593393, -0.19025700845205984, 0.832, 0.0, a, 0.0, a]
 
 # Set Gaussian configuration shooter.
 robot.setCurrentConfig (q_init)
@@ -97,6 +174,7 @@ ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
+q_init = robot.shootRandomConfig ()
 # Define problem
 res, q_init, err = graph.applyNodeConstraints ('free', q_init)
 if not res: raise RuntimeError ('Failed to project initial configuration')
@@ -107,4 +185,17 @@ q_goal [-4:] = [0.0, -a, 0.0, a]
 ps.setInitialConfig (q_init)
 ps.addGoalConfig (q_goal)
 
-#ps.solve ()
+# Try direct connections
+e14 = 'talos/right_gripper > box/handle2 | 0-0'
+e23 = 'talos/left_gripper > box/handle4 | 1-2'
+
+ps.addConfigToRoadmap (q_init)
+ps.addConfigToRoadmap (q_goal)
+
+p1, q1 = createConnection (ps, graph, e1, q_init, 1000)
+p2, q2 = createConnection (ps, graph, e2, q_init, 1000)
+p3, q3 = createConnection (ps, graph, e3, q_goal, 1000)
+p4, q4 = createConnection (ps, graph, e4, q_goal, 1000)
+
+p14, q14 = createConnection (ps, graph, e14, q1, 1000)
+p23, q23 = createConnection (ps, graph, e23, q2, 1000)
