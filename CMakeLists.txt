@@ -18,61 +18,38 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-# Install launch files in launch directory
-install(FILES
-  talos/pass_box_between_hands/geometric_simu.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pass_box_between_hands_geometric_simu.launch
-)
-install(FILES
-  talos/pass_box_between_hands/gazebo.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pass_box_between_hands_gazebo.launch
-)
-install(FILES
-  talos/pass_box_between_hands/on_pyrene.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pass_box_between_hands_on_pyrene.launch
-)
+MACRO(INSTALL_DEMO_LAUNCH_FILES ROBOT DEMO)
+  SET (LAUNCH_FILES ${ARGN})
+  FOREACH (launch_file ${LAUNCH_FILES})
+    install(FILES
+      ${ROBOT}/${DEMO}/${launch_file}
+      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+      RENAME ${ROBOT}_${DEMO}_${launch_file}
+    )
+  ENDFOREACH ()
+ENDMACRO()
 
 # Install launch files in launch directory
-install(FILES
-  talos/pickup_object/geometric_simu.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_object_geometric_simu.launch
-)
-install(FILES
-  talos/pickup_object/gazebo.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_object_gazebo.launch
-)
-install(FILES
-  talos/pickup_object/on_pyrene_no_vision.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_object_on_pyrene_no_vision.launch
-)
+INSTALL_DEMO_LAUNCH_FILES(talos pass_box_between_hands
+  geometric_simu.launch
+  gazebo.launch
+  on_pyrene.launch
+  )
 
 # Install launch files in launch directory
-install(FILES
-  talos/pickup_cardboard_box/geometric_simu.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_cardboard_box_geometric_simu.launch
-)
-install(FILES
-  talos/pickup_cardboard_box/gazebo.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_cardboard_box_gazebo.launch
-)
-install(FILES
-  talos/pickup_cardboard_box/on_pyrene_no_vision.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_cardboard_box_on_pyrene_no_vision.launch
-)
-install(FILES
-  talos/pickup_cardboard_box/on_pyrene.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_pickup_cardboard_box_on_pyrene.launch
-)
+INSTALL_DEMO_LAUNCH_FILES(talos pickup_object
+  geometric_simu.launch
+  gazebo.launch
+  on_pyrene_no_vision.launch
+  )
+
+# Install launch files in launch directory
+INSTALL_DEMO_LAUNCH_FILES(talos pickup_cardboard_box
+  geometric_simu.launch
+  gazebo.launch
+  on_pyrene_no_vision.launch
+  on_pyrene.launch
+  )
 
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
