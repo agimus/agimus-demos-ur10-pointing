@@ -20,7 +20,7 @@ class Box (object):
 
   rootJointType = 'freeflyer'
   packageName = 'gerard_bauzil'
-  urdfName = 'plank_of_wood'
+  urdfName = 'plank_of_wood1'
   urdfSuffix = ""
   srdfSuffix = ""
   handles = ["handle1", "handle2", "handle3", "handle4"]
