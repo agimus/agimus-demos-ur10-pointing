@@ -12,7 +12,7 @@ newProblem()
 
 Robot.packageName = "talos_data"
 Robot.urdfName = "talos"
-Robot.urdfSuffix = '_full'
+Robot.urdfSuffix = '_full_v2'
 Robot.srdfSuffix= ''
 
 class Mire (object):
@@ -97,6 +97,7 @@ ps.createRelativeComConstraint ("com_talos"     , "talos"     , robot.leftAnkle,
 
 left_gripper_lock = []
 right_gripper_lock = []
+head_lock = []
 other_lock = ["talos/torso_1_joint"]
 for n in robot.jointNames:
     s = robot.getJointConfigSize(n)
@@ -107,6 +108,9 @@ for n in robot.jointNames:
     elif n.startswith ("talos/gripper_left"):
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
         left_gripper_lock.append(n)
+    elif n.startswith ("talos/head"):
+        ps.createLockedJoint(n, n, half_sitting[r:r+s])
+        head_lock.append(n)
     elif n in other_lock:
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
 
@@ -126,19 +130,28 @@ graph.setConstraints (graph=True,
 
 graph.initialize()
 
-robot.setCurrentConfig(half_sitting)
-# Use the current robot velocity as std dev for the shooter 
-# Higher values on the arm with the chessboard might limit the use of the other DoFs
-ps.setParameter('ConfigurationShooter/Gaussian/useRobotVelocity', True)
-robot.client.basic.robot.setCurrentVelocity([0.01,] * robot.getNumberDof())
+def setGuassianShooter (mean, stddev = [0.01,] * robot.getNumberDof()):
+    robot.setCurrentConfig(mean)
+    # Use the current robot velocity as std dev for the shooter 
+    # Higher values on the arm with the chessboard might limit the use of the other DoFs
+    ps.setParameter('ConfigurationShooter/Gaussian/useRobotVelocity', True)
+    robot.client.basic.robot.setCurrentVelocity(stddev)
+    ps.client.basic.problem.selectConfigurationShooter('Gaussian')
 
-
+qrand = half_sitting[:]
 q_proj_list = []
+
+expected_poses = []
+
 # Randomize the position of the chessboard
 # The chessboard is on the right of the plate, so we shift the gaze (pointing to the centre of the plate) to the left
-for x in [ 400, 450, 500, 550, 600, 650, 700 ]:
-  for y in [ 300, 350, 400 ]:
+ys = [ 300, 350, 400, 450 ]
+for x in [ 400, 450, 500, 550, 600, 650, 700, 750, 800 ]:
+  for y in ys:
     # Keep only poses where the chessboard can be seen from the camera
+    setGuassianShooter (qrand)
+    shoot_pose = 0
+    shoot_cfg  = 0
     while True:
       chessboard_Z = random.uniform( dist_from_camera[0], dist_from_camera[1] )
       chessboard_X = ( x - projection_matrix[0, 2] ) / projection_matrix[0, 0] * chessboard_Z 
@@ -146,6 +159,7 @@ for x in [ 400, 450, 500, 550, 600, 650, 700 ]:
       chessboard_position = np.matrix([ chessboard_X, chessboard_Y, chessboard_Z ])
 
       q = Quaternion().fromRPY( random.uniform( -pi/12., pi/12. ), random.uniform( -pi/12., pi/12. ), random.uniform( -pi/12., pi/12. ) ) 
+      shoot_pose += 1
       R = q.toRotationMatrix()
       if (R * chessboard_normal)[2] >= 0.:
         continue
@@ -159,31 +173,60 @@ for x in [ 400, 450, 500, 550, 600, 650, 700 ]:
       
       chessboard_pose = (chessboard_position[0,0], chessboard_position[0,1], chessboard_position[0,2]) + q.toTuple()
       ps.createTransformationConstraint ("gaze", "talos/rgbd_rgb_optical_joint", "mire/root_joint", chessboard_pose, [True,]*6)
-      ps.client.basic.problem.selectConfigurationShooter('Gaussian')
 
       ps.resetConstraints ()
       ps.setNumericalConstraints('proj', foot_placement + ["com_talos_mire", "talos/left_gripper grasps mire/left", "gaze", ])
       ps.setLockedJointConstraints('proj', left_gripper_lock + right_gripper_lock + other_lock)
       
-      res, qproj, err = ps.applyConstraints(robot.shootRandomConfig())
+      res, qproj, err = ps.applyConstraints(qrand)
       if res:
-        print "Found pose"
-        q_proj_list.append(qproj)
-        break
+        valid, msg = robot.isConfigValid (qproj)
+        if valid:
+            print "Found pose", shoot_pose, '\t', shoot_cfg
+            expected_poses.append(chessboard_pose)
+            q_proj_list.append(qproj)
+            qrand = qproj[:]
+            break
+      # It may be needed to shoot from time to time but so far it works without doing it.
+      #qrand = robot.shootRandomConfig()
+      #shoot_cfg += 1
+  ys.reverse()
 
+hpp_poses = []
+for q in q_proj_list:
+    robot.setCurrentConfig(q)
+    oMc = Transform(robot.getJointPosition('talos/rgbd_rgb_optical_joint'))
+    oMm = Transform(robot.getJointPosition('mire/root_joint'))
+    cMm = oMc.inverse() * oMm
+    hpp_poses.append (cMm.toTuple())
 
+res, hs_proj, err = graph.applyNodeConstraints("talos/left_gripper grasps mire/left", half_sitting)
 
-res, q_init, err = graph.applyNodeConstraints("talos/left_gripper grasps mire/left", half_sitting)
-res, q_goal, err = graph.applyNodeConstraints("talos/right_gripper grasps mire/right", half_sitting)
+paths = list()
+failed = False
+for i, (q1, q2) in enumerate(zip([hs_proj,] + q_proj_list, q_proj_list + [hs_proj,])):
+    res, pid, msg = ps.directPath (q1, q2, True)
+    if res:
+        print "Path from", i, "to", i+1, ":", pid
+        paths.append(pid)
+    else:
+        print "Could not joint", i, "to", i+1, ":", msg
+        failed = True
 
-
-#ires, q, err = graph.generateTargetConfig(edge_name, config, config
-# graph.edges pour liste des edges
-
-print ps.directPath(q_init, q_init, True)
-ps.setInitialConfig(q_init)
-ps.addGoalConfig(q_goal)
 ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
+ps.setParameter('SimpleTimeParameterization/maxAcceleration', 1.)
 
-# ps.solve()
+cleanPaths = True
+if not failed:
+    # join path
+    i0 = paths[0]
+    for i in paths[1:]:
+        ps.concatenatePath (i0, i)
+
+    if cleanPaths:
+        for k,i in enumerate(paths[1:]):
+            ps.erasePath (i-k)
+
+    ps.optimizePath (i0)
+    print 'Optimized path:', ps.numberPaths() - 1, ',', ps.pathLength(ps.numberPaths()-1)
