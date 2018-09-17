@@ -124,3 +124,29 @@ def createConnection (ps, graph, e, q, maxIter):
     ps.addEdgeToRoadmap (q, q1, p, True)
     return p, q1
   return (None, None)
+
+class Solver (object):
+  """
+  Solver that tries direct connections before calling RRT.
+  """
+  def __init__ (self, ps, graph, q_init, q_goal, e1, e2, e3, e4, e14, e23):
+    self.ps = ps; self.graph = graph
+    self.e1 = e1; self.e2 = e2; self.e3 = e3; self.e4 = e4
+    self.e14 = e14; self.e23 = e23
+    self.q_init = q_init; self.q_goal = q_goal
+
+  def solve (self):
+    self.ps.addConfigToRoadmap (self.q_init)
+    self.ps.addConfigToRoadmap (self.q_goal)
+
+    p1, q1 = createConnection (self.ps, self.graph, self.e1, self.q_init, 1000)
+    p2, q2 = createConnection (self.ps, self.graph, self.e2, self.q_init , 1000)
+    p3, q3 = createConnection (self.ps, self.graph, self.e3, self.q_goal, 1000)
+    p4, q4 = createConnection (self.ps, self.graph, self.e4, self.q_goal, 1000)
+    if q1:
+      p14, q14 = createConnection (self.ps, self.graph, self.e14, q1, 1000)
+    if q2:
+      p23, q23 = createConnection (self.ps, self.graph, self.e23, q2, 1000)
+    self.ps.setInitialConfig (self.q_init)
+    self.ps.addGoalConfig (self.q_goal)
+    self.ps.solve ()

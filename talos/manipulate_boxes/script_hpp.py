@@ -136,6 +136,10 @@ e1 = 'talos/left_gripper > box/handle1 | f'
 e2 = 'talos/right_gripper > box/handle3 | f'
 e3 = 'talos/left_gripper > box/handle4 | f'
 e4 = 'talos/right_gripper > box/handle2 | f'
+# Transitions from one grasp to two grasps
+e14 = 'talos/right_gripper > box/handle2 | 0-0'
+e23 = 'talos/left_gripper > box/handle4 | 1-2'
+
 
 # Transition from 'free' to first waypoint
 e1_app = e1 + '_01'
@@ -180,22 +184,7 @@ res, q_init, err = graph.applyNodeConstraints ('free', q_init)
 if not res: raise RuntimeError ('Failed to project initial configuration')
 
 q_goal = q_init [::]
-q_goal [-4:] = [0.0, -a, 0.0, a]
+q_goal [-4:] = [-0.5, -0.5, -0.5, 0.5]
 
-ps.setInitialConfig (q_init)
-ps.addGoalConfig (q_goal)
+solver = Solver (ps, graph, q_init, q_goal, e1, e2, e3, e4, e14, e23)
 
-# Try direct connections
-e14 = 'talos/right_gripper > box/handle2 | 0-0'
-e23 = 'talos/left_gripper > box/handle4 | 1-2'
-
-ps.addConfigToRoadmap (q_init)
-ps.addConfigToRoadmap (q_goal)
-
-p1, q1 = createConnection (ps, graph, e1, q_init, 1000)
-p2, q2 = createConnection (ps, graph, e2, q_init, 1000)
-p3, q3 = createConnection (ps, graph, e3, q_goal, 1000)
-p4, q4 = createConnection (ps, graph, e4, q_goal, 1000)
-
-p14, q14 = createConnection (ps, graph, e14, q1, 1000)
-p23, q23 = createConnection (ps, graph, e23, q2, 1000)
