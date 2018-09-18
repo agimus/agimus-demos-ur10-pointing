@@ -11,7 +11,7 @@ constantWaistYaw = True
 lockedTorso = False
 fixedArmWhenGrasping = True
 
-clients = CorbaClient (postContextId = "")
+clients = CorbaClient (postContextId = "_estimation")
 clients.manipulation.problem.resetProblem()
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(clients)
