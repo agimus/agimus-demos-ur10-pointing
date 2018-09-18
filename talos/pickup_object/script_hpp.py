@@ -153,7 +153,7 @@ ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
-ps.setParameter ("ConfigurationShooter/Gaussian/standardDeviation", 0.05)
+ps.setParameter ("ConfigurationShooter/Gaussian/standardDeviation", 0.02)
 ps.client.basic.problem.selectConfigurationShooter ("Gaussian")
 # ps.setRandomSeed(1)
 print ps.solve()

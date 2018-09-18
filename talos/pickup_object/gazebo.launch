@@ -24,14 +24,18 @@
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/talos/pickup_object/supervisor.py" />
 
-  <include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >
-    <!--<arg name="paused" value="true"/>-->
+  <!--<include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >-->
+  <include file="$(find pal_gazebo_worlds)/launch/pal_gazebo.launch" >
+    <arg name="world" value="empty"/>
     <!-- Gazebo args:
          -u: paused
+    <arg name="debug" value="true"/>
       -->
     <arg name="extra_gazebo_args" value="-u"/>
     <!---x -0.6340 -y -0.2027 -z 1.05 -R -0.034 -P 0.027 -Y 0.125-->
     <!---x -0.6 -y -0.2 -z 1.0192720229567027-->
+  </include>
+  <include file="$(find talos_gazebo)/launch/talos_spawn.launch">
     <arg name="gzpose" value="
       -x -0.6 -y -0.2 -z 1.0193
       -J leg_left_1_joint 0.0

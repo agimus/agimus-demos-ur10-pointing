@@ -42,7 +42,7 @@ def makeSupervisorWithFactory (robot):
     factory.parameters["period"] = 0.001 # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = True
-    factory.parameters["useMeasurementOfObjectsPose"] = True
+    factory.parameters["useMeasurementOfObjectsPose"] = False
     # factory.parameters["addTimerToSotControl"] = True
     factory.setGrippers (grippers)
     factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
@@ -50,7 +50,7 @@ def makeSupervisorWithFactory (robot):
     factory.setupFrames (srdf["grippers"], srdf["handles"], robot, disabledGrippers = ["table/pose"])
     factory.addAffordance (
         Affordance ("talos/left_gripper", "box/handle1",
-            openControlType="torque", closeControlType="torque",
+            openControlType="position", closeControlType="position",
             refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-0.05,) },
             controlParams = { "torque_num": ( 5000., 1000.),
                 "torque_denom": (0.01,) },
