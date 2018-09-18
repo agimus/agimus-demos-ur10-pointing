@@ -3,6 +3,7 @@ from math import sqrt
 from hpp.corbaserver.manipulation.robot import Robot
 from hpp.corbaserver.manipulation import ProblemSolver, ConstraintGraph, Rule
 from hpp.gepetto.manipulation import ViewerFactory
+from datetime import datetime
 a = sqrt (2)/2
 
 Robot.packageName = "talos_data"
@@ -136,6 +137,7 @@ class Solver (object):
     self.q_init = q_init; self.q_goal = q_goal
 
   def solve (self):
+    start = datetime.now ()
     self.ps.addConfigToRoadmap (self.q_init)
     self.ps.addConfigToRoadmap (self.q_goal)
 
@@ -150,3 +152,5 @@ class Solver (object):
     self.ps.setInitialConfig (self.q_init)
     self.ps.addGoalConfig (self.q_goal)
     self.ps.solve ()
+    end = datetime.now ()
+    print ("Resolution time : {0}". format (end - start))
