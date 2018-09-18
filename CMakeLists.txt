@@ -51,6 +51,12 @@ INSTALL_DEMO_LAUNCH_FILES(talos pickup_cardboard_box
   on_pyrene.launch
   )
 
+# Install launch files in launch directory
+INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
+  estimation.launch
+  on_pyrene.launch
+  )
+
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

@@ -1,0 +1,81 @@
+<launch>
+  <machine name="multimedia" address="talos-1m"
+    env-loader="/home/pal/devel/config_roslaunch.sh"/>
+
+  <!-- World setup -->
+  <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+    <arg name="prefix" value="box" />
+    <arg name="id" value="$(arg plank_of_wood_id)" />
+  </include>
+  <include file="$(find gerard_bauzil)/launch/table_140_70_73.launch">
+    <arg name="prefix" value="table" />
+  </include>
+  <group ns="table">
+    <node name="to_tf" pkg="tf" type="static_transform_publisher"
+	  required="true"
+	  args="0 0 0 0 0 0 1 world table/base_link 100"
+	  />
+  </group>
+
+  <!-- Setup vision -->
+  <group ns="vision">
+    <param name="imageTopic"      value="/rgbd/rgb/high_res/image_rect" />
+    <param name="cameraInfoTopic" value="/rgbd/rgb/high_res/camera_info" />
+    <param name="parentNode"      value="talos/rgbd_rgb_optical_frame" />
+    <param name="displayDebug"    value="false" />
+    <param name="broadcastTf"     value="true" />
+    <!-- Useful for debugging purpose -->
+    <param name="broadcastTopic"  value="true" />
+    <param name="broadcastTfPostfix" value="_tf" />
+
+    <node pkg="agimus_vision" type="tracker_object"
+        name="tag_tracker"
+        />
+    <!-- Table -->
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00004_init"
+        args="4 63.5 table/tag36_11_00004_joint"
+        />
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00005_init"
+        args="5 63.5 table/tag36_11_00005_joint"
+        />
+
+    <!-- Plank of wood 1 -->
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)0_init"
+        args="$(arg plank_of_wood_id)0 60 box/tag36_11_000$(arg plank_of_wood_id)0_joint"
+        />
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)1_init"
+        args="$(arg plank_of_wood_id)1 60 box/tag36_11_000$(arg plank_of_wood_id)1_joint"
+        />
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)2_init"
+        args="$(arg plank_of_wood_id)2 60 box/tag36_11_000$(arg plank_of_wood_id)2_joint"
+        />
+    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)3_init"
+        args="$(arg plank_of_wood_id)3 60 box/tag36_11_000$(arg plank_of_wood_id)3_joint"
+        />
+  </group>
+
+  <!-- SoT parameters -->
+  <arg name="script_file" doc="Full path to the script which initialize the supervisor"
+    default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
+
+  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller.launch" >
+  </include>
+
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <include file="$(find agimus_hpp)/launch/hpp_interface.launch" >
+    <arg name="machine" value="multimedia"/>
+	  <param name="/agimus/hpp/default_state_id"  value="2" />
+  </include>
+
+  <!--This starts sot supervisor in namespace agimus/sot-->
+  <include file="$(find agimus_sot)/launch/supervisor.launch" >
+    <arg name="script_file" value="$(arg script_file)"/>
+    <arg name="robot_prefix" value="talos/"/>
+    <arg name="simulate_torque_feedback" value="false"/>
+  </include>
+
+  <include file="$(find agimus)/launch/path_execution.launch">
+    <arg name="machine" value="multimedia"/>
+    <arg name="gui" value="false"/>
+  </include>
+</launch>
