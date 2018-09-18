@@ -33,7 +33,7 @@ class Table (object):
     self.contacts = [ name + "/" + h for h in self.__class__.contacts ]
     vf.loadObjectModel (self.__class__, name)
 
-  rootJointType = 'anchor'
+  rootJointType = 'freeflyer'
   packageName = 'gerard_bauzil'
   urdfName = 'table_140_70_73'
   urdfSuffix = ""
@@ -42,7 +42,6 @@ class Table (object):
   handles = []
   contacts = [ "top", ]
 
-Object = Box
 half_sitting = [
         # -0.74,0,1.0192720229567027,0,0,0,1, # root_joint
         0.6,-0.65,1.0192720229567027,0,0,sqrt(2)/2,sqrt(2)/2, # root_joint
@@ -56,6 +55,7 @@ half_sitting = [
         0, 0, # head
 
         -0.04,0,1.095+0.071,0,0,1,0, # box
+        0, 0, 0, 0, 0, 0, 1, # table
         ]
 
 # Load an object of type Type with name name
@@ -82,7 +82,7 @@ def makeRobotProblemAndViewerFactory (clients):
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory (ps)
-    objects.append (Object (name = 'box', vf = vf))
+    objects.append (Box (name = 'box', vf = vf))
     robot.setJointBounds ("box/root_joint", [-1, 1, -1, 1, 0, 2])
 
     # Loaded as an object to get the visual tags at the right position.
