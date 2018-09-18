@@ -1,11 +1,12 @@
 #/usr/bin/env python
-from hpp.corbaserver.manipulation.robot import Robot
-from hpp.corbaserver.manipulation import newProblem, ProblemSolver, ConstraintGraph, Rule
+from hpp.corbaserver.manipulation.robot import Robot, CorbaClient
+from hpp.corbaserver.manipulation import ProblemSolver, ConstraintGraph, Rule
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp import Transform
 import CORBA, sys, numpy as np
 
-newProblem()
+clients = CorbaClient ()
+clients.manipulation.problem.resetProblem()
 
 Robot.packageName = "talos_data"
 Robot.urdfName = "talos"
@@ -56,8 +57,8 @@ half_sitting = [
         0,0,0,0,0,0,1, # box
         ]
 
-def makeRobotProblemAndViewerFactory ():
-    robot = Robot ('dev', 'talos', rootJointType = "freeflyer")
+def makeRobotProblemAndViewerFactory (corbaclient):
+    robot = Robot ('dev', 'talos', rootJointType = "freeflyer", client=corbaclient)
     robot. leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
 
@@ -100,7 +101,7 @@ def makeGraph (robot):
             )
     return graph
 
-robot, ps, vf = makeRobotProblemAndViewerFactory()
+robot, ps, vf = makeRobotProblemAndViewerFactory(clients)
 
 q_init = robot.getCurrentConfig()
 
@@ -159,9 +160,9 @@ ps.client.basic.problem.selectConfigurationShooter ("Gaussian")
 print ps.solve()
 
 ps.client.manipulation.problem.selectProblem ("estimation")
-newProblem()
+clients.manipulation.problem.resetProblem()
 
-robotEst, psEst, vfEst = makeRobotProblemAndViewerFactory ()
+robotEst, psEst, vfEst = makeRobotProblemAndViewerFactory (clients)
 
 graphEst = makeGraph (robotEst)
 graphEst.initialize()

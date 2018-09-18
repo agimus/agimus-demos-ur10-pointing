@@ -10,8 +10,7 @@ clients.manipulation.problem.resetProblem()
 
 Robot.packageName = "talos_data"
 Robot.urdfName = "talos"
-# Robot.urdfSuffix = '_full'
-Robot.urdfSuffix = '_full_accurate_gripper'
+Robot.urdfSuffix = '_full_v2'
 Robot.srdfSuffix= ''
 
 class Box (object):
