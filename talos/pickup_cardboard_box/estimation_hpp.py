@@ -10,6 +10,7 @@ clients = CorbaClient (postContextId = "_estimation")
 clients.manipulation.problem.resetProblem()
 
 robot, ps, vf = makeRobotProblemAndViewerFactory(clients)
+ps.setErrorThreshold(1e-2)
 
 q_init = robot.getCurrentConfig()
 

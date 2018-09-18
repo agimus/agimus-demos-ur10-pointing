@@ -41,17 +41,21 @@ for n in robot.jointNames:
     r = robot.rankInConfiguration[n]
     if n.startswith ("talos/gripper_right"):
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
+        ps.setConstantRightHandSide(n, True)
         right_gripper_lock.append(n)
     elif n.startswith ("talos/gripper_left"):
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
+        ps.setConstantRightHandSide(n, True)
         left_gripper_lock.append(n)
     elif n in other_lock:
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
+        ps.setConstantRightHandSide(n, True)
 
 graph = makeGraph (robot)
 
 for nodename, nodeid in graph.nodes.iteritems():
     graph.addConstraints (node=nodename,
+        lockDof = left_gripper_lock + right_gripper_lock + other_lock,
         numConstraints = [ "com_talos_box", "gaze"])
 
 graph.createNode("starting_state")
@@ -65,8 +69,8 @@ for edgename, edgeid in graph.edges.iteritems():
         numConstraints = foot_placement_complement)
 
 graph.setConstraints (graph=True,
-        lockDof = left_gripper_lock + right_gripper_lock + other_lock,
         numConstraints = foot_placement)
+ps.selectPathValidation ("Progressive", 0.05)
 graph.initialize()
 
 res, hs_proj, err = graph.applyNodeConstraints("starting_state", half_sitting)
