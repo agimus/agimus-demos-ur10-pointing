@@ -6,6 +6,7 @@ from hpp import Transform
 import sys, numpy as np
 
 footPlacement = True
+projectRobotOnFloor = True
 comConstraint = False
 constantWaistYaw = True
 lockedTorso = False
@@ -127,7 +128,7 @@ graph.addConstraints (edge="starting_motion", constraints = \
 
 graph.setConstraints (graph=True,
                       constraints = Constraints \
-                      (numConstraints = foot_placement,
+                      (numConstraints = foot_placement if projectRobotOnFloor else [],
                        lockedJoints = left_gripper_lock + right_gripper_lock +\
                        other_lock))
 
