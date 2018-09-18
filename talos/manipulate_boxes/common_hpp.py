@@ -73,7 +73,7 @@ def makeRobotProblemAndViewerFactory (clients):
     robot. leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
 
-    robot.setJointBounds ("talos/root_joint", [-1, 1, -1, 1, 0.5, 1.5])
+    robot.setJointBounds ("talos/root_joint", [-10, 10, -10, 10, 0, 2])
 
     ps = ProblemSolver (robot)
     ps.setErrorThreshold (1e-3)
@@ -83,7 +83,7 @@ def makeRobotProblemAndViewerFactory (clients):
 
     vf = ViewerFactory (ps)
     objects.append (Object (name = 'box', vf = vf))
-    robot.setJointBounds ("box/root_joint", [-1, 1, -1, 1, 0, 2])
+    robot.setJointBounds ("box/root_joint", [-10, 10, -10, 10, 0, 2])
 
     # Loaded as an object to get the visual tags at the right position.
     # vf.loadEnvironmentModel (Table, 'table')
