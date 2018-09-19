@@ -108,7 +108,7 @@ if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
         graph.addConstraints (node=nodename, constraints =
                               Constraints (numConstraints =
-                                           [ "com_talos_box", "gaze"]))
+                                           [ "com_talos", "gaze"]))
 
 # Add locked joints and foot placement constraints in the graph,
 # add foot placement complement in each edge.
