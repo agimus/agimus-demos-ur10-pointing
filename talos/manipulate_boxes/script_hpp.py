@@ -190,7 +190,9 @@ q_init = [0.5402763680625408, -0.833196863501999, 1.0199316910041052, -0.0312884
 
 # Set Gaussian configuration shooter.
 robot.setCurrentConfig (q_init)
+# Set variance to 0.1 for all degrees of freedom
 sigma = robot.getNumberDof () * [.1]
+# Set variance to 0.05 for robot free floating base
 rank = robot.rankInVelocity [robot.displayName + '/root_joint']
 sigma [rank:rank+6] = 6* [0.]
 # Set variance to 0.05 for box
