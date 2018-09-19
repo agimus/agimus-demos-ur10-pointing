@@ -1,6 +1,7 @@
 <launch>
   <machine name="multimedia" address="talos-1m"
     env-loader="/home/pal/devel/config_roslaunch.sh"/>
+  <arg name="plank_of_wood_id" default="1" />
 
   <!-- World setup -->
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
@@ -30,27 +31,34 @@
 
     <node pkg="agimus_vision" type="tracker_object"
         name="tag_tracker"
+        machine="multimedia"
         />
     <!-- Table -->
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00004_init"
         args="4 63.5 table/tag36_11_00004_joint"
+        machine="multimedia"
         />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00005_init"
         args="5 63.5 table/tag36_11_00005_joint"
+        machine="multimedia"
         />
 
     <!-- Plank of wood 1 -->
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)0_init"
         args="$(arg plank_of_wood_id)0 60 box/tag36_11_000$(arg plank_of_wood_id)0_joint"
+        machine="multimedia"
         />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)1_init"
         args="$(arg plank_of_wood_id)1 60 box/tag36_11_000$(arg plank_of_wood_id)1_joint"
+        machine="multimedia"
         />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)2_init"
         args="$(arg plank_of_wood_id)2 60 box/tag36_11_000$(arg plank_of_wood_id)2_joint"
+        machine="multimedia"
         />
     <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)3_init"
         args="$(arg plank_of_wood_id)3 60 box/tag36_11_000$(arg plank_of_wood_id)3_joint"
+        machine="multimedia"
         />
   </group>
 
