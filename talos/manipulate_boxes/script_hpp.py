@@ -180,7 +180,7 @@ ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
-q_init = robot.shootRandomConfig ()
+#q_init = robot.shootRandomConfig ()
 # Define problem
 res, q_init, err = graph.applyNodeConstraints ('free', q_init)
 if not res: raise RuntimeError ('Failed to project initial configuration')
@@ -190,3 +190,15 @@ q_goal [-4:] = [-0.5, -0.5, -0.5, 0.5]
 
 solver = Solver (ps, graph, q_init, q_goal, e1, e2, e3, e4, e14, e23)
 
+q1 = half_sitting[:]
+q1[-7:] = q_init[-7:]
+res, q1_proj, err = graph.applyNodeConstraints ("starting_state", q1)
+assert res, "Failed: applyNodeConstraints"
+res, q2_proj, err = graph.generateTargetConfig ("starting_motion", q1_proj, q1_proj)
+assert res, "Failed: generateTargetConfig"
+res, pid, msg = ps.directPath (q1_proj, q2_proj, True)
+if res:
+  ps.optimizePath(pid)
+  print "Initial path", pid
+else:
+  print "Failed: directPath", msg
