@@ -99,17 +99,6 @@ for n in robot.jointNames:
 robot.setCurrentConfig (q_neutral)
 graph = makeGraph (robot, table, objects)
 
-# On the real robot, the initial configuration as measured by sensors is very
-# likely not in any state of the graph. State "starting_state" and transition
-# "starting_motion" are aimed at coping with this issue.
-graph.createNode ("starting_state")
-graph.createEdge ("starting_state", "free", "starting_motion",
-                  isInNode="starting_state")
-graph.addConstraints (node="starting_state", constraints = \
-                      Constraints (numConstraints = ["place_box"]) )
-graph.addConstraints (edge="starting_motion", constraints = \
-                      Constraints (numConstraints = ["place_box/complement"]))
-
 # Add gaze and and COM constraints to each node of the graph
 if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
@@ -134,6 +123,18 @@ graph.setConstraints (graph=True,
                       (numConstraints = foot_placement,
                        lockedJoints = left_gripper_lock + right_gripper_lock +\
                        other_lock))
+                       lockedJoints = left_gripper_lock + right_gripper_lock))
+
+# On the real robot, the initial configuration as measured by sensors is very
+# likely not in any state of the graph. State "starting_state" and transition
+# "starting_motion" are aimed at coping with this issue.
+graph.createNode ("starting_state")
+graph.createEdge ("starting_state", "free", "starting_motion",
+                  isInNode="starting_state")
+graph.addConstraints (node="starting_state", constraints = \
+                      Constraints (numConstraints = ["place_box"]) )
+graph.addConstraints (edge="starting_motion", constraints = \
+                      Constraints (numConstraints = ["place_box/complement"]))
 
 # Transitions from state 'free'
 e_l1 = 'talos/left_gripper > box/handle1 | f'
