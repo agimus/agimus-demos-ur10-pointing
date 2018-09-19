@@ -1,0 +1,31 @@
+<launch>
+  <machine name="multimedia" address="talos-1m"
+    env-loader="/home/pal/devel/config_roslaunch.sh"/>
+
+  <!-- SoT parameters -->
+  <arg name="script_file" doc="Full path to the script which initialize the supervisor"
+    default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
+
+  <include file="$(find roscontrol_sot_talos)/launch/sot_talos_controller.launch" >
+  </include>
+
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <group ns="agimus/hpp">
+    <node name="hpp_node" pkg="agimus_hpp" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      machine="multimedia"
+      output="screen" />
+  </group>
+
+  <!--This starts sot supervisor in namespace agimus/sot-->
+  <include file="$(find agimus_sot)/launch/supervisor.launch" >
+    <arg name="script_file" value="$(arg script_file)"/>
+    <arg name="robot_prefix" value="talos/"/>
+    <arg name="simulate_torque_feedback" value="false"/>
+  </include>
+
+  <include file="$(find agimus)/launch/path_execution.launch">
+    <arg name="machine" value="multimedia"/>
+    <arg name="gui" value="false"/>
+  </include>
+</launch>

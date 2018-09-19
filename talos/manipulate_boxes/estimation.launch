@@ -8,12 +8,6 @@
   <include file="$(find gerard_bauzil)/launch/table_140_70_73.launch">
     <arg name="prefix" value="table" />
   </include>
-  <group ns="table">
-    <node name="to_tf" pkg="tf" type="static_transform_publisher"
-	  required="true"
-	  args="0 0 0 0 0 0 1 world table/base_link 100"
-	  />
-  </group>
 
   <!-- Simulate the vision -->
   <!--

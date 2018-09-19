@@ -11,12 +11,6 @@
   <include file="$(find gerard_bauzil)/launch/table_140_70_73.launch">
     <arg name="prefix" value="table" />
   </include>
-  <group ns="table">
-    <node name="to_tf" pkg="tf" type="static_transform_publisher"
-	  required="true"
-	  args="0 0 0 0 0 0 1 world table/base_link 100"
-	  />
-  </group>
 
   <!-- Setup vision -->
   <group ns="vision">
@@ -70,9 +64,9 @@
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
+  <param name="/agimus/hpp/default_state_id"  value="2" />
   <include file="$(find agimus_hpp)/launch/hpp_interface.launch" >
     <arg name="machine" value="multimedia"/>
-	  <param name="/agimus/hpp/default_state_id"  value="2" />
   </include>
 
   <!--This starts sot supervisor in namespace agimus/sot-->
