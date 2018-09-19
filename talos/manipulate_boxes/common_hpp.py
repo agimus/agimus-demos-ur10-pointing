@@ -79,6 +79,7 @@ def makeRobotProblemAndViewerFactory (clients):
     ps.setErrorThreshold (1e-3)
     ps.setMaxIterProjection (40)
 
+    ps.addPathOptimizer('Graph-RandomShortcut')
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory (ps)
