@@ -99,6 +99,10 @@ for n in robot.jointNames:
 robot.setCurrentConfig (q_neutral)
 graph = makeGraph (robot, table, objects)
 
+# Add other locked joints in the edges.
+for edgename, edgeid in graph.edges.iteritems():
+    graph.addConstraints (edge=edgename, constraints = Constraints \
+                          (lockedJoints = other_lock))
 # Add gaze and and COM constraints to each node of the graph
 if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
@@ -121,8 +125,6 @@ if constantWaistYaw:
 graph.setConstraints (graph=True,
                       constraints = Constraints \
                       (numConstraints = foot_placement,
-                       lockedJoints = left_gripper_lock + right_gripper_lock +\
-                       other_lock))
                        lockedJoints = left_gripper_lock + right_gripper_lock))
 
 # On the real robot, the initial configuration as measured by sensors is very
