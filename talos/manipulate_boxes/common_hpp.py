@@ -89,6 +89,7 @@ def makeRobotProblemAndViewerFactory (clients):
     # Loaded as an object to get the visual tags at the right position.
     # vf.loadEnvironmentModel (Table, 'table')
     table = Table (name = 'table', vf = vf)
+    robot.setJointBounds ("table/root_joint", [-10, 10, -10, 10, -2, 2])
 
     return robot, ps, vf, table, objects
 
