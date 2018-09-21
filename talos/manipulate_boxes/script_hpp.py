@@ -1,14 +1,13 @@
 from common_hpp import *
 from hpp.corbaserver.manipulation.robot import CorbaClient
 from hpp.corbaserver.manipulation import ProblemSolver, Constraints
-from hpp import Transform
+from hpp import Transform, Quaternion
 
 import sys, numpy as np
 
 footPlacement = True
 comConstraint = True
 constantWaistYaw = True
-lockedTorso = False
 fixedArmWhenGrasping = True
 
 clients = CorbaClient (postContextId = "")
@@ -23,13 +22,10 @@ ps.addPartialCom ("talos_box", ["talos/root_joint", "box/root_joint"])
 
 # Sliding static stability constraint
 ps.createStaticStabilityConstraints ("balance", half_sitting, "talos",
-                                     ProblemSolver.SLIDING)
-foot_placement = [ "balance/relative-orientation",
-                   "balance/relative-position",
-                   "balance/orientation-left-foot",
-                   "balance/position-left-foot" ]
-foot_placement_complement = [ "balance/orientation-left-foot-complement",
-                              "balance/position-left-foot-complement" ]
+                                     ProblemSolver.FIXED_ON_THE_GROUND)
+foot_placement = [ "balance/pose-left-foot",
+                   "balance/pose-right-foot" ]
+foot_placement_complement = [ ]
 
 robot.setCurrentConfig(half_sitting)
 # Position of COM with respect to left ankle
@@ -55,13 +51,10 @@ ps.createOrientationConstraint ("waist_yaw", "", "talos/root_joint",
 ps.setConstantRightHandSide ("waist_yaw", False)
 
 # Create lock joints for grippers
-other_lock = list ()
-# Create locked joint for torso
-if lockedTorso:
-    other_lock.append ("talos/torso_1_joint")
+table_lock = list ()
 
 # lock position of table
-other_lock.append (table.name + '/root_joint')
+table_lock.append (table.name + '/root_joint')
 
 # Create locked joint for left arm
 left_arm_lock = list ()
@@ -91,7 +84,7 @@ for n in robot.jointNames:
     elif n.startswith ("talos/gripper_left"):
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
         left_gripper_lock.append(n)
-    elif n in other_lock:
+    elif n in table_lock:
         ps.createLockedJoint(n, n, half_sitting[r:r+s])
         ps.setConstantRightHandSide (n, False)
 
@@ -102,7 +95,7 @@ graph = makeGraph (robot, table, objects)
 # Add other locked joints in the edges.
 for edgename, edgeid in graph.edges.iteritems():
     graph.addConstraints (edge=edgename, constraints = Constraints \
-                          (lockedJoints = other_lock))
+                          (lockedJoints = table_lock))
 # Add gaze and and COM constraints to each node of the graph
 if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
@@ -133,10 +126,18 @@ graph.setConstraints (graph=True,
 graph.createNode ("starting_state")
 graph.createEdge ("starting_state", "free", "starting_motion",
                   isInNode="starting_state")
+graph.createEdge ("starting_state", "starting_state", "loop_ss",
+                  isInNode="starting_state", weight=0)
+graph.createEdge ("free", "starting_state", "go_to_starting_state",
+                  isInNode="starting_state", weight=0)
 graph.addConstraints (node="starting_state", constraints = \
                       Constraints (numConstraints = ["place_box"]) )
+graph.addConstraints (edge="loop_ss", constraints = \
+                      Constraints (numConstraints = ["place_box/complement"], lockedJoints = table_lock))
 graph.addConstraints (edge="starting_motion", constraints = \
-                      Constraints (numConstraints = ["place_box/complement"]))
+                      Constraints (numConstraints = ["place_box/complement"], lockedJoints = table_lock))
+graph.addConstraints (edge="go_to_starting_state", constraints = \
+                      Constraints (numConstraints = ["place_box/complement"], lockedJoints = table_lock))
 
 # Transitions from state 'free'
 e_l1 = 'talos/left_gripper > box/handle1 | f'
@@ -166,18 +167,26 @@ e_r4_l1 = 'talos/left_gripper > box/handle1 | 1-3'
 e_r4_l3 = 'talos/left_gripper > box/handle3 | 1-3'
 # Transition from 'free' to first waypoint
 e_l1_app = e_l1 + '_01'
+e_r1_app = e_r1 + '_01'
+e_l2_app = e_l2 + '_01'
+e_r2_app = e_r2 + '_01'
+e_l3_app = e_l3 + '_01'
 e_r3_app = e_r3 + '_01'
 e_l4_app = e_l4 + '_01'
-e_r2_app = e_r2 + '_01'
+e_r4_app = e_r4 + '_01'
 
 if fixedArmWhenGrasping:
     leftArmConstraint = Constraints (lockedJoints = left_arm_lock)
     rightArmConstraint = Constraints (lockedJoints = right_arm_lock)
 
     graph.addConstraints (edge = e_l1_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e_r1_app, constraints = leftArmConstraint )
+    graph.addConstraints (edge = e_l2_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e_r2_app, constraints = leftArmConstraint)
+    graph.addConstraints (edge = e_l3_app, constraints = rightArmConstraint)
     graph.addConstraints (edge = e_r3_app, constraints = leftArmConstraint)
     graph.addConstraints (edge = e_l4_app, constraints = rightArmConstraint)
-    graph.addConstraints (edge = e_r2_app, constraints = leftArmConstraint)
+    graph.addConstraints (edge = e_r4_app, constraints = leftArmConstraint)
     graph.initialize ()
 
 
@@ -199,28 +208,33 @@ rank = robot.rankInVelocity [robot.displayName + '/root_joint']
 sigma [rank:rank+6] = 6* [0.]
 # Set variance to 0.05 for box
 rank = robot.rankInVelocity [objects [0].name + '/root_joint']
-sigma [rank:rank+6] = 6* [0.05]
+sigma [rank:rank+6] = 6* [0.]
 # Set variance to 0.05 for table
 rank = robot.rankInVelocity [table.name + '/root_joint']
-sigma [rank:rank+6] = 6* [0.05]
+sigma [rank:rank+6] = 6* [0.]
 robot.setCurrentVelocity (sigma)
 ps.setParameter ('ConfigurationShooter/Gaussian/useRobotVelocity', True)
 ps.client.basic.problem.selectConfigurationShooter ('Gaussian')
+q_init[robot.rankInConfiguration["box/root_joint"]+1]+=0.1
 # Set Optimization parameters
 ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
+ps.setParameter("ManipulationPlanner/extendStep", 0.7)
+ps.setMaxIterPathPlanning (50)
 
 #q_init = robot.shootRandomConfig ()
 # Define problem
-res, q_init, err = graph.applyNodeConstraints ('free', q_init)
+res, q_init, err = graph.generateTargetConfig ('Loop | f', q_init, q_init)
 if not res: raise RuntimeError ('Failed to project initial configuration')
 
 q_goal = q_init [::]
 rank = robot.rankInConfiguration ['box/root_joint']
-q_goal [rank+3:rank+7] = [-0.5, -0.5, -0.5, 0.5]
-res, q_goal, err = graph.applyNodeConstraints ('free', q_goal)
+q_goal [rank+3:rank+7] = (Quaternion([0, 1, 0, 0]) * Quaternion (q_init[rank+3:rank+7])).toTuple()
+#res, q_goal, err = graph.applyNodeConstraints ('free', q_goal)
+res, q_proj, err = graph.generateTargetConfig ('Loop | f', q_goal, q_goal)
 if not res: raise RuntimeError ('Failed to project goal configuration')
+assert q_init[-7:] == q_goal[-7:]
 
 solver = Solver (ps, graph, q_init, q_goal,
                  e_l1, e_r1, e_l2, e_r2, e_l3, e_r3, e_l4, e_r4,
@@ -228,15 +242,9 @@ solver = Solver (ps, graph, q_init, q_goal,
                  e_r2_l1, e_r2_l3, e_r3_l4, e_r3_l2, e_l3_r4, e_l3_r2,
                  e_l4_r1, e_l4_r3, e_r4_l1, e_r4_l3)
 
-q1 = half_sitting[:]
-q1[-7:] = q_init[-7:]
-res, q1_proj, err = graph.applyNodeConstraints ("starting_state", q1)
-assert res, "Failed: applyNodeConstraints"
-res, q2_proj, err = graph.generateTargetConfig ("starting_motion", q1_proj, q1_proj)
-assert res, "Failed: generateTargetConfig"
-res, pid, msg = ps.directPath (q1_proj, q2_proj, True)
-if res:
-  ps.optimizePath(pid)
-  print "Initial path", pid
-else:
-  print "Failed: directPath", msg
+solver.initRosNode()
+
+qBoxVisible, pathId = solver.makeBoxVisibleFrom (half_sitting, True, True)
+
+# From an estimated configuration with position of objects
+# solver.solveFromEstimatedConfiguration (half_sitting)

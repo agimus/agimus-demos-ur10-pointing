@@ -79,7 +79,6 @@ def makeRobotProblemAndViewerFactory (clients):
     ps.setErrorThreshold (1e-3)
     ps.setMaxIterProjection (40)
 
-    ps.addPathOptimizer('Graph-RandomShortcut')
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory (ps)
@@ -103,6 +102,7 @@ def makeGraph (robot, table, objects):
                         [ obj.handles for obj in objects ],
                         [ obj.contacts for obj in objects])
     factory.environmentContacts (table.contacts)
+    factory.constraints.strict = True
     factory.generate ()
     return graph
 
@@ -118,7 +118,6 @@ def createConnection (ps, graph, e, q, maxIter):
   Try to build a path along a transition from a given configuration
   """
   for i in range (maxIter):
-    print ("i={0}".format (i))
     q_rand = shootConfig (ps.robot, q, i)
     res, q1, err = graph.generateTargetConfig (e, q, q_rand)
     if not res: continue
@@ -126,7 +125,9 @@ def createConnection (ps, graph, e, q, maxIter):
     if not res: continue
     ps.addConfigToRoadmap (q1)
     ps.addEdgeToRoadmap (q, q1, p, True)
+    print ("Success (i={0})".format (i))
     return p, q1
+  print ("Failed  (maxIter={0})".format (maxIter))
   return (None, None)
 
 class Solver (object):
@@ -187,8 +188,12 @@ class Solver (object):
           self.ps.addEdgeToRoadmap (q1, q2, p, True)
         else:
           print ("failed direct connection: " + msg)
+          print ("q1= " + str(q1))
+          print ("q2= " + str(q2))
 
   def solve (self):
+    import numpy as np
+    assert np.linalg.norm(np.array(self.q_init[-7:]) - np.array(self.q_goal[-7:])) < 1e-7
     start = datetime.now ()
     q_l1_r2 = None; q_r2_l1 = None;q_l1_r4 = None; q_r4_l1 = None
     q_r1_l2 = None; q_l2_r1 = None;q_r1_l4 = None; q_l4_r1 = None
@@ -203,86 +208,86 @@ class Solver (object):
     self.wp_goal = self.addWaypoints (self.q_goal)
 
     ## Connections from init to grasp
-    print ("Edge e_l1")
+    print "Edge e_l1   : ",
     p, q_l1 = createConnection \
                (self.ps, self.graph, self.e_l1, self.wp_init, 20)
-    print ("Edge e_r1")
+    print "Edge e_r1   : ",
     p, q_r1 = createConnection \
                (self.ps, self.graph, self.e_r1, self.wp_init, 20)
-    print ("Edge e_l3")
+    print "Edge e_l3   : ",
     p, q_l3 = createConnection \
                (self.ps, self.graph, self.e_l3, self.wp_init, 20)
-    print ("Edge e_r3")
+    print "Edge e_r3   : ",
     p, q_r3 = createConnection \
                (self.ps, self.graph, self.e_r3, self.wp_init, 20)
     ## Connections from goal to grasp
-    print ("Edge e_l4")
+    print "Edge e_l4   : ",
     p, q_l4 = createConnection \
                (self.ps, self.graph, self.e_l4, self.wp_goal, 20)
-    print ("Edge e_r4")
+    print "Edge e_r4   : ",
     p, q_r4 = createConnection \
                (self.ps, self.graph, self.e_r4, self.wp_goal, 20)
-    print ("Edge e_l2")
+    print "Edge e_l2   : ",
     p, q_l2 = createConnection \
                (self.ps, self.graph, self.e_l2, self.wp_goal, 20)
-    print ("Edge e_r2")
+    print "Edge e_r2   : ",
     p, q_r2 = createConnection \
                (self.ps, self.graph, self.e_r2, self.wp_goal, 20)
     ## Connections from one grasp to two grasps
     if q_l1:
-      print ("Edge e_l1_r2")
+      print "Edge e_l1_r2: ",
       p, q_l1_r2 = createConnection \
                    (self.ps, self.graph, self.e_l1_r2, q_l1, 20)
-      print ("Edge e_l1_r4")
+      print "Edge e_l1_r4: ",
       p, q_l1_r4 = createConnection \
                    (self.ps, self.graph, self.e_l1_r4, q_l1, 20)
     if q_r1:
-      print ("Edge e_r1_l2")
+      print "Edge e_r1_l2: ",
       p, q_r1_l2 = createConnection \
                    (self.ps, self.graph, self.e_r1_l2, q_r1, 20)
-      print ("Edge e_r1_l4")
+      print "Edge e_r1_l4: ",
       p, q_r1_l4 = createConnection \
                    (self.ps, self.graph, self.e_r1_l4, q_r1, 20)
     if q_l2:
-      print ("Edge e_l2_r1")
+      print "Edge e_l2_r1: ",
       p, q_l2_r1 = createConnection \
                    (self.ps, self.graph, self.e_l2_r1, q_l2, 20)
-      print ("Edge e_l2_r3")
+      print "Edge e_l2_r3: ",
       p, q_l2_r3 = createConnection \
                    (self.ps, self.graph, self.e_l2_r3, q_l2, 20)
     if q_r2:
-      print ("Edge e_r2_l1")
+      print "Edge e_r2_l1: ",
       p, q_r2_l1 = createConnection \
                    (self.ps, self.graph, self.e_r2_l1, q_r2, 20)
-      print ("Edge e_r2_l3")
+      print "Edge e_r2_l3: ",
       p, q_r2_l3 = createConnection \
                    (self.ps, self.graph, self.e_r2_l3, q_r2, 20)
     if q_l3:
-      print ("Edge e_l3_r4")
+      print "Edge e_l3_r4: ",
       p, q_l3_r4 = createConnection \
                    (self.ps, self.graph, self.e_l3_r4, q_l3, 20)
-      print ("Edge e_l3_r2")
+      print "Edge e_l3_r2: ",
       p, q_l3_r2 = createConnection \
                    (self.ps, self.graph, self.e_l3_r2, q_l3, 20)
     if q_r3:
-      print ("Edge e_r3_l4")
+      print "Edge e_r3_l4: ",
       p, q_r3_l4 = createConnection \
                    (self.ps, self.graph, self.e_r3_l4, q_r3, 20)
-      print ("Edge e_r3_l2")
+      print "Edge e_r3_l2: ",
       p, q_r3_l2 = createConnection \
                    (self.ps, self.graph, self.e_r3_l2, q_r3, 20)
     if q_l4:
-      print ("Edge e_l4_r1")
+      print "Edge e_l4_r1: ",
       p, q_l4_r1 = createConnection \
                    (self.ps, self.graph, self.e_l4_r1, q_l4, 20)
-      print ("Edge e_l4_r3")
+      print "Edge e_l4_r3: ",
       p, q_l4_r3 = createConnection \
                    (self.ps, self.graph, self.e_l4_r3, q_l4, 20)
     if q_r4:
-      print ("Edge e_r4_l1")
+      print "Edge e_r4_l1: ",
       p, q_r4_l1 = createConnection \
                    (self.ps, self.graph, self.e_r4_l1, q_r4, 20)
-      print ("Edge e_r4_l3")
+      print "Edge e_r4_l3: ",
       p, q_r4_l3 = createConnection \
                    (self.ps, self.graph, self.e_r4_l3, q_r4, 20)
 
@@ -293,7 +298,110 @@ class Solver (object):
     self.tryDirectPaths (possibleConnections)
 
     self.ps.setInitialConfig (self.q_init)
+    self.ps.resetGoalConfigs ()
     self.ps.addGoalConfig (self.q_goal)
+    print ("Running Manipulation RRT")
     self.ps.solve ()
     end = datetime.now ()
     print ("Resolution time : {0}". format (end - start))
+
+  def makeBoxVisibleFrom (self, q_estimated, initObjectPose, initTablePose):
+    q = q_estimated[:]
+    rankO = self.ps.robot.rankInConfiguration ['box/root_joint']
+    rankT = self.ps.robot.rankInConfiguration ['table/root_joint']
+    if initObjectPose:
+      q[rankO:rankO+7] = self.q_init[rankO:rankO+7]
+    if initTablePose:
+      q[rankT:rankT+7] = self.q_init[rankT:rankT+7]
+
+    res, q_proj, err = self.graph.generateTargetConfig ("loop_ss", q, q)
+    assert res, "Failed: generateTargetConfig loop_ss"
+    res, qres, err = self.graph.generateTargetConfig ("starting_motion", q_proj, q_proj)
+    assert res, "Failed: generateTargetConfig starting_motion"
+    res, pid, msg = self.ps.directPath (q_proj, qres, True)
+    self.ps.addConfigToRoadmap (q_proj)
+    self.ps.addConfigToRoadmap (qres)
+    self.ps.addEdgeToRoadmap (q_proj, qres, pid, True)
+    if res:
+      self.ps.optimizePath(pid)
+      print "Initial path", pid+1
+      return qres, pid+1
+    else:
+      print "Failed: directPath", msg
+      return qres, None
+
+  # \param qEstimated box should be visible.
+  def generateGoalFrom (self, qEstimated, qDesiredRobot):
+    qgoal = qEstimated[:]
+    rankO = self.ps.robot.rankInConfiguration ['box/root_joint']
+    rankT = self.ps.robot.rankInConfiguration ['table/root_joint']
+    # Rotate the box.
+    from hpp import Quaternion
+    qT = Quaternion (qEstimated[rankO+3:rankO+7])
+    qgoal[rankO+3:rankO+7] = (qT * Quaternion([0, 0, 1, 0])).toTuple()
+    res, qgoal, err = self.graph.generateTargetConfig ("starting_motion", qgoal, qgoal)
+    success = ("free" == self.graph.getNode (qgoal))
+    if not res or not success:
+      print "Could not generate goal"
+    qgoalInStartingState = qDesiredRobot[:min(rankO,rankT)] + qgoal[min(rankO,rankT):]
+    #TODO if a transition from free to starting_state is added
+    # change the order of the arguments.
+    #res, pid, msg = ps.directPath (qgoal, qgoalInStartingState, True)
+    #self.tryDirectPaths (((qgoalInStartingState, qgoal),))
+    return qgoal, qgoalInStartingState
+
+  def acquireEstimation (self, topic="/agimus/estimation/semantic"):
+    boxSizeZ = 0.203
+    tableRealHeight = 0.735
+    boxExpectedZ = tableRealHeight + boxSizeZ / 2
+
+    import rospy, numpy as np
+    from dynamic_graph_bridge_msgs.msg import Vector
+    msg = rospy.wait_for_message (topic, Vector, timeout=2)
+    qestimated = list(msg.data)
+    # Fix estimation
+    self.ps.robot.setCurrentConfig (qestimated)
+    p_cam = np.array(self.ps.robot.getJointPosition ("talos/rgbd_rgb_optical_joint")[0:3])
+    p_obj = np.array(self.ps.robot.getJointPosition ("box/root_joint")[0:3])
+    p_cam_obj = p_cam - p_obj
+
+    ric = self.ps.robot.rankInConfiguration
+    qestimated[ric["talos/gripper_right_joint"]]=0
+    qestimated[ric["talos/gripper_left_joint"]]=0
+    curBoxZ = qestimated[ric["box/root_joint"]+2]
+    z_corr = boxExpectedZ - curBoxZ
+
+    x_corr = z_corr / p_cam_obj[2] * p_cam_obj[0]
+    y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1]
+    print "Correction on X (NOT applied) axis:", x_corr
+    print "Correction on Y (    applied) axis:", y_corr
+    print "Correction on Z (    applied) axis:", z_corr
+    #qestimated[ric["box/root_joint"]  +0] +=x_corr
+    #qestimated[ric["table/root_joint"]+0] +=x_corr
+    qestimated[ric["box/root_joint"]  +1] +=y_corr
+    qestimated[ric["table/root_joint"]+1] +=y_corr
+    qestimated[ric["box/root_joint"]  +2] +=z_corr
+    qestimated[ric["table/root_joint"]+2] +=z_corr
+
+    return qestimated
+
+  def initRosNode (self):
+    import rospy
+    rospy.init_node("hpp_script", anonymous=True)
+
+  def solveFromEstimatedConfiguration (self, half_sitting, q_estimated = None):
+    if q_estimated == None:
+      self.q_estimated = self.acquireEstimation ()
+    else:
+      self.q_estimated = q_estimated
+    self.q_init, initial_path_id = self.makeBoxVisibleFrom (q_estimated, False, False)
+    self.q_goal, self.q_goal_in_starting_state = self.generateGoalFrom (q_estimated, half_sitting)
+    self.solve()
+    print "Initial path: ", initial_path_id
+    print "Path to achieve the box goal position: ", self.ps.numberPaths() - 1
+    res, pid, msg = self.ps.directPath (self.q_goal, self.q_goal_in_starting_state, True)
+    if res:
+      self.ps.optimizePath (pid)
+      print "Path to go back to half_sitting:", self.ps.numberPaths() - 1
+    else:
+      print "Cannot go back to half_sitting:", msg

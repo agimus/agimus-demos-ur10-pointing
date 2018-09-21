@@ -25,7 +25,7 @@ ps.addPartialCom ("talos_box", ["talos/root_joint", "box/root_joint"])
 ps.createStaticStabilityConstraints ("balance", half_sitting, "talos",
                                      ProblemSolver.FIXED_ON_THE_GROUND)
 foot_placement = [ "balance/pose-left-foot",
-                   "balance/pose-right-foot" ]
+                   ]
 foot_placement_complement = [ ]
 
 robot.setCurrentConfig(half_sitting)
@@ -136,35 +136,51 @@ graph.addConstraints (edge="starting_motion", constraints = \
                       Constraints (numConstraints = ["place_box/complement"], lockedJoints = table_lock))
 
 # Transitions from state 'free'
-e1 = 'talos/left_gripper > box/handle1 | f'
-e2 = 'talos/right_gripper > box/handle3 | f'
-e3 = 'talos/left_gripper > box/handle4 | f'
-e4 = 'talos/right_gripper > box/handle2 | f'
+e_l1 = 'talos/left_gripper > box/handle1 | f'
+e_r1 = 'talos/right_gripper > box/handle1 | f'
+e_l2 = 'talos/left_gripper > box/handle2 | f'
+e_r2 = 'talos/right_gripper > box/handle2 | f'
+e_l3 = 'talos/left_gripper > box/handle3 | f'
+e_r3 = 'talos/right_gripper > box/handle3 | f'
+e_l4 = 'talos/left_gripper > box/handle4 | f'
+e_r4 = 'talos/right_gripper > box/handle4 | f'
 # Transitions from one grasp to two grasps
-e14 = 'talos/right_gripper > box/handle2 | 0-0'
-e23 = 'talos/left_gripper > box/handle4 | 1-2'
-
-
+e_l1_r2 = 'talos/right_gripper > box/handle2 | 0-0'
+e_l1_r4 = 'talos/right_gripper > box/handle4 | 0-0'
+e_r1_l2 = 'talos/left_gripper > box/handle2 | 1-0'
+e_r1_l4 = 'talos/left_gripper > box/handle4 | 1-0'
+e_l2_r1 = 'talos/right_gripper > box/handle1 | 0-3'
+e_l2_r3 = 'talos/right_gripper > box/handle3 | 0-3'
+e_r2_l1 = 'talos/left_gripper > box/handle3 | 1-3'
+e_r2_l3 = 'talos/left_gripper > box/handle3 | 1-3'
+e_r3_l4 = 'talos/left_gripper > box/handle4 | 1-2'
+e_r3_l2 = 'talos/left_gripper > box/handle2 | 1-2'
+e_l3_r4 = 'talos/right_gripper > box/handle4 | 0-2'
+e_l3_r2 = 'talos/right_gripper > box/handle2 | 0-2'
+e_l4_r1 = 'talos/right_gripper > box/handle1 | 0-3'
+e_l4_r3 = 'talos/right_gripper > box/handle3 | 0-3'
+e_r4_l1 = 'talos/left_gripper > box/handle1 | 1-3'
+e_r4_l3 = 'talos/left_gripper > box/handle3 | 1-3'
 # Transition from 'free' to first waypoint
-e1_app = e1 + '_01'
-e2_app = e2 + '_01'
-e3_app = e3 + '_01'
-e4_app = e4 + '_01'
+e_l1_app = e_l1 + '_01'
+e_r3_app = e_r3 + '_01'
+e_l4_app = e_l4 + '_01'
+e_r2_app = e_r2 + '_01'
 
 if fixedArmWhenGrasping:
     leftArmConstraint = Constraints (lockedJoints = left_arm_lock)
     rightArmConstraint = Constraints (lockedJoints = right_arm_lock)
 
-    graph.addConstraints (edge = e1_app, constraints = rightArmConstraint)
-    graph.addConstraints (edge = e2_app, constraints = leftArmConstraint)
-    graph.addConstraints (edge = e3_app, constraints = rightArmConstraint)
-    graph.addConstraints (edge = e4_app, constraints = leftArmConstraint)
+    graph.addConstraints (edge = e_l1_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e_r3_app, constraints = leftArmConstraint)
+    graph.addConstraints (edge = e_l4_app, constraints = rightArmConstraint)
+    graph.addConstraints (edge = e_r2_app, constraints = leftArmConstraint)
     graph.initialize ()
 
 
 ps.setRandomSeed(123)
 ps.selectPathProjector("Progressive", 0.2)
-ps.selectPathValidation("Dichotomy", 0.0)
+ps.selectPathValidation("Discretized", 0.01)
 graph.initialize()
 
 # Set Gaussian configuration shooter.
