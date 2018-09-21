@@ -56,9 +56,8 @@ def makeSupervisorWithFactory (robot):
       for handle in handlesPerObjects[0]:
         factory.addAffordance (
           Affordance (gripper, handle,
-            #openControlType="torque", closeControlType="torque",
-            openControlType="position", closeControlType="position",
-            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-0.05,) },
+            openControlType="torque", closeControlType="torque",
+            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-0.07,) },
             controlParams = { "torque_num": ( 5000., 1000.),
                 "torque_denom": (0.01,) },
             simuParams = { "refPos": (-0.2,) }))
@@ -74,6 +73,8 @@ def makeSupervisorWithFactory (robot):
     # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
     sot_loop =supervisor.sots['Loop | f']
     supervisor.addSot("starting_motion", sot_loop, sot_loop.control)
+    supervisor.addSot("loop_ss", sot_loop, sot_loop.control)
+    supervisor.addSot("go_to_starting_state", sot_loop, sot_loop.control)
     return supervisor
 
 # Use service /agimus/sot/set_base_pose to set initial config
