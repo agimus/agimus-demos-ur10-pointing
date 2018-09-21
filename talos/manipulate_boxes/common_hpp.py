@@ -134,6 +134,7 @@ class Solver (object):
   """
   Solver that tries direct connections before calling RRT.
   """
+  useRos = True
   def __init__ (self, ps, graph, q_init, q_goal,
                  e_l1, e_r1, e_l2, e_r2, e_l3, e_r3, e_l4, e_r4,
                  e_l1_r2, e_l1_r4, e_r1_l2, e_r1_l4, e_l2_r1, e_l2_r3,
@@ -386,8 +387,9 @@ class Solver (object):
     return qestimated
 
   def initRosNode (self):
-    import rospy
-    rospy.init_node("hpp_script", anonymous=True)
+    if self.useRos:
+      import rospy
+      rospy.init_node("hpp_script", anonymous=True)
 
   def solveFromEstimatedConfiguration (self, half_sitting, q_estimated = None):
     if q_estimated == None:
