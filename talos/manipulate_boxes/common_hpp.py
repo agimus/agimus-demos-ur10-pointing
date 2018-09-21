@@ -196,6 +196,7 @@ class Solver (object):
     import numpy as np
     assert np.linalg.norm(np.array(self.q_init[-7:]) - np.array(self.q_goal[-7:])) < 1e-7
     start = datetime.now ()
+    q_l1 = q_r1 = q_l2 = q_r2 = q_l3 = q_r3 = q_l4 = q_r4 = None
     q_l1_r2 = None; q_r2_l1 = None;q_l1_r4 = None; q_r4_l1 = None
     q_r1_l2 = None; q_l2_r1 = None;q_r1_l4 = None; q_l4_r1 = None
     q_l2_r3 = None; q_r3_l2 = None;q_r2_l3 = None; q_l3_r2 = None
@@ -215,25 +216,57 @@ class Solver (object):
     print "Edge e_r1   : ",
     p, q_r1 = createConnection \
                (self.ps, self.graph, self.e_r1, self.wp_init, 20)
+    print "Edge e_l2   : ",
+    p, q_l2 = createConnection \
+               (self.ps, self.graph, self.e_l2, self.wp_init, 20)
+    print "Edge e_r2   : ",
+    p, q_r2 = createConnection \
+               (self.ps, self.graph, self.e_r2, self.wp_init, 20)
     print "Edge e_l3   : ",
     p, q_l3 = createConnection \
                (self.ps, self.graph, self.e_l3, self.wp_init, 20)
     print "Edge e_r3   : ",
     p, q_r3 = createConnection \
                (self.ps, self.graph, self.e_r3, self.wp_init, 20)
-    ## Connections from goal to grasp
     print "Edge e_l4   : ",
     p, q_l4 = createConnection \
-               (self.ps, self.graph, self.e_l4, self.wp_goal, 20)
+               (self.ps, self.graph, self.e_l4, self.wp_init, 20)
     print "Edge e_r4   : ",
     p, q_r4 = createConnection \
-               (self.ps, self.graph, self.e_r4, self.wp_goal, 20)
-    print "Edge e_l2   : ",
-    p, q_l2 = createConnection \
-               (self.ps, self.graph, self.e_l2, self.wp_goal, 20)
-    print "Edge e_r2   : ",
-    p, q_r2 = createConnection \
-               (self.ps, self.graph, self.e_r2, self.wp_goal, 20)
+               (self.ps, self.graph, self.e_r4, self.wp_init, 20)
+    ## Connections from goal to grasp
+    if q_l1 is None:
+      print "Edge e_l1   : ",
+      p, q_l1 = createConnection \
+                (self.ps, self.graph, self.e_l1, self.wp_goal, 20)
+    if q_r1 is None:
+      print "Edge e_r1   : ",
+      p, q_r1 = createConnection \
+                (self.ps, self.graph, self.e_r1, self.wp_goal, 20)
+    if q_l2 is None:
+      print "Edge e_l2   : ",
+      p, q_l2 = createConnection \
+                (self.ps, self.graph, self.e_l2, self.wp_goal, 20)
+    if q_r2 is None:
+      print "Edge e_r2   : ",
+      p, q_r2 = createConnection \
+                (self.ps, self.graph, self.e_r2, self.wp_goal, 20)
+    if q_l3 is None:
+      print "Edge e_l3   : ",
+      p, q_l3 = createConnection \
+                (self.ps, self.graph, self.e_l3, self.wp_goal, 20)
+    if q_r3 is None:
+      print "Edge e_r3   : ",
+      p, q_r3 = createConnection \
+                (self.ps, self.graph, self.e_r3, self.wp_goal, 20)
+    if q_l4 is None:
+      print "Edge e_l4   : ",
+      p, q_l4 = createConnection \
+                (self.ps, self.graph, self.e_l4, self.wp_goal, 20)
+    if q_r4 is None:
+      print "Edge e_r4   : ",
+      p, q_r4 = createConnection \
+                (self.ps, self.graph, self.e_r4, self.wp_goal, 20)
     ## Connections from one grasp to two grasps
     if q_l1:
       print "Edge e_l1_r2: ",
