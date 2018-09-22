@@ -394,8 +394,8 @@ class Solver (object):
       self.q_estimated = self.acquireEstimation ()
     else:
       self.q_estimated = q_estimated
-    self.q_init, initial_path_id = self.makeBoxVisibleFrom (q_estimated, False, False)
-    self.q_goal, self.q_goal_in_starting_state = self.generateGoalFrom (q_estimated, half_sitting)
+    self.q_init, initial_path_id = self.makeBoxVisibleFrom (self.q_estimated, False, False)
+    self.q_goal, self.q_goal_in_starting_state = self.generateGoalFrom (self.q_estimated, half_sitting)
     self.solve()
     print "Initial path: ", initial_path_id
     print "Path to achieve the box goal position: ", self.ps.numberPaths() - 1
