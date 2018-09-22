@@ -217,9 +217,9 @@ ps.setParameter ('ConfigurationShooter/Gaussian/useRobotVelocity', True)
 ps.client.basic.problem.selectConfigurationShooter ('Gaussian')
 q_init[robot.rankInConfiguration["box/root_joint"]+1]+=0.1
 # Set Optimization parameters
-ps.setParameter("SimpleTimeParameterization/safety", 0.5)
+ps.setParameter("SimpleTimeParameterization/safety", 0.25)
 ps.setParameter("SimpleTimeParameterization/order", 2)
-ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", 1.)
 ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setMaxIterPathPlanning (50)
 
