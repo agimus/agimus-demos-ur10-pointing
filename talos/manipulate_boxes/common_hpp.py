@@ -440,3 +440,18 @@ class Solver (object):
       print "Path to go back to half_sitting:", self.ps.numberPaths() - 1
     else:
       print "Cannot go back to half_sitting:", msg
+
+  def goTo (self, half_sitting):
+    q_current = self.acquireEstimation ()
+    q_init = q_current[:]
+    rankO = self.ps.robot.rankInConfiguration ['box/root_joint']
+    rankT = self.ps.robot.rankInConfiguration ['table/root_joint']
+    q_init[rankT:rankT+7] = self.q_init[rankT:rankT+7]
+    q_init[rankO:rankO+7] = self.q_init[rankO:rankO+7]
+    self.ps.setInitialConfig (q_init)
+    self.ps.resetGoalConfigs ()
+    q_goal = half_sitting
+    q_goal[rankT:rankT+7] = self.q_init[rankT:rankT+7]
+    q_goal[rankO:rankO+7] = self.q_init[rankO:rankO+7]
+    self.ps.addGoalConfig (q_goal)
+    print self.ps.solve ()

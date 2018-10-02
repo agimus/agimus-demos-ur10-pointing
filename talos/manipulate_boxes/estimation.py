@@ -204,6 +204,14 @@ ps.setParameter("SimpleTimeParameterization/safety", 0.5)
 ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter("SimpleTimeParameterization/maxAcceleration", 2.)
 
+q_tag11_down = q_init[:]
+q_tag11_up = q_init[:]
+
+rankO = robot.rankInConfiguration ['box/root_joint']
+from hpp import Quaternion
+qT = Quaternion (q_tag11_up[rankO+3:rankO+7])
+q_tag11_up[rankO+3:rankO+7] = (qT * Quaternion([0, 0, 1, 0])).toTuple()
+
 import sys
 sys.exit(0)
 
