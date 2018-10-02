@@ -118,8 +118,8 @@ graph = ConstraintGraph.buildGenericGraph(robot, 'graph',
         [ "talos/left_gripper", "talos/right_gripper", ],
         [ "mire", ],
         [ Mire.handles, ],
-        [ [ ], ],
-        [ ],
+        [ [ ], ], # contacts per object
+        [ ], # env contacts
         [   Rule([ "talos/left_gripper", ], [ Mire.handles[0], ], True),
             Rule([ "talos/right_gripper", ], [ Mire.handles[1], ], True), ]
         )
