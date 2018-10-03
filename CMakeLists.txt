@@ -59,6 +59,11 @@ INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   geometric_simu.launch
   )
 
+# Install launch files in launch directory
+INSTALL_DEMO_LAUNCH_FILES(talos camera_calibration
+  on_pyrene.launch
+  )
+
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
@@ -70,4 +75,5 @@ install(DIRECTORY talos tiago urdf srdf
 install(PROGRAMS
   scripts/gazebo_object_to_tf.py
   scripts/visual_tag_initializer.py
+  scripts/calibration_frames_grabber.py
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
