@@ -20,7 +20,7 @@ class Box (object):
 
   rootJointType = 'freeflyer'
   packageName = 'gerard_bauzil'
-  urdfName = 'plank_of_wood1'
+  urdfName = 'plank_of_wood3'
   urdfSuffix = ""
   srdfSuffix = ""
   handles = ["handle1", "handle2", "handle3", "handle4"]
@@ -386,7 +386,7 @@ class Solver (object):
 
   def acquireEstimation (self, topic="/agimus/estimation/semantic"):
     boxSizeZ = 0.203
-    tableRealHeight = 0.735
+    tableRealHeight = 0.74
     boxExpectedZ = tableRealHeight + boxSizeZ / 2
 
     import rospy, numpy as np
@@ -403,10 +403,10 @@ class Solver (object):
     qestimated[ric["talos/gripper_right_joint"]]=0
     qestimated[ric["talos/gripper_left_joint"]]=0
     curBoxZ = qestimated[ric["box/root_joint"]+2]
-    z_corr = boxExpectedZ - curBoxZ
+    z_corr = boxExpectedZ - curBoxZ + 0.01
 
     x_corr = z_corr / p_cam_obj[2] * p_cam_obj[0]
-    y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1]
+    y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1] - 0.026
     print "Correction on X (NOT applied) axis:", x_corr
     print "Correction on Y (    applied) axis:", y_corr
     print "Correction on Z (    applied) axis:", z_corr
