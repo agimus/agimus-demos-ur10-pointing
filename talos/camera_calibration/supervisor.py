@@ -4,10 +4,11 @@
 
 def hpTasks(sotrobot):
     from agimus_sot.tools import COM, Foot, Manifold
-    com = COM ("talos", sotrobot)
-    lf = Foot ("talos/leg_left_6_joint", sotrobot) # Feet placement make the robot fall down.
-    rf = Foot ("talos/leg_right_6_joint", sotrobot)
-    return com + lf + rf
+    #com = COM ("talos", sotrobot)
+    #lf = Foot ("talos/leg_left_6_joint", sotrobot) # Feet placement make the robot fall down.
+    #rf = Foot ("talos/leg_right_6_joint", sotrobot)
+    #return com + lf + rf
+    return Manifold ()
 
 def makeSupervisorWithFactory (robot):
     from agimus_sot import Supervisor
@@ -29,7 +30,7 @@ def makeSupervisorWithFactory (robot):
 
     srdf = {}
     srdfTalos = parse_srdf ("srdf/talos.srdf", packageName = "talos_data", prefix="talos")
-    srdfMire = parse_srdf ("srdf/calibration_mire.srdf", packageName = "agimus_demos", prefix="calibration_mire")
+    srdfMire = parse_srdf ("srdf/calibration_mire.srdf", packageName = "agimus_demos", prefix="mire")
     for w in [ "grippers", "handles" ]:
         srdf[w] = dict()
         for d in [ srdfTalos, srdfMire ]:
