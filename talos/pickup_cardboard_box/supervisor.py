@@ -65,8 +65,7 @@ def makeSupervisorWithFactory (robot):
     supervisor.makeInitialSot ()
 
     # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
-    sot_loop =supervisor.sots['Loop | f']
-    supervisor.addSot("starting_motion", sot_loop, sot_loop.control)
+    supervisor.duplicateSolver('Loop | f', "starting_motion")
     return supervisor
 
 # Set initial config
@@ -74,5 +73,4 @@ robot.device.set (tuple([-0.6,-0.2,] + list(robot.device.state.value[2:])))
 supervisor = makeSupervisorWithFactory (robot)
 
 supervisor.plugTopicsToRos()
-supervisor.setupEvents ()
 supervisor.plugSot("")
