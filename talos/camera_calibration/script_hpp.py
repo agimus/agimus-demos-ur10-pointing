@@ -118,8 +118,8 @@ graph = ConstraintGraph.buildGenericGraph(robot, 'graph',
         [ "talos/left_gripper", "talos/right_gripper", ],
         [ "mire", ],
         [ Mire.handles, ],
-        [ [ ], ],
-        [ ],
+        [ [ ], ], # contacts per object
+        [ ], # env contacts
         [   Rule([ "talos/left_gripper", ], [ Mire.handles[0], ], True),
             Rule([ "talos/right_gripper", ], [ Mire.handles[1], ], True), ]
         )
@@ -218,15 +218,33 @@ ps.setParameter("SimpleTimeParameterization/order", 2)
 ps.setParameter('SimpleTimeParameterization/maxAcceleration', 1.)
 
 cleanPaths = True
+joinPaths = False
+
+def displayPaths (viewer, paths):
+    from hpp.gepetto import PathPlayer
+    pp = PathPlayer (viewer, client=ps.client.basic)
+    for p in paths:
+        pp (p)
+
 if not failed:
-    # join path
-    i0 = paths[0]
-    for i in paths[1:]:
-        ps.concatenatePath (i0, i)
+    if joinPaths:
+        # join path
+        i0 = paths[0]
+        for i in paths[1:]:
+            ps.concatenatePath (i0, i)
 
-    if cleanPaths:
-        for k,i in enumerate(paths[1:]):
-            ps.erasePath (i-k)
+        if cleanPaths:
+            for k,i in enumerate(paths[1:]):
+                ps.erasePath (i-k)
 
-    ps.optimizePath (i0)
-    print 'Optimized path:', ps.numberPaths() - 1, ',', ps.pathLength(ps.numberPaths()-1)
+        ps.optimizePath (i0)
+        print 'Optimized path:', ps.numberPaths() - 1, ',', ps.pathLength(ps.numberPaths()-1)
+
+    else:
+        optpaths = []
+        for i in paths:
+            ps.optimizePath (i)
+            optpaths.append (ps.numberPaths()-1)
+
+        print 'Solution paths are\noptpaths=', str(optpaths)
+        print 'displayPaths(v,optpaths) # to visualize paths'
