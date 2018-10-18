@@ -7,12 +7,7 @@ def hpTasks(sotrobot):
     com = COM ("talos", sotrobot)
     lf = Foot ("talos/leg_left_6_joint", sotrobot)
     rf = Foot ("talos/leg_right_6_joint", sotrobot)
-    #return com + lf + rf
-    #return lf + rf
-    #return lf
-    #return rf
-    #return com
-    return Manifold()
+    return com + lf + rf
 
 def makeSupervisorWithFactory (robot):
     from agimus_sot import Supervisor
@@ -72,9 +67,9 @@ def makeSupervisorWithFactory (robot):
 
     # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
     sot_loop =supervisor.sots['Loop | f']
-    supervisor.addSot("starting_motion", sot_loop, sot_loop.control)
-    supervisor.addSot("loop_ss", sot_loop, sot_loop.control)
-    supervisor.addSot("go_to_starting_state", sot_loop, sot_loop.control)
+    supervisor.addSolver("starting_motion", sot_loop)
+    supervisor.addSolver("loop_ss", sot_loop)
+    supervisor.addSolver("go_to_starting_state", sot_loop)
     return supervisor
 
 # Use service /agimus/sot/set_base_pose to set initial config
@@ -82,5 +77,4 @@ def makeSupervisorWithFactory (robot):
 supervisor = makeSupervisorWithFactory (robot)
 
 supervisor.plugTopicsToRos()
-supervisor.setupEvents ()
 supervisor.plugSot("")
