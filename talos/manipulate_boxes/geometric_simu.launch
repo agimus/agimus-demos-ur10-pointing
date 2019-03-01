@@ -37,7 +37,5 @@
     <arg name="simulate_torque_feedback" value="true"/>
   </include>
 
-  <include file="$(find agimus)/launch/path_execution.launch">
-    <arg name="gui" value="true"/>
-  </include>
+  <include file="$(find agimus)/launch/path_execution.launch"/>
 </launch>
