@@ -1325,7 +1325,7 @@
   <joint name="calib_mire_joint" type="fixed">
     <parent link="gripper_left_base_link"/>
     <child link="calib_mire_base_link"/>
-    <origin rpy="-0.60 -2.88 -0.82" xyz="-0.0401 -0.13 -0.35"/>
+    <origin rpy="1.07 -1.48 -2.57" xyz="-0.08 0.04 -0.52"/>
   </joint>
   <link name="calib_mire_frame">
     <inertial>
