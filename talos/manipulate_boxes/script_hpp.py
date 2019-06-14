@@ -2,15 +2,19 @@ import numpy as np
 from hpp import Quaternion, Transform
 from hpp.corbaserver.manipulation import Constraints, ProblemSolver
 from hpp.corbaserver.manipulation.robot import CorbaClient
+from hpp.corbaserver import loadServerPlugin
 
 from common_hpp import *
+
+loadServerPlugin ("corbaserver", "manipulation-corba.so")
+
 
 footPlacement = True
 comConstraint = True
 constantWaistYaw = True
 fixedArmWhenGrasping = True
 
-client = CorbaClient(postContextId="")
+client = CorbaClient(context="corbaserver")
 client.manipulation.problem.resetProblem()
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client)
@@ -20,26 +24,18 @@ q_neutral = robot.getCurrentConfig()
 ps.addPartialCom("talos", ["talos/root_joint"])
 ps.addPartialCom("talos_box", ["talos/root_joint", "box/root_joint"])
 
-# Sliding static stability constraint
-ps.createStaticStabilityConstraints(
-    "balance", half_sitting, "talos", ProblemSolver.FIXED_ON_THE_GROUND
+# Static stability constraint
+robot.createStaticStabilityConstraint(
+    "balance/", "talos", robot.leftAnkle, robot.rightAnkle, init_conf
 )
 foot_placement = ["balance/pose-left-foot", "balance/pose-right-foot"]
 foot_placement_complement = []
 
-robot.setCurrentConfig(half_sitting)
-# Position of COM with respect to left ankle
-com_wf = np.array(client.basic.robot.getPartialCom("talos"))
-tf_la = Transform(robot.getJointPosition(robot.leftAnkle))
-com_la = tf_la.inverse().transform(com_wf)
+# Static stability constraint with box
+robot.createStaticStabilityConstraint(
+    "balance_box/", "talos_box", robot.leftAnkle, robot.rightAnkle, init_conf
+)
 
-# COM constraints: robot and robot + box
-ps.createRelativeComConstraint(
-    "com_talos_box", "talos_box", robot.leftAnkle, com_la.tolist(), (True, True, True)
-)
-ps.createRelativeComConstraint(
-    "com_talos", "talos", robot.leftAnkle, com_la.tolist(), (True, True, True)
-)
 
 # Gaze constraint
 ps.createPositionConstraint(
@@ -86,13 +82,13 @@ for n in robot.jointNames:
     s = robot.getJointConfigSize(n)
     r = robot.rankInConfiguration[n]
     if n.startswith("talos/gripper_right"):
-        ps.createLockedJoint(n, n, half_sitting[r : r + s])
+        ps.createLockedJoint(n, n, init_conf[r : r + s])
         right_gripper_lock.append(n)
     elif n.startswith("talos/gripper_left"):
-        ps.createLockedJoint(n, n, half_sitting[r : r + s])
+        ps.createLockedJoint(n, n, init_conf[r : r + s])
         left_gripper_lock.append(n)
     elif n in table_lock:
-        ps.createLockedJoint(n, n, half_sitting[r : r + s])
+        ps.createLockedJoint(n, n, init_conf[r : r + s])
         ps.setConstantRightHandSide(n, False)
 
 # Set robot to neutral configuration before building constraint graph
@@ -108,7 +104,7 @@ for edgename, edgeid in graph.edges.iteritems():
 if comConstraint:
     for nodename, nodeid in graph.nodes.iteritems():
         graph.addConstraints(
-            node=nodename, constraints=Constraints(numConstraints=["com_talos", "gaze"])
+            node=nodename, constraints=Constraints(numConstraints=["balance/relative-com", "gaze"])
         )
 
 # Add locked joints and foot placement constraints in the graph,
@@ -371,7 +367,7 @@ solver = Solver(
 
 solver.initRosNode()
 
-qBoxVisible, pathId = solver.makeBoxVisibleFrom(half_sitting, True, True)
+qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
 
 # From an estimated configuration with position of objects
-# solver.solveFromEstimatedConfiguration (half_sitting)
+# solver.solveFromEstimatedConfiguration (init_conf)

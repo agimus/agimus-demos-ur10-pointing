@@ -1,14 +1,16 @@
 from datetime import datetime
 from math import sqrt
+import numpy as np
+import json
 
+import rospy
+from dynamic_graph_bridge_msgs.msg import Vector
+
+from hpp import Quaternion
 from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver
-from hpp.corbaserver.manipulation.robot import Robot
+from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
-
-Robot.packageName = "talos_data"
-Robot.urdfName = "talos"
-Robot.urdfSuffix = "_full_v2"
-Robot.srdfSuffix = ""
+from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
 
 
 class HPPObj(object):
@@ -49,107 +51,43 @@ class Table(HPPObj):
     contacts = ["top"]
 
 
-half_sitting = [
-    # -0.74,0,1.0192720229567027,0,0,0,1, # root_joint
-    0.6,
-    -0.65,
-    1.0192720229567027,
-    0,
-    0,
-    sqrt(2) / 2,
-    sqrt(2) / 2,  # root_joint
-    0.0,
-    0.0,
-    -0.411354,
-    0.859395,
-    -0.448041,
-    -0.001708,  # leg_left
-    0.0,
-    0.0,
-    -0.411354,
-    0.859395,
-    -0.448041,
-    -0.001708,  # leg_right
-    0,
-    0.006761,  # torso
-    0.25847,
-    0.173046,
-    -0.0002,
-    -0.525366,
-    0,
-    0,
-    0.1,  # arm_left
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,  # gripper_left
-    -0.25847,
-    -0.173046,
-    0.0002,
-    -0.525366,
-    0,
-    0,
-    0.1,  # arm_right
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,  # gripper_right
-    0,
-    0,  # head
-    -0.04,
-    0,
-    1.095 + 0.071,
-    0,
-    0,
-    1,
-    0,  # box
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,  # table
-]
+HumanoidRobot.packageName = "talos_data"
+HumanoidRobot.urdfName = "talos"
+HumanoidRobot.urdfSuffix = "_full_v2"
+HumanoidRobot.srdfSuffix = ""
+
+init_conf = json.load(open('../common/half_sitting.json', 'r'))
+init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
+init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
+               0, 0, 0, 0, 0, 0, 1] # table
 
 
 def makeRobotProblemAndViewerFactory(clients):
     objects = list()
-    robot = Robot("talos", "talos", rootJointType="freeflyer", client=clients)
+    robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
     robot.leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
-
-    robot.setJointBounds("talos/root_joint", [-10, 10, -10, 10, 0, 2])
+    robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
 
     ps = ProblemSolver(robot)
     ps.setErrorThreshold(1e-3)
     ps.setMaxIterProjection(40)
-
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory(ps)
+    
     objects.append(Box(name="box", vf=vf))
-    robot.setJointBounds("box/root_joint", [-10, 10, -10, 10, 0, 2])
+    robot.setJointBounds("box/root_joint", [-2, 2, -2, 2, 0, 2])
 
     # Loaded as an object to get the visual tags at the right position.
     # vf.loadEnvironmentModel (Table, 'table')
     table = Table(name="table", vf=vf)
-    robot.setJointBounds("table/root_joint", [-10, 10, -10, 10, -2, 2])
+    robot.setJointBounds("table/root_joint", [-2, 2, -2, 2, -2, 2])
 
     return robot, ps, vf, table, objects
 
 
 def makeGraph(robot, table, objects):
-    from hpp.corbaserver.manipulation.constraint_graph_factory import (
-        ConstraintGraphFactory,
-    )
-
     graph = ConstraintGraph(robot, "graph")
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["talos/left_gripper", "talos/right_gripper"])
@@ -166,17 +104,15 @@ def makeGraph(robot, table, objects):
 
 def shootConfig(robot, q, i):
     """
-  Shoot a random config if i > 0, return input configuration otherwise
-  """
-    if i == 0:
-        return q
-    return robot.shootRandomConfig()
+    Shoot a random config if i > 0, return input configuration otherwise
+    """
+    return q if i == 0 else robot.shootRandomConfig()
 
 
 def createConnection(ps, graph, e, q, maxIter):
     """
-  Try to build a path along a transition from a given configuration
-  """
+    Try to build a path along a transition from a given configuration
+    """
     for i in range(maxIter):
         q_rand = shootConfig(ps.robot, q, i)
         res, q1, err = graph.generateTargetConfig(e, q, q_rand)
@@ -189,14 +125,14 @@ def createConnection(ps, graph, e, q, maxIter):
         ps.addEdgeToRoadmap(q, q1, p, True)
         print(("Success (i={0})".format(i)))
         return p, q1
-    print(("Failed  (maxIter={0})".format(maxIter)))
-    return (None, None)
+    print("Failed  (maxIter={0})".format(maxIter))
+    return None, None
 
 
 class Solver(object):
     """
-  Solver that tries direct connections before calling RRT.
-  """
+    Solver that tries direct connections before calling RRT.
+    """
 
     useRos = True
 
@@ -261,12 +197,16 @@ class Solver(object):
         self.q_goal = q_goal
 
     def addWaypoints(self, config):
+        """
+        Add a waypoint to the free state with elbows (4th joint) at -1.7
+        """
+        # TODO: Rename for clarity. Only used for init and goal
         e = "Loop | f"
         robot = self.ps.robot
         rank1 = robot.rankInConfiguration["talos/arm_left_4_joint"]
         rank2 = robot.rankInConfiguration["talos/arm_right_4_joint"]
         q = config[::]
-        # move left elbow
+        # move elbows
         q[rank1] = -1.7
         q[rank2] = -1.7
         # Project q on state 'free'
@@ -286,6 +226,9 @@ class Solver(object):
         return config
 
     def tryDirectPaths(self, possibleConnections):
+        """
+        Add direct paths between pairs of configurations if possible
+        """
         for q1, q2 in possibleConnections:
             if q1 and q2:
                 res, p, msg = self.ps.directPath(q1, q2, True)
@@ -298,10 +241,8 @@ class Solver(object):
                     print(("q2= " + str(q2)))
 
     def solve(self):
-        import numpy as np
-
         assert (
-            np.linalg.norm(np.array(self.q_init[-7:]) - np.array(self.q_goal[-7:]))
+            np.linalg.norm(np.array(self.q_init[-7:]) - np.array(self.q_goal[-7:])) # Assert that the table is not to be moved
             < 1e-7
         )
         start = datetime.now()
@@ -435,13 +376,14 @@ class Solver(object):
         print(("Resolution time : {0}".format(end - start)))
 
     def makeBoxVisibleFrom(self, q_estimated, initObjectPose, initTablePose):
+        # TODO: Doc + rename vars for clarity
         q = q_estimated[:]
-        rankO = self.ps.robot.rankInConfiguration["box/root_joint"]
-        rankT = self.ps.robot.rankInConfiguration["table/root_joint"]
+        rank_box = self.ps.robot.rankInConfiguration["box/root_joint"]
+        rank_table = self.ps.robot.rankInConfiguration["table/root_joint"]
         if initObjectPose:
-            q[rankO : rankO + 7] = self.q_init[rankO : rankO + 7]
+            q[rank_box : rank_box + 7] = self.q_init[rank_box : rank_box + 7]
         if initTablePose:
-            q[rankT : rankT + 7] = self.q_init[rankT : rankT + 7]
+            q[rank_table : rank_table + 7] = self.q_init[rank_table : rank_table + 7]
 
         res, q_proj, err = self.graph.generateTargetConfig("loop_ss", q, q)
         assert res, "Failed: generateTargetConfig loop_ss"
@@ -467,7 +409,6 @@ class Solver(object):
         rankO = self.ps.robot.rankInConfiguration["box/root_joint"]
         rankT = self.ps.robot.rankInConfiguration["table/root_joint"]
         # Rotate the box.
-        from hpp import Quaternion
 
         qT = Quaternion(qEstimated[rankO + 3 : rankO + 7])
         qgoal[rankO + 3 : rankO + 7] = (qT * Quaternion([0, 0, 1, 0])).toTuple()
@@ -491,9 +432,6 @@ class Solver(object):
         tableRealHeight = 0.74
         boxExpectedZ = tableRealHeight + boxSizeZ / 2
 
-        import rospy, numpy as np
-        from dynamic_graph_bridge_msgs.msg import Vector
-
         msg = rospy.wait_for_message(topic, Vector, timeout=2)
         qestimated = list(msg.data)
         # Fix estimation
@@ -511,7 +449,7 @@ class Solver(object):
         z_corr = boxExpectedZ - curBoxZ + 0.01
 
         x_corr = z_corr / p_cam_obj[2] * p_cam_obj[0]
-        y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1] - 0.026
+        y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1] - 0.026 # TODO: Check this magic value!
         print("Correction on X (NOT applied) axis:", x_corr)
         print("Correction on Y (    applied) axis:", y_corr)
         print("Correction on Z (    applied) axis:", z_corr)
@@ -521,13 +459,12 @@ class Solver(object):
         qestimated[ric["table/root_joint"] + 1] += y_corr
         qestimated[ric["box/root_joint"] + 2] += z_corr
         qestimated[ric["table/root_joint"] + 2] += z_corr
+        # TODO: We can also correct with the estimation of the table height and ORIENTATION against the real values
 
         return qestimated
 
     def initRosNode(self):
         if self.useRos:
-            import rospy
-
             rospy.init_node("hpp_script", anonymous=True)
 
     def solveFromEstimatedConfiguration(self, half_sitting, q_estimated=None):
@@ -554,6 +491,7 @@ class Solver(object):
             print("Cannot go back to half_sitting:", msg)
 
     def goTo(self, half_sitting):
+        # TODO: Clean this mess
         q_current = self.acquireEstimation()
         q_init = q_current[:]
         rankO = self.ps.robot.rankInConfiguration["box/root_joint"]
