@@ -1,0 +1,41 @@
+<launch>
+  <!-- World setup -->
+  <arg name="plank_of_wood_id" default="1" />
+
+  <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+    <arg name="prefix" value="box" />
+    <arg name="id" value="$(arg plank_of_wood_id)" />
+  </include>
+  <include file="$(find gerard_bauzil)/launch/table_140_70_73.launch">
+    <arg name="prefix" value="table" />
+  </include>
+  <group ns="table">
+    <node name="to_tf" pkg="tf" type="static_transform_publisher"
+	  required="true"
+	  args="0 0 0 0 0 0 1 world table/base_link 100"
+	  />
+  </group>
+
+  <!-- SoT parameters -->
+  <arg name="script_file" doc="Full path to the script which initialize the supervisor"
+    default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
+
+  <include file="$(find sot_pyrene_bringup)/launch/geometric_simu.launch" >
+  </include>
+
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <group ns="agimus/hpp">
+    <node name="hpp_node" pkg="agimus_hpp" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      output="screen" />
+  </group>
+
+  <!--This starts sot supervisor in namespace agimus/sot-->
+  <include file="$(find agimus_sot)/launch/supervisor.launch" >
+    <arg name="script_file" value="$(arg script_file)"/>
+    <arg name="robot_prefix" value="talos/"/>
+    <arg name="simulate_torque_feedback" value="true"/>
+  </include>
+
+  <include file="$(find agimus)/launch/path_execution.launch"/>
+</launch>

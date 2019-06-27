@@ -3,76 +3,100 @@
 # - simulateTorqueFeedbackForEndEffector, a boolean
 
 import sys
-if not hasattr(sys, "argv"):
-    sys.argv = []
+
 import rospy
 
+if not hasattr(sys, "argv"):
+    sys.argv = []
+
+
 def hpTasks(sotrobot):
-    from agimus_sot.tools import COM, Foot, Manifold
-    com = COM ("talos", sotrobot)
-    lf = Foot ("talos/leg_left_6_joint", sotrobot) # Feet placement make the robot fall down.
-    rf = Foot ("talos/leg_right_6_joint", sotrobot)
+    from agimus_sot.tools import COM, Foot
+
+    com = COM("talos", sotrobot)
+    lf = Foot(
+        "talos/leg_left_6_joint", sotrobot
+    )  # Feet placement make the robot fall down.
+    rf = Foot("talos/leg_right_6_joint", sotrobot)
     return com + lf + rf
 
-def makeSupervisorWithFactory (robot):
+
+def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
     from agimus_sot.factory import Factory, Affordance
-    from agimus_sot.tools import Manifold
     from agimus_sot.srdf_parser import parse_srdf
     from hpp.corbaserver.manipulation import Rule
 
-    grippers = [ "talos/left_gripper", "talos/right_gripper" ]
-    objects = [ "box" ]
-    handlesPerObjects = [ [ "box/top", "box/bottom" ], ]
-    rules = [ Rule([ "talos/left_gripper", ], [ "box/top", ], True),
-              Rule([ "talos/right_gripper", ], [ "box/bottom", ], True), ]
+    grippers = ["talos/left_gripper", "talos/right_gripper"]
+    objects = ["box"]
+    handlesPerObjects = [["box/top", "box/bottom"]]
+    rules = [
+        Rule(["talos/left_gripper"], ["box/top"], True),
+        Rule(["talos/right_gripper"], ["box/bottom"], True),
+    ]
 
     srdf = {}
-    srdfTalos = parse_srdf ("srdf/talos.srdf", packageName = "talos_data", prefix="talos")
+    srdfTalos = parse_srdf("srdf/talos.srdf", packageName="talos_data", prefix="talos")
     # Full path can be provided with
-    srdfBox   = parse_srdf ("srdf/cup.srdf", packageName = "agimus_demos", prefix="box")
-    for w in [ "grippers", "handles" ]:
+    srdfBox = parse_srdf("srdf/cup.srdf", packageName="agimus_demos", prefix="box")
+    for w in ["grippers", "handles"]:
         srdf[w] = dict()
-        for d in [ srdfTalos, srdfBox ]:
-            srdf[w].update (d[w])
+        for d in [srdfTalos, srdfBox]:
+            srdf[w].update(d[w])
 
-    supervisor = Supervisor (robot, hpTasks = hpTasks(robot))
+    supervisor = Supervisor(robot, hpTasks=hpTasks(robot))
     factory = Factory(supervisor)
     factory.parameters["period"] = rospy.get_param("/sot_controller/dt")
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = True
     # factory.parameters["addTimerToSotControl"] = True
-    factory.setGrippers (grippers)
-    factory.setObjects (objects, handlesPerObjects, [ [] for e in objects ])
-    factory.setRules (rules)
-    factory.setupFrames (srdf["grippers"], srdf["handles"], robot)
+    factory.setGrippers(grippers)
+    factory.setObjects(objects, handlesPerObjects, [[] for e in objects])
+    factory.setRules(rules)
+    factory.setupFrames(srdf["grippers"], srdf["handles"], robot)
     # Left gripper
     # Use admittance control when closing
-    factory.addAffordance (
-        Affordance ("talos/left_gripper", "box/top",
-            openControlType="position_torque", closeControlType="position_torque",
-            refs = { "angle_open": (0,), "angle_close": (-0.5,), "torque": (-5.,) },
-            simuParams = { "refPos": (-0.2,) }))
+    factory.addAffordance(
+        Affordance(
+            "talos/left_gripper",
+            "box/top",
+            openControlType="position_torque",
+            closeControlType="position_torque",
+            refs={"angle_open": (0,), "angle_close": (-0.5,), "torque": (-5.0,)},
+            simuParams={"refPos": (-0.2,)},
+        )
+    )
     # Use position control for opening
-    factory.addAffordance (
-        Affordance ("talos/left_gripper", None,
-            openControlType="position", closeControlType="position",
-            refs = { "angle_open": (0,), "angle_close": (-0.5,), }))
+    factory.addAffordance(
+        Affordance(
+            "talos/left_gripper",
+            None,
+            openControlType="position",
+            closeControlType="position",
+            refs={"angle_open": (0,), "angle_close": (-0.5,)},
+        )
+    )
     # Right gripper
     # Use position control
-    factory.addAffordance (
-        Affordance ("talos/right_gripper", "box/bottom",
-            openControlType="position", closeControlType="position",
-            refs = { "angle_open": (0,), "angle_close": (-0.2,) }))
-    factory.generate ()
+    factory.addAffordance(
+        Affordance(
+            "talos/right_gripper",
+            "box/bottom",
+            openControlType="position",
+            closeControlType="position",
+            refs={"angle_open": (0,), "angle_close": (-0.2,)},
+        )
+    )
+    factory.generate()
 
-    supervisor.makeInitialSot ()
+    supervisor.makeInitialSot()
     return supervisor
 
+
 # Set initial config
-robot.device.set (tuple([-0.74,] + list(robot.device.state.value[1:])))
-supervisor = makeSupervisorWithFactory (robot)
+robot.device.set(tuple([-0.74] + list(robot.device.state.value[1:])))
+supervisor = makeSupervisorWithFactory(robot)
 
 supervisor.plugTopicsToRos()
-supervisor.setupEvents ()
+supervisor.setupEvents()
 supervisor.plugSot("")

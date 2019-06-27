@@ -7,7 +7,7 @@
     <!---x -0.075 -z 0.024 -z 1.168 -R 4.712 -P 1.57-->
     <node name="spawn_cobblestone_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gerard_bauzil)/urdf/cardboard_box.urdf -urdf
-      -x -0.075 -z 0.024 -z 1.1671 -R 4.712 -P 1.57
+      -x -0.04 -z 0.024 -z 1.1671 -Y 3.14
       -model box" />
     <node name="box_to_tf" pkg="agimus_demos" type="gazebo_object_to_tf.py"
         args="box base_link world" required="true"
