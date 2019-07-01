@@ -52,7 +52,7 @@ class Table(HPPObj):
 
 class RollingTable(HPPObj):
     def __init__(self, name, vf):
-        super(Table, self).__init__(name, vf)
+        super(RollingTable, self).__init__(name, vf)
 
     rootJointType = "freeflyer"
     packageName = "gerard_bauzil"
@@ -71,7 +71,8 @@ HumanoidRobot.urdfSuffix = "_full_v2"
 HumanoidRobot.srdfSuffix = ""
 
 init_conf = json.load(open('../common/half_sitting.json', 'r'))
-init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
+#init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
+init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
                0, 0, 0, 0, 0, 0, 1] # table
 
@@ -159,6 +160,14 @@ class Solver(object):
         graph,
         q_init,
         q_goal,
+        e_l_l1,
+        e_l_r1,
+        e_l_l2,
+        e_l_r2,
+        e_l_l3,
+        e_l_r3,
+        e_l_l4,
+        e_l_r4,
         e_l1,
         e_r1,
         e_l2,
@@ -186,6 +195,14 @@ class Solver(object):
     ):
         self.ps = ps
         self.graph = graph
+        self.e_l_l1 = e_l_l1
+        self.e_l_r1 = e_l_r1
+        self.e_l_l2 = e_l_l2
+        self.e_l_r2 = e_l_r2
+        self.e_l_l3 = e_l_l3
+        self.e_l_r3 = e_l_r3
+        self.e_l_l4 = e_l_l4
+        self.e_l_r4 = e_l_r4
         self.e_l1 = e_l1
         self.e_r1 = e_r1
         self.e_l2 = e_l2
@@ -444,6 +461,26 @@ class Solver(object):
         # self.tryDirectPaths (((qgoalInStartingState, qgoal),))
         return qgoal, qgoalInStartingState
 
+    # \param qEstimated box should be visible.
+    def generateLeftHandGraspFrom(self, qEstimated):
+        qgoals = []
+
+        ## Connections from init to grasp
+        print("Edge e_l1   : ")
+        p, q_l1 = createConnection(self.ps, self.graph, self.e_l1, self.wp_init, 20)
+        print("Edge e_l2   : ")
+        p, q_l2 = createConnection(self.ps, self.graph, self.e_l2, self.wp_init, 20)
+        print("Edge e_l3   : ")
+        p, q_l3 = createConnection(self.ps, self.graph, self.e_l3, self.wp_init, 20)
+        print("Edge e_l4   : ")
+        p, q_l4 = createConnection(self.ps, self.graph, self.e_l4, self.wp_init, 20)
+        if q_l1: qgoals.append (q_l1)
+        if q_l2: qgoals.append (q_l2)
+        if q_l3: qgoals.append (q_l3)
+        if q_l4: qgoals.append (q_l4)
+
+        return qgoals
+
     def acquireEstimation(self, topic="/agimus/estimation/semantic"):
         boxSizeZ = 0.203
         tableRealHeight = 0.74
@@ -506,6 +543,36 @@ class Solver(object):
             print("Path to go back to half_sitting:", self.ps.numberPaths() - 1)
         else:
             print("Cannot go back to half_sitting:", msg)
+
+    def graspBoxWithLeftHand(self, q_estimated=None):
+        if q_estimated is None:
+            self.q_estimated = self.acquireEstimation()
+        else:
+            self.q_estimated = q_estimated
+        # Look at the box
+        self.q_init, initial_path_id = self.makeBoxVisibleFrom(
+            self.q_estimated, False, False
+        )
+        # Move hands up.
+        self.ps.addConfigToRoadmap(self.q_init)
+        print(("Generating init waypoint."))
+        self.wp_init = self.addWaypoints(self.q_init)
+
+        self.q_goals = self.generateLeftHandGraspFrom(self.wp_init)
+
+        if not self.q_goals:
+            raise RuntimeError("Failed to generate goal configs")
+
+        self.ps.setInitialConfig(self.q_init)
+        self.ps.resetGoalConfigs()
+        for q_goal in self.q_goals:
+            # self.ps.addConfigToRoadmap(self.q_goal)
+            self.ps.addGoalConfig(q_goal)
+
+        duration = self.ps.solve()
+        print(("Resolution time : {0}h{1}m{2}s{3}us".format(*duration)))
+        print("Initial path: ", initial_path_id)
+        print("Path to achieve the box goal position: ", self.ps.numberPaths() - 1)
 
     def goTo(self, half_sitting):
         # TODO: Clean this mess
