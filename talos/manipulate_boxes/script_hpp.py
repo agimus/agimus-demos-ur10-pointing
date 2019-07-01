@@ -122,7 +122,7 @@ if constantWaistYaw:
             edge=edgename, constraints=Constraints(numConstraints=["waist_yaw"])
         )
 
-graph.setConstraints(
+graph.addConstraints(
     graph=True,
     constraints=Constraints(
         numConstraints=foot_placement,

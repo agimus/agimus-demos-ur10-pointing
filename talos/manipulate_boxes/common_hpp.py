@@ -451,14 +451,14 @@ class Solver(object):
         x_corr = z_corr / p_cam_obj[2] * p_cam_obj[0]
         y_corr = z_corr / p_cam_obj[2] * p_cam_obj[1] - 0.026 # TODO: Check this magic value!
         print("Correction on X (NOT applied) axis:", x_corr)
-        print("Correction on Y (    applied) axis:", y_corr)
-        print("Correction on Z (    applied) axis:", z_corr)
+        print("Correction on Y (NOT applied) axis:", y_corr)
+        print("Correction on Z (NOT applied) axis:", z_corr)
         # qestimated[ric["box/root_joint"]  +0] +=x_corr
         # qestimated[ric["table/root_joint"]+0] +=x_corr
-        qestimated[ric["box/root_joint"] + 1] += y_corr
-        qestimated[ric["table/root_joint"] + 1] += y_corr
-        qestimated[ric["box/root_joint"] + 2] += z_corr
-        qestimated[ric["table/root_joint"] + 2] += z_corr
+        #qestimated[ric["box/root_joint"] + 1] += y_corr
+        #qestimated[ric["table/root_joint"] + 1] += y_corr
+        #qestimated[ric["box/root_joint"] + 2] += z_corr
+        #qestimated[ric["table/root_joint"] + 2] += z_corr
         # TODO: We can also correct with the estimation of the table height and ORIENTATION against the real values
 
         return qestimated
