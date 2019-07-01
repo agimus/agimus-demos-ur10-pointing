@@ -21,7 +21,7 @@ clients = CorbaClient(context="estimation")
 if not clients.manipulation.problem.selectProblem("estimation"):
   clients.manipulation.problem.resetProblem()
 
-robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(clients)
+robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(clients, rolling_table=True)
 
 q_neutral = robot.getCurrentConfig()
 

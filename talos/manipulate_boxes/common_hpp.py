@@ -50,6 +50,20 @@ class Table(HPPObj):
     handles = []
     contacts = ["top"]
 
+class RollingTable(HPPObj):
+    def __init__(self, name, vf):
+        super(Table, self).__init__(name, vf)
+
+    rootJointType = "freeflyer"
+    packageName = "gerard_bauzil"
+    urdfName = "rolling_table"
+    urdfSuffix = ""
+    srdfSuffix = ""
+    pose = "pose"
+    handles = []
+    contacts = ["top"]
+
+
 
 HumanoidRobot.packageName = "talos_data"
 HumanoidRobot.urdfName = "talos"
@@ -62,7 +76,7 @@ init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
                0, 0, 0, 0, 0, 0, 1] # table
 
 
-def makeRobotProblemAndViewerFactory(clients):
+def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     objects = list()
     robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
     robot.leftAnkle = "talos/leg_left_6_joint"
@@ -81,7 +95,10 @@ def makeRobotProblemAndViewerFactory(clients):
 
     # Loaded as an object to get the visual tags at the right position.
     # vf.loadEnvironmentModel (Table, 'table')
-    table = Table(name="table", vf=vf)
+    if rolling_table:
+        table = RollingTable(name="table", vf=vf)
+    else:
+        table = Table(name="table", vf=vf)
     robot.setJointBounds("table/root_joint", [-2, 2, -2, 2, -2, 2])
 
     return robot, ps, vf, table, objects

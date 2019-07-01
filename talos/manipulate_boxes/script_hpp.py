@@ -17,7 +17,7 @@ fixedArmWhenGrasping = True
 client = CorbaClient(context="corbaserver")
 client.manipulation.problem.resetProblem()
 
-robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client)
+robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True)
 
 q_neutral = robot.getCurrentConfig()
 
