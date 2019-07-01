@@ -8,7 +8,7 @@
       <arg name="id" value="$(arg plank_of_wood_id)" />
     </include>
 
-    <include file="$(find gerard_bauzil)/launch/table_140_70_73.launch">
+    <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
       <arg name="prefix" value="table" />
     </include>
 
@@ -20,7 +20,7 @@
       -model box" />
 
     <node name="spawn_table" pkg="gazebo_ros" type="spawn_model"
-      args="-file $(find gerard_bauzil)/urdf/table_140_70_73.urdf -urdf
+      args="-file $(find gerard_bauzil)/urdf/rolling_table.urdf -urdf
       -x 0. -y 0. -z 0. -Y 0.
       -model table" />
 
