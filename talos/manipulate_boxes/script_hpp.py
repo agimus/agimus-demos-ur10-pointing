@@ -371,3 +371,12 @@ qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
 
 # From an estimated configuration with position of objects
 # solver.solveFromEstimatedConfiguration (init_conf)
+
+## Solving with ManipulationRRT and random shortcut takes approximately 2 minutes
+# ps.setMaxIterPathPlanning(1000)
+# ps.clearPathOptimizers ()
+# ps.addPathOptimizer ("RandomShortcut")
+# ps.addPathOptimizer ("SimpleTimeParameterization")
+# ps.setInitialConfig (q_init)
+# ps.addGoalConfig (q_goal)
+# time = ps.solve ()
