@@ -76,4 +76,5 @@ install(PROGRAMS
   scripts/gazebo_object_to_tf.py
   scripts/visual_tag_initializer.py
   scripts/calibration_frames_grabber.py
+  scripts/publish_constants.py
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
