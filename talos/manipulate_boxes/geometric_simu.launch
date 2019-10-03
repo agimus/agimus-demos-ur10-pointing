@@ -14,7 +14,18 @@
 	  required="true"
 	  args="0 0 0 0 0 0 1 world table/base_link 100"
 	  />
+    <node name="to_tf_2" pkg="tf" type="static_transform_publisher"
+	  required="true"
+	  args="0 0 0 0 0 0 1 world odom 100"
+	  />
   </group>
+
+  <group ns="vision">
+    <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
+          args="$(find agimus_demos)/talos/common/camera_info.yaml" />
+  </group>
+
+
 
   <!-- SoT parameters -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
