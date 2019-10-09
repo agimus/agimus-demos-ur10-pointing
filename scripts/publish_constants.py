@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import rospy
 import yaml
 from sensor_msgs.msg import CameraInfo
@@ -9,7 +10,8 @@ rospy.init_node('publish_constant', anonymous=True)
 pub = rospy.Publisher('/rgbd/rgb/camera_info', CameraInfo, queue_size=10)
 rate = rospy.Rate(30)
 
-with open('camera_info.yaml', 'r') as f:
+filename = sys.argv [1]
+with open(filename, 'r') as f:
     camera_data = yaml.load(f)
 
 camera_info = CameraInfo()
