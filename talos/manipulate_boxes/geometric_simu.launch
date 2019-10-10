@@ -23,9 +23,10 @@
   <group ns="vision">
     <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
           args="$(find agimus_demos)/talos/common/camera_info.yaml" />
+    <!-- rviz with camera simulation -->
+    <node name="rviz" pkg="rviz" type="rviz"
+          args="-d $(find agimus_demos)/talos/manipulate_boxes/config.rviz" />
   </group>
-
-
 
   <!-- SoT parameters -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
