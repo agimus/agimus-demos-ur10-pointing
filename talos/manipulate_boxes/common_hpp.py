@@ -7,7 +7,7 @@ import rospy
 from dynamic_graph_bridge_msgs.msg import Vector
 
 from hpp import Quaternion
-from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver
+from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver, Rule
 from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
@@ -104,11 +104,39 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
 
     return robot, ps, vf, table, objects
 
+def makeRules (robot, grippers):
+    handles = ['box/handle1', 'box/handle2', 'box/handle3', 'box/handle4']
+    res = list ()
+    res.append (Rule (grippers = grippers,
+                      handles = ['^$', '^$',], link = True))
+    for h in handles:
+        res.append (Rule (grippers = grippers,
+                          handles = [h, '^$',], link = True))
+        res.append (Rule (grippers = grippers,
+                          handles = ['^$', h,], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [0], handles [1]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [1], handles [0]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [0], handles [3]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [3], handles [0]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [2], handles [1]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [1], handles [2]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [2], handles [3]], link = True))
+    res.append (Rule (grippers = grippers,
+                      handles = [handles [3], handles [2]], link = True))
+    return res
 
 def makeGraph(robot, table, objects):
     graph = ConstraintGraph(robot, "graph")
     factory = ConstraintGraphFactory(graph)
-    factory.setGrippers(["talos/left_gripper", "talos/right_gripper"])
+    grippers = ["talos/left_gripper", "talos/right_gripper"]
+    factory.setGrippers(grippers)
     factory.setObjects(
         [obj.name for obj in objects],
         [obj.handles for obj in objects],
@@ -116,6 +144,7 @@ def makeGraph(robot, table, objects):
     )
     factory.environmentContacts(table.contacts)
     factory.constraints.strict = True
+    factory.setRules (makeRules (robot, grippers))
     factory.generate()
     return graph
 

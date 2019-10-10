@@ -98,7 +98,7 @@ graph = makeGraph(robot, table, objects)
 # Add other locked joints in the edges.
 for edgename, edgeid in graph.edges.iteritems():
     graph.addConstraints(
-        edge=edgename, constraints=Constraints(lockedJoints=table_lock)
+        edge=edgename, constraints=Constraints(numConstraints=table_lock)
     )
 # Add gaze and and COM constraints to each node of the graph
 if comConstraint:
@@ -125,8 +125,7 @@ if constantWaistYaw:
 graph.addConstraints(
     graph=True,
     constraints=Constraints(
-        numConstraints=foot_placement,
-        lockedJoints=left_gripper_lock + right_gripper_lock,
+        numConstraints=foot_placement + left_gripper_lock + right_gripper_lock,
     ),
 )
 
@@ -151,19 +150,19 @@ graph.addConstraints(
 graph.addConstraints(
     edge="loop_ss",
     constraints=Constraints(
-        numConstraints=["place_box/complement"], lockedJoints=table_lock
+        numConstraints=["place_box/complement"] + table_lock
     ),
 )
 graph.addConstraints(
     edge="starting_motion",
     constraints=Constraints(
-        numConstraints=["place_box/complement"], lockedJoints=table_lock
+        numConstraints=["place_box/complement"] + table_lock
     ),
 )
 graph.addConstraints(
     edge="go_to_starting_state",
     constraints=Constraints(
-        numConstraints=["place_box/complement"], lockedJoints=table_lock
+        numConstraints=["place_box/complement"] + table_lock
     ),
 )
 
@@ -213,8 +212,8 @@ e_l4_app = e_l4 + "_01"
 e_r4_app = e_r4 + "_01"
 
 if fixedArmWhenGrasping:
-    leftArmConstraint = Constraints(lockedJoints=left_arm_lock)
-    rightArmConstraint = Constraints(lockedJoints=right_arm_lock)
+    leftArmConstraint = Constraints(numConstraints=left_arm_lock)
+    rightArmConstraint = Constraints(numConstraints=right_arm_lock)
 
     graph.addConstraints(edge=e_l1_app, constraints=rightArmConstraint)
     graph.addConstraints(edge=e_r1_app, constraints=leftArmConstraint)
@@ -456,3 +455,12 @@ qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
 
 # From an estimated configuration with position of objects
 # solver.solveFromEstimatedConfiguration (init_conf)
+
+## Solving with ManipulationRRT and random shortcut takes approximately 2 minutes
+# ps.setMaxIterPathPlanning(1000)
+# ps.clearPathOptimizers ()
+# ps.addPathOptimizer ("RandomShortcut")
+# ps.addPathOptimizer ("SimpleTimeParameterization")
+# ps.setInitialConfig (q_init)
+# ps.addGoalConfig (q_goal)
+# time = ps.solve ()

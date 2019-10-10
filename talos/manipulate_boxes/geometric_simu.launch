@@ -14,6 +14,18 @@
 	  required="true"
 	  args="0 0 0 0 0 0 1 world table/base_link 100"
 	  />
+    <node name="to_tf_2" pkg="tf" type="static_transform_publisher"
+	  required="true"
+	  args="0 0 0 0 0 0 1 world odom 100"
+	  />
+  </group>
+
+  <group ns="vision">
+    <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
+          args="$(find agimus_demos)/talos/common/camera_info.yaml" />
+    <!-- rviz with camera simulation -->
+    <node name="rviz" pkg="rviz" type="rviz"
+          args="-d $(find agimus_demos)/talos/manipulate_boxes/config.rviz" />
   </group>
 
   <!-- SoT parameters -->
