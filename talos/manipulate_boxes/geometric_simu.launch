@@ -54,4 +54,7 @@
   </include>
 
   <include file="$(find agimus)/launch/path_execution.launch"/>
+
+  <!-- Simulation -->
+  <node name="simulation" pkg="agimus_sot" type="simulation.py"/>
 </launch>
