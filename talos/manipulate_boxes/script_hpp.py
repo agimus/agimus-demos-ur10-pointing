@@ -239,6 +239,8 @@ ps.selectPathProjector("Progressive", 0.2)
 # ps.selectPathValidation("Progressive", 0.01)
 ps.selectPathValidation("Discretized", 0.01)
 # ps.selectPathValidation("Dichotomy", 0.0)
+graph.setWeight ('Loop | f', 1)
+
 graph.initialize()
 
 q_init = [
