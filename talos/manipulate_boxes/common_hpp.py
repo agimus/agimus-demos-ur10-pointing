@@ -76,6 +76,18 @@ init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2
 init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
                0, 0, 0, 0, 0, 0, 1] # table
 
+## Reduce joint range for security
+def shrinkJointRange (robot, ratio):
+    for j in robot.jointNames:
+        if j [:6] == "talos/" and j [:13] != "talos/gripper":
+            bounds = robot.getJointBounds (j)
+            if len (bounds) == 2:
+                width = bounds [1] - bounds [0]
+                mean = .5 * (bounds [1] + bounds [0])
+                m = mean - .5 * ratio * width
+                M = mean + .5 * ratio * width
+                robot.setJointBounds (j, [m, M])
+
 
 def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     objects = list()
@@ -83,6 +95,7 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     robot.leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
     robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
+    shrinkJointRange (robot, 0.95)
 
     ps = ProblemSolver(robot)
     ps.setErrorThreshold(1e-3)
@@ -90,7 +103,7 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory(ps)
-    
+
     objects.append(Box(name="box", vf=vf))
     robot.setJointBounds("box/root_joint", [-2, 2, -2, 2, 0, 2])
 

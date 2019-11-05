@@ -398,7 +398,7 @@ Visualization Manager:
           Value: true
       Name: Table
       Robot Description: table/robot_description
-      TF Prefix: ""
+      TF Prefix: table
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -439,7 +439,7 @@ Visualization Manager:
           Value: true
       Name: Box
       Robot Description: box/robot_description
-      TF Prefix: ""
+      TF Prefix: box
       Update Interval: 0
       Value: true
       Visual Enabled: true

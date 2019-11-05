@@ -10,16 +10,16 @@
     <arg name="prefix" value="table" />
   </include>
   <group ns="table">
-    <node name="to_tf" pkg="tf" type="static_transform_publisher"
-	  required="true"
-	  args="0 0 0 0 0 0 1 world table/base_link 100"
-	  />
     <node name="to_tf_2" pkg="tf" type="static_transform_publisher"
 	  required="true"
 	  args="0 0 0 0 0 0 1 world odom 100"
 	  />
   </group>
 
+  <!-- Initialization of robot root_joint pose as a ROS param
+       value = "x y z X Y Z W" where Xi+Yj+Zk+W is a quaternion -->
+  <param name="robot_initial_pose"
+         value="0.6 -0.65 1.0192720229567027 0 0 0.7071067811865476 0.7071067811865476"/>
   <group ns="vision">
     <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
           args="$(find agimus_demos)/talos/common/camera_info.yaml" />
@@ -50,4 +50,7 @@
   </include>
 
   <include file="$(find agimus)/launch/path_execution.launch"/>
+
+  <!-- Simulation -->
+  <node name="simulation" pkg="agimus_sot" type="simulation.py"/>
 </launch>

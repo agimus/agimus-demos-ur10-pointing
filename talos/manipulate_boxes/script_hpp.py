@@ -1,23 +1,39 @@
-import numpy as np
+import argparse, numpy as np
 from hpp import Quaternion, Transform
 from hpp.corbaserver.manipulation import Constraints, ProblemSolver
 from hpp.corbaserver.manipulation.robot import CorbaClient
-from hpp.corbaserver import loadServerPlugin
+from hpp.corbaserver import loadServerPlugin, createContext
 
 from common_hpp import *
 
-loadServerPlugin ("corbaserver", "manipulation-corba.so")
+# parse arguments
+defaultContext = "corbaserver"
+p = argparse.ArgumentParser (description=
+                             'Initialize demo of Pyrene manipulating a box')
+p.add_argument ('--context', type=str, metavar='context',
+                default=defaultContext,
+                help="identifier of ProblemSolver instance")
+args = p.parse_args ()
+if args.context != defaultContext:
+    createContext (args.context)
 
+print ("context=" + args.context)
+loadServerPlugin (args.context, "manipulation-corba.so")
 
 footPlacement = True
 comConstraint = True
 constantWaistYaw = True
 fixedArmWhenGrasping = True
 
-client = CorbaClient(context="corbaserver")
+client = CorbaClient(context=args.context)
+if args.context != defaultContext:
+    client.manipulation.problem.selectProblem (args.context)
+
 client.manipulation.problem.resetProblem()
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True)
+if args.context == "simulation":
+    ps.setMaxIterProjection (1)
 
 q_neutral = robot.getCurrentConfig()
 
@@ -231,6 +247,8 @@ ps.selectPathProjector("Progressive", 0.2)
 # ps.selectPathValidation("Progressive", 0.01)
 ps.selectPathValidation("Discretized", 0.01)
 # ps.selectPathValidation("Dichotomy", 0.0)
+graph.setWeight ('Loop | f', 1)
+
 graph.initialize()
 
 q_init = [
@@ -393,65 +411,64 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", 1.0)
 ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setMaxIterPathPlanning(50)
 
-# q_init = robot.shootRandomConfig ()
-# Define problem
-res, q_init, err = graph.generateTargetConfig("Loop | f", q_init, q_init)
-if not res:
-    raise RuntimeError("Failed to project initial configuration")
+if args.context == defaultContext:
+    # Define problem
+    res, q_init, err = graph.generateTargetConfig("Loop | f", q_init, q_init)
+    if not res:
+        raise RuntimeError("Failed to project initial configuration")
 
-q_goal = q_init[::]
-rank = robot.rankInConfiguration["box/root_joint"]
-q_goal[rank + 3 : rank + 7] = (
-    Quaternion([0, 1, 0, 0]) * Quaternion(q_init[rank + 3 : rank + 7])
-).toTuple()
-# res, q_goal, err = graph.applyNodeConstraints ('free', q_goal)
-res, q_proj, err = graph.generateTargetConfig("Loop | f", q_goal, q_goal)
-if not res:
-    raise RuntimeError("Failed to project goal configuration")
-assert q_init[-7:] == q_goal[-7:]
+    q_goal = q_init[::]
+    rank = robot.rankInConfiguration["box/root_joint"]
+    q_goal[rank + 3 : rank + 7] = (
+        Quaternion([0, 1, 0, 0]) * Quaternion(q_init[rank + 3 : rank + 7])).\
+        toTuple()
+    # res, q_goal, err = graph.applyNodeConstraints ('free', q_goal)
+    res, q_proj, err = graph.generateTargetConfig("Loop | f", q_goal, q_goal)
+    if not res:
+        raise RuntimeError("Failed to project goal configuration")
+    assert q_init[-7:] == q_goal[-7:]
 
-solver = Solver(
-    ps,
-    graph,
-    q_init,
-    q_goal,
-    e_l_l1,
-    e_l_r1,
-    e_l_l2,
-    e_l_r2,
-    e_l_l3,
-    e_l_r3,
-    e_l_l4,
-    e_l_r4,
-    e_l1,
-    e_r1,
-    e_l2,
-    e_r2,
-    e_l3,
-    e_r3,
-    e_l4,
-    e_r4,
-    e_l1_r2,
-    e_l1_r4,
-    e_r1_l2,
-    e_r1_l4,
-    e_l2_r1,
-    e_l2_r3,
-    e_r2_l1,
-    e_r2_l3,
-    e_r3_l4,
-    e_r3_l2,
-    e_l3_r4,
-    e_l3_r2,
-    e_l4_r1,
-    e_l4_r3,
-    e_r4_l1,
-    e_r4_l3,
-)
+    solver = Solver(
+        ps,
+        graph,
+        q_init,
+        q_goal,
+        e_l_l1,
+        e_l_r1,
+        e_l_l2,
+        e_l_r2,
+        e_l_l3,
+        e_l_r3,
+        e_l_l4,
+        e_l_r4,
+        e_l1,
+        e_r1,
+        e_l2,
+        e_r2,
+        e_l3,
+        e_r3,
+        e_l4,
+        e_r4,
+        e_l1_r2,
+        e_l1_r4,
+        e_r1_l2,
+        e_r1_l4,
+        e_l2_r1,
+        e_l2_r3,
+        e_r2_l1,
+        e_r2_l3,
+        e_r3_l4,
+        e_r3_l2,
+        e_l3_r4,
+        e_l3_r2,
+        e_l4_r1,
+        e_l4_r3,
+        e_r4_l1,
+        e_r4_l3,
+    )
 
-solver.initRosNode()
-
-qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
+    solver.initRosNode()
+    qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
 
 # From an estimated configuration with position of objects
 # solver.solveFromEstimatedConfiguration (init_conf)
