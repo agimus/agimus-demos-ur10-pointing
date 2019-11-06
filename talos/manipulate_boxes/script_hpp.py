@@ -20,10 +20,12 @@ if args.context != defaultContext:
 print ("context=" + args.context)
 loadServerPlugin (args.context, "manipulation-corba.so")
 
-footPlacement = True
-comConstraint = True
-constantWaistYaw = True
-fixedArmWhenGrasping = True
+isSimulation = args.context == "simulation"
+
+footPlacement = not isSimulation
+comConstraint = not isSimulation
+constantWaistYaw = not isSimulation
+fixedArmWhenGrasping = not isSimulation
 
 client = CorbaClient(context=args.context)
 if args.context != defaultContext:
@@ -32,7 +34,7 @@ if args.context != defaultContext:
 client.manipulation.problem.resetProblem()
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True)
-if args.context == "simulation":
+if isSimulation:
     ps.setMaxIterProjection (1)
 
 q_neutral = robot.getCurrentConfig()
