@@ -456,6 +456,7 @@ Visualization Manager:
       Visibility:
         Box: true
         Grid: true
+        Light: true
         Pyrene: true
         Table: true
         Value: true
@@ -471,6 +472,24 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Value: true
+    - Class: rviz_lighting/Light
+      Diffuse Color: 255; 255; 255
+      Direction:
+        X: -1
+        Y: -1
+        Z: -1
+      Enabled: true
+      Falloff: 1
+      Light Type: Point
+      Name: Light
+      Outer Angle: 0.5
+      Position:
+        X: 0
+        Y: 0
+        Z: 0
+      Reference Frame: rgbd_depth_frame
+      Specular Color: 255; 255; 255
       Value: true
   Enabled: true
   Global Options:

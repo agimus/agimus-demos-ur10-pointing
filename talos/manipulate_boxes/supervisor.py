@@ -60,17 +60,22 @@ def makeSupervisorWithFactory(robot):
                     gripper,
                     handle,
                     openControlType="torque",
-                    closeControlType="torque",
+                    closeControlType="position_torque",
                     refs={
                         "angle_open": (0,),
                         "angle_close": (-0.5,),
                         "torque": (-0.07,),
                     },
                     controlParams={
-                        "torque_num": (5000.0, 1000.0),
-                        "torque_denom": (0.01,),
+                        "torque_num": (5.,),
+                        "torque_denom": (1.,0.1),
                     },
-                    simuParams={"refPos": (-0.2,)},
+                    simuParams={
+                        "M": 0.,
+                        "d": 0.,
+                        "k": 100.,
+                        "refPos": (-0.2,),
+                        },
                 )
             )
         factory.addAffordance(
