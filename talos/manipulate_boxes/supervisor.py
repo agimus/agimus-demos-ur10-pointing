@@ -67,14 +67,14 @@ def makeSupervisorWithFactory(robot):
                         "torque": (-0.07,),
                     },
                     controlParams={
-                        "torque_num": (5.,),
-                        "torque_denom": (1.,0.1),
+                        "torque_num": (1.,),
+                        "torque_denom": (10.,1.),
                     },
                     simuParams={
                         "M": 0.,
-                        "d": 0.,
+                        "d": 5.,
                         "k": 100.,
-                        "refPos": (-0.2,),
+                        "refPos": (-0.4,),
                         },
                 )
             )

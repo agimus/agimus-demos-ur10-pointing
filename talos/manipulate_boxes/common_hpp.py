@@ -100,6 +100,7 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     ps = ProblemSolver(robot)
     ps.setErrorThreshold(1e-3)
     ps.setMaxIterProjection(40)
+    ps.addPathOptimizer("EnforceTransitionSemantic")
     ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory(ps)
