@@ -4,18 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
-        - /Pyrene1
         - /Pyrene1/Links1
         - /Pyrene1/Links1/rgbd_rgb_optical_frame1
-        - /Table1
-        - /Box1
-        - /CameraPub1
-        - /CameraPub1/Visibility1
-        - /camera1
       Splitter Ratio: 0.5
-    Tree Height: 374
+    Tree Height: 513
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -458,6 +450,7 @@ Visualization Manager:
         Grid: true
         Light: true
         Pyrene: true
+        TF: false
         Table: true
         Value: true
         camera: true
