@@ -1,5 +1,7 @@
 <launch>
-  <arg name="plank_of_wood_id" default="1"/>
+  <arg name="plank_of_wood_id" default="2"/>
+  <arg name="output" default="log"/>
+  <arg name="state_estimation" default="false"/>
   <!-- World setup -->
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
     <arg name="prefix" value="box" />
@@ -26,34 +28,65 @@
     <param name="broadcastTopic"  value="true" />
     <param name="broadcastTf"     value="true" />
     <param name="broadcastTfPostfix" value="_tf" />
+    <param name="objectType" value="apriltag" />
 
     <node pkg="agimus_vision" type="tracker_object"
+        output="$(arg output)"
         name="tag_tracker"
         />
     <!-- Table -->
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00010_init"
-        args="10 60 table/tag36_11_00010_joint"
-        />
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_00011_init"
-        args="11 60 table/tag36_11_00011_joint"
+    <node pkg="agimus_demos" type="group_of_tags.py" name="table_tags" args="
+        --child-frame-format 'table/tag36_11_{:0>5d}'
+        --measurement-parent-frame world
+        --parent-frame table/base_link
+        --no-description
+        --size 0.060
+        --tag 10
+        --tag 11
+        "
+        output="$(arg output)"
         />
 
     <!-- Plank of wood 1 -->
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)0_init"
-        args="$(arg plank_of_wood_id)0 60 box/tag36_11_000$(arg plank_of_wood_id)0_joint"
+    <node pkg="agimus_demos" type="group_of_tags.py" name="box_tags" args="
+        --child-frame-format 'box/tag36_11_{:0>5d}'
+        --measurement-parent-frame world
+        --parent-frame box/base_link
+        --no-description
+        --size 0.060
+        --tag $(arg plank_of_wood_id)0
+        --tag $(arg plank_of_wood_id)1
+        --tag $(arg plank_of_wood_id)2
+        --tag $(arg plank_of_wood_id)3
+        "
+        output="$(arg output)"
         />
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)1_init"
-        args="$(arg plank_of_wood_id)1 60 box/tag36_11_000$(arg plank_of_wood_id)1_joint"
+
+    <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
+        --measurement-parent-frame world
+        --parent-frame gripper_right_base_link
+        --size 0.024
+        --tag 50 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
+        --tag 51 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
+        --tag 52 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
+        --tag 53 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
+        "
+        output="$(arg output)"
         />
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)2_init"
-        args="$(arg plank_of_wood_id)2 60 box/tag36_11_000$(arg plank_of_wood_id)2_joint"
-        />
-    <node pkg="agimus_demos" type="visual_tag_initializer.py" name="tag36_11_000$(arg plank_of_wood_id)3_init"
-        args="$(arg plank_of_wood_id)3 60 box/tag36_11_000$(arg plank_of_wood_id)3_joint"
+    <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
+        --measurement-parent-frame world
+        --parent-frame gripper_left_base_link
+        --size 0.024
+        --tag 60 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
+        --tag 61 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
+        --tag 62 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
+        --tag 63 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
+        "
+        output="$(arg output)"
         />
   </group>
 
-  <group ns="agimus/hpp">
+  <group ns="agimus/hpp" if="$(arg state_estimation)">
 	<param name="default_state_id"  value="2" />
 	<!--<param name="use_configuration_constraint"  value="false" />-->
     <node pkg="agimus_hpp" type="estimation.py" name="hpp_estimation"

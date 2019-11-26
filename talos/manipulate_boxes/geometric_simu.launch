@@ -1,6 +1,6 @@
 <launch>
   <!-- World setup -->
-  <arg name="plank_of_wood_id" default="1" />
+  <arg name="plank_of_wood_id" default="2" />
 
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
     <arg name="prefix" value="box" />

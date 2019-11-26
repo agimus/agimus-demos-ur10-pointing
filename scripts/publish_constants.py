@@ -7,7 +7,7 @@ from sensor_msgs.msg import CameraInfo
 
 def run():
     rospy.init_node('publish_constant', anonymous=True)
-    pub = rospy.Publisher('/rgbd/rgb/camera_info', CameraInfo, queue_size=10)
+    pub = rospy.Publisher('/rgbd/rgb/high_res/camera_info', CameraInfo, queue_size=10)
     rate = rospy.Rate(30)
 
     filename = sys.argv [1]

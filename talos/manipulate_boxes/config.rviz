@@ -378,12 +378,12 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00004:
+        tag36_11_00010:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00005:
+        tag36_11_00011:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -409,22 +409,22 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00010:
+        tag36_11_00020:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00011:
+        tag36_11_00021:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00012:
+        tag36_11_00022:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        tag36_11_00013:
+        tag36_11_00023:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -436,12 +436,12 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Background Color: 0; 0; 0
-      Camera Info Topic: /rgbd/rgb/camera_info
+      Camera Info Topic: /rgbd/rgb/high_res/camera_info
       Class: rviz_camera_stream/CameraPub
       Display namespace: ""
       Enabled: true
       Frame Rate: -1
-      Image Topic: /rgbd/rgb/image_color
+      Image Topic: /rgbd/rgb/high_res/image_rect
       Name: CameraPub
       Queue Size: 2
       Value: true
@@ -484,6 +484,344 @@ Visualization Manager:
       Reference Frame: rgbd_depth_frame
       Specular Color: 255; 255; 255
       Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        arm_left_1_link:
+          Value: false
+        arm_left_2_link:
+          Value: false
+        arm_left_3_link:
+          Value: false
+        arm_left_4_link:
+          Value: false
+        arm_left_5_link:
+          Value: false
+        arm_left_6_link:
+          Value: false
+        arm_left_7_link:
+          Value: false
+        arm_right_1_link:
+          Value: false
+        arm_right_2_link:
+          Value: false
+        arm_right_3_link:
+          Value: false
+        arm_right_4_link:
+          Value: false
+        arm_right_5_link:
+          Value: false
+        arm_right_6_link:
+          Value: false
+        arm_right_7_link:
+          Value: false
+        base_link:
+          Value: false
+        box/base_link:
+          Value: false
+        box/tag36_11_00020:
+          Value: false
+        box/tag36_11_00021:
+          Value: false
+        box/tag36_11_00022:
+          Value: false
+        box/tag36_11_00023:
+          Value: false
+        gripper_left_base_link:
+          Value: false
+        gripper_left_fingertip_1_link:
+          Value: false
+        gripper_left_fingertip_2_link:
+          Value: false
+        gripper_left_fingertip_3_link:
+          Value: false
+        gripper_left_inner_double_link:
+          Value: false
+        gripper_left_inner_single_link:
+          Value: false
+        gripper_left_motor_double_link:
+          Value: false
+        gripper_left_motor_single_link:
+          Value: false
+        gripper_right_base_link:
+          Value: false
+        gripper_right_fingertip_1_link:
+          Value: false
+        gripper_right_fingertip_2_link:
+          Value: false
+        gripper_right_fingertip_3_link:
+          Value: false
+        gripper_right_inner_double_link:
+          Value: false
+        gripper_right_inner_single_link:
+          Value: false
+        gripper_right_motor_double_link:
+          Value: false
+        gripper_right_motor_single_link:
+          Value: false
+        head_1_link:
+          Value: false
+        head_2_link:
+          Value: false
+        imu_link:
+          Value: false
+        left_sole_link:
+          Value: false
+        leg_left_1_link:
+          Value: false
+        leg_left_2_link:
+          Value: false
+        leg_left_3_link:
+          Value: false
+        leg_left_4_link:
+          Value: false
+        leg_left_5_link:
+          Value: false
+        leg_left_6_link:
+          Value: false
+        leg_right_1_link:
+          Value: false
+        leg_right_2_link:
+          Value: false
+        leg_right_3_link:
+          Value: false
+        leg_right_4_link:
+          Value: false
+        leg_right_5_link:
+          Value: false
+        leg_right_6_link:
+          Value: false
+        odom:
+          Value: false
+        rgbd_depth_frame:
+          Value: false
+        rgbd_depth_optical_frame:
+          Value: false
+        rgbd_link:
+          Value: false
+        rgbd_optical_frame:
+          Value: false
+        rgbd_rgb_frame:
+          Value: false
+        rgbd_rgb_optical_frame:
+          Value: false
+        right_sole_link:
+          Value: false
+        table/base_link:
+          Value: false
+        table/table_link:
+          Value: false
+        table/tag36_11_00010:
+          Value: false
+        table/tag36_11_00011:
+          Value: false
+        tag36_11_00050:
+          Value: false
+        tag36_11_00051:
+          Value: false
+        tag36_11_00052:
+          Value: false
+        tag36_11_00053:
+          Value: false
+        tag36_11_00060:
+          Value: false
+        tag36_11_00061:
+          Value: false
+        tag36_11_00062:
+          Value: false
+        tag36_11_00063:
+          Value: false
+        torso_1_link:
+          Value: false
+        torso_2_link:
+          Value: false
+        world:
+          Value: false
+        wrist_left_ft_link:
+          Value: false
+        wrist_left_ft_tool_link:
+          Value: false
+        wrist_right_ft_link:
+          Value: false
+        wrist_right_ft_tool_link:
+          Value: false
+      Marker Scale: 0.2
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00050:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00050
+      Robot Description: grippers/tag36_11_00050_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00051:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00051
+      Robot Description: grippers/tag36_11_00051_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00052:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00052
+      Robot Description: grippers/tag36_11_00052_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00053:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00053
+      Robot Description: grippers/tag36_11_00053_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00060:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00060
+      Robot Description: grippers/tag36_11_00060_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00061:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00061
+      Robot Description: grippers/tag36_11_00061_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00062:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00062
+      Robot Description: grippers/tag36_11_00062_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00063:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag36_11_00063
+      Robot Description: grippers/tag36_11_00063_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
