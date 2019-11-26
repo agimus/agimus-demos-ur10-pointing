@@ -78,4 +78,5 @@ install(PROGRAMS
   scripts/visual_tag_initializer.py
   scripts/calibration_frames_grabber.py
   scripts/publish_constants.py
+  scripts/group_of_tags.py
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)

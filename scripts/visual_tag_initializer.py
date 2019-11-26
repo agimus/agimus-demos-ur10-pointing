@@ -14,7 +14,7 @@ parser.add_argument("parent_node_name", help="Name of parent frame in tf tree")
 
 args = parser.parse_args(rospy.myargv()[1:])
 
-if __name__ == "__main__":
+def add_april_tag ():
     rospy.init_node("visual_tag_initializer", anonymous=True)
     wait_for_service("add_april_tag_detector")
 
@@ -29,3 +29,9 @@ if __name__ == "__main__":
             args.id, args.size, args.node_name, args.parent_node_name
         )
     )
+
+if __name__ == "__main__":
+    try:
+        add_april_tag()
+    except rospy.ROSInterruptException:
+        pass
