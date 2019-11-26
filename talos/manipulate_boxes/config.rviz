@@ -456,7 +456,7 @@ Visualization Manager:
         camera: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /rgbd/rgb/image_color
+      Image Topic: /rgbd/rgb/high_res/image_rect
       Max Value: 1
       Median window: 5
       Min Value: 0
