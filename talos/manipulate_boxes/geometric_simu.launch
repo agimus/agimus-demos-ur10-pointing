@@ -1,20 +1,25 @@
 <launch>
   <!-- World setup -->
   <arg name="plank_of_wood_id" default="2" />
+  <arg name="estimation" default="false" />
 
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
     <arg name="prefix" value="box" />
     <arg name="id" value="$(arg plank_of_wood_id)" />
   </include>
+  <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+    <arg name="prefix" value="box_rviz" />
+    <arg name="id" value="$(arg plank_of_wood_id)" />
+  </include>
   <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
     <arg name="prefix" value="table" />
   </include>
-  <group ns="table">
-    <node name="to_tf_2" pkg="tf" type="static_transform_publisher"
-	  required="true"
-	  args="0 0 0 0 0 0 1 world odom 100"
-	  />
-  </group>
+  <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
+    args="0 0 0 0 0 0 1 world odom"
+    />
+  <node name="box_to_box_rviz" pkg="tf2_ros" type="static_transform_publisher"
+    args="0 0 0 0 0 0 1 box/base_link box_rviz/base_link"
+    />
 
   <!-- Initialization of robot root_joint pose as a ROS param
        value = "x y z X Y Z W" where Xi+Yj+Zk+W is a quaternion -->
@@ -54,4 +59,6 @@
 
   <!-- Simulation -->
   <node name="simulation" pkg="agimus_sot" type="simulation.py"/>
+
+  <include if="$(arg estimation)" file="$(find agimus_demos)/launch/talos_manipulate_boxes_estimation.launch"/>
 </launch>

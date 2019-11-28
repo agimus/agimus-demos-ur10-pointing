@@ -435,6 +435,47 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00020:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00021:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00022:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00023:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: Box_rviz
+      Robot Description: box_rviz/robot_description
+      TF Prefix: box_rviz
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
     - Background Color: 0; 0; 0
       Camera Info Topic: /rgbd/rgb/high_res/camera_info
       Class: rviz_camera_stream/CameraPub
@@ -446,7 +487,8 @@ Visualization Manager:
       Queue Size: 2
       Value: true
       Visibility:
-        Box: true
+        Box: false
+        Box_rviz: true
         Grid: true
         Light: true
         Pyrene: true

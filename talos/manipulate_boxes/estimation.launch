@@ -3,6 +3,8 @@
   <arg name="output" default="log"/>
   <arg name="state_estimation" default="false"/>
   <!-- World setup -->
+  <!-- This is done is in geometric_simu script.
+       TODO On the robot this has to be done. (preferably not in on_pyrene.launch)
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
     <arg name="prefix" value="box" />
     <arg name="id" value="$(arg plank_of_wood_id)" />
@@ -10,6 +12,7 @@
   <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
     <arg name="prefix" value="table" />
   </include>
+  -->
 
   <!-- Simulate the vision -->
   <!--
@@ -24,7 +27,7 @@
     <param name="imageTopic"      value="/rgbd/rgb/high_res/image_rect" />
     <param name="cameraInfoTopic" value="/rgbd/rgb/high_res/camera_info" />
     <param name="parentNode"      value="talos/rgbd_rgb_optical_frame" />
-    <param name="displayDebug"    value="false" />
+    <param name="debugDisplay"    value="false" />
     <param name="broadcastTopic"  value="true" />
     <param name="broadcastTf"     value="true" />
     <param name="broadcastTfPostfix" value="_tf" />
