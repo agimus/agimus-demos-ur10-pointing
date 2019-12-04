@@ -2,25 +2,6 @@
   <arg name="plank_of_wood_id" default="2"/>
   <arg name="output" default="log"/>
   <arg name="state_estimation" default="false"/>
-  <!-- World setup -->
-  <!-- This is done is in geometric_simu script.
-       TODO On the robot this has to be done. (preferably not in on_pyrene.launch)
-  <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
-    <arg name="prefix" value="box" />
-    <arg name="id" value="$(arg plank_of_wood_id)" />
-  </include>
-  <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
-    <arg name="prefix" value="table" />
-  </include>
-  -->
-
-  <!-- Simulate the vision -->
-  <!--
-  <group ns="vision_simulation">
-    <node pkg="tf" type="static_transform_publisher"
-        name="odom_to_world"
-        args="0 0 0 0 0 0 1 world odom 100" />
-  </group> -->
 
   <!-- Setup vision -->
   <group ns="vision">
@@ -64,35 +45,12 @@
         "
         output="$(arg output)"
         />
-
-    <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_right_base_link
-        --size 0.024
-        --tag 50 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
-        --tag 51 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
-        --tag 52 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
-        --tag 53 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
-        "
-        output="$(arg output)"
-        />
-    <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_left_base_link
-        --size 0.024
-        --tag 60 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
-        --tag 61 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
-        --tag 62 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
-        --tag 63 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
-        "
-        output="$(arg output)"
-        />
   </group>
 
   <group ns="agimus/hpp" if="$(arg state_estimation)">
-	<param name="default_state_id"  value="2" />
-	<!--<param name="use_configuration_constraint"  value="false" />-->
+    <param name="default_state_id"  value="2" />
+    <!--<param name="use_configuration_constraint"  value="false" />-->
     <node pkg="agimus_hpp" type="estimation.py" name="hpp_estimation"
-        args="--continuous-estimation --joint-state /joint_states" output="screen" />
+      args="--continuous-estimation --joint-state /joint_states" output="screen" />
   </group>
 </launch>
