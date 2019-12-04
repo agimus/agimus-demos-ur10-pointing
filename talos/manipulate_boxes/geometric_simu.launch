@@ -32,29 +32,6 @@
     <node name="rviz" pkg="rviz" type="rviz"
           launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,rgbd_rgb_optical_frame -- "
           args="-d $(find agimus_demos)/talos/manipulate_boxes/config.rviz" />
-
-    <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_right_base_link
-        --size 0.024
-        --tag 50 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
-        --tag 51 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
-        --tag 52 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
-        --tag 53 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
-        "
-        output="$(arg output)"
-        />
-    <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_left_base_link
-        --size 0.024
-        --tag 60 -te -.05  .05 0 -2.356194490192345 0 1.5707963267948966
-        --tag 61 -te  .05  .05 0  2.356194490192345 0 1.5707963267948966
-        --tag 62 -te  .05 -.05 0  .7853981633974483 0 1.5707963267948966
-        --tag 63 -te -.05 -.05 0 -.7853981633974483 0 1.5707963267948966
-        "
-        output="$(arg output)"
-        />
   </group>
 
   <!-- SoT parameters -->
@@ -62,6 +39,7 @@
     default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
 
   <include file="$(find sot_pyrene_bringup)/launch/geometric_simu.launch" >
+      <!--<arg name="sot-launch-prefix" value="xterm -hold -e /opt/ros/kinetic/lib/gazebo_ros/gdbrun" />-->
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->

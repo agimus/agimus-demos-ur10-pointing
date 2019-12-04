@@ -1,7 +1,7 @@
 <launch>
   <machine name="multimedia" address="talos-1m"
     env-loader="/home/pal/devel/config_roslaunch.sh"/>
-  <arg name="plank_of_wood_id" default="1" />
+  <arg name="plank_of_wood_id" default="2" />
 
   <!-- World setup -->
   <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
@@ -16,28 +16,6 @@
     />
 
   <group ns="vision">
-    <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_right_base_link
-        --size 0.02
-        --tag 104 -tq -0.0597703061973, -0.0548843086362, -0.00464359286373, 0.608720825438, -0.290527938364, -0.307238129121, 0.671310066752
-        --tag 105 -tq 0.0541588920175, -0.0366957986813, 0.0238339579491, 0.654880893006, 0.285237834209, 0.271835134166, 0.64488452745
-        --tag 106 -tq 0.0418302557135, 0.0345428541442, 0.042940091577, 0.280435483034, 0.662965555318, 0.635812656501, 0.278522670802
-        --tag 107 -tq -0.0279886270817, 0.0364362221915, 0.0195308133806, -0.239390706163, 0.667414917957, 0.655180094502, -0.260745969978
-        "
-        machine="multimedia"
-        />
-    <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_left_base_link
-        --size 0.02
-        --tag 100 -tq -0.0450132213047, -0.0636604085295, -0.0152048613624, 0.685936012185, -0.290138847703, -0.242273463087, 0.621783567912
-        --tag 101 -tq 0.0578556836541, -0.0773912642811, 0.0178973601973, 0.621746907453, 0.25523011869, 0.277762405012, 0.686393776158
-        --tag 102 -tq 0.042811217565, 0.0731362254805, 0.0156500884207, 0.275518717268, 0.625012365728, 0.686400818562, 0.249605479507
-        --tag 103 -tq -0.060010931206, 0.0395745656391, 0.0328819574895, -0.248487966106, 0.656250914159, 0.674213785986, -0.230269926722
-        "
-        machine="multimedia"
-        />
   </group>
 
   <!-- SoT parameters -->
