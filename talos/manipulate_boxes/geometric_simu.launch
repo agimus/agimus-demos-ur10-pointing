@@ -39,6 +39,7 @@
     default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
 
   <include file="$(find sot_pyrene_bringup)/launch/geometric_simu.launch" >
+      <!--<arg name="sot-launch-prefix" value="xterm -hold -e /opt/ros/kinetic/lib/gazebo_ros/gdbrun" />-->
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->

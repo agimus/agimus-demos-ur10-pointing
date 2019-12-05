@@ -30,7 +30,7 @@ def makeSupervisorWithFactory(robot):
     srdfTable = parse_srdf(
         "srdf/table_140_70_73.srdf", packageName="gerard_bauzil", prefix="table"
     )
-    for w in ["grippers", "handles"]:
+    for w in ["grippers", "handles","contacts"]:
         srdf[w] = dict()
         for d in [srdfTalos, srdfBox, srdfTable]:
             srdf[w].update(d[w])
@@ -47,6 +47,7 @@ def makeSupervisorWithFactory(robot):
 
     # factory.setRules (rules)
     factory.setupFrames(srdf["grippers"], srdf["handles"], robot)
+    factory.setupContactFrames(srdf["contacts"])
     # disabledGrippers=grippers)
     # disabledGrippers=["table/pose",])
     factory.gripperFrames["talos/left_gripper" ].hasVisualTag = True

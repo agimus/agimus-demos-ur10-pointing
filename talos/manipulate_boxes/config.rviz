@@ -571,6 +571,16 @@ Visualization Manager:
           Value: false
         box/tag36_11_00023:
           Value: false
+        box_rviz/base_link:
+          Value: false
+        box_rviz/tag36_11_00020:
+          Value: false
+        box_rviz/tag36_11_00021:
+          Value: false
+        box_rviz/tag36_11_00022:
+          Value: false
+        box_rviz/tag36_11_00023:
+          Value: false
         gripper_left_base_link:
           Value: false
         gripper_left_fingertip_1_link:
