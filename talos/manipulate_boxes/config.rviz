@@ -669,21 +669,21 @@ Visualization Manager:
           Value: false
         table/tag36_11_00011:
           Value: false
-        tag36_11_00050:
+        tag36_11_00100:
           Value: false
-        tag36_11_00051:
+        tag36_11_00101:
           Value: false
-        tag36_11_00052:
+        tag36_11_00102:
           Value: false
-        tag36_11_00053:
+        tag36_11_00103:
           Value: false
-        tag36_11_00060:
+        tag36_11_00104:
           Value: false
-        tag36_11_00061:
+        tag36_11_00105:
           Value: false
-        tag36_11_00062:
+        tag36_11_00106:
           Value: false
-        tag36_11_00063:
+        tag36_11_00107:
           Value: false
         torso_1_link:
           Value: false
@@ -716,13 +716,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00050:
+        tag36_11_00100:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00050
-      Robot Description: grippers/tag36_11_00050_description
+      Name: tag36_11_00100
+      Robot Description: grippers/tag36_11_00100_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -737,13 +737,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00051:
+        tag36_11_00101:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00051
-      Robot Description: grippers/tag36_11_00051_description
+      Name: tag36_11_00101
+      Robot Description: grippers/tag36_11_00101_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -758,13 +758,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00052:
+        tag36_11_00102:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00052
-      Robot Description: grippers/tag36_11_00052_description
+      Name: tag36_11_00102
+      Robot Description: grippers/tag36_11_00102_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -779,13 +779,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00053:
+        tag36_11_00103:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00053
-      Robot Description: grippers/tag36_11_00053_description
+      Name: tag36_11_00103
+      Robot Description: grippers/tag36_11_00103_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -800,13 +800,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00060:
+        tag36_11_00104:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
       Name: tag36_11_00060
-      Robot Description: grippers/tag36_11_00060_description
+      Robot Description: grippers/tag36_11_00104_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -821,13 +821,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00061:
+        tag36_11_00105:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
       Name: tag36_11_00061
-      Robot Description: grippers/tag36_11_00061_description
+      Robot Description: grippers/tag36_11_00105_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -842,13 +842,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00062:
+        tag36_11_00106:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
       Name: tag36_11_00062
-      Robot Description: grippers/tag36_11_00062_description
+      Robot Description: grippers/tag36_11_00106_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
@@ -863,13 +863,13 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        tag36_11_00063:
+        tag36_11_00107:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
       Name: tag36_11_00063
-      Robot Description: grippers/tag36_11_00063_description
+      Robot Description: grippers/tag36_11_00107_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
