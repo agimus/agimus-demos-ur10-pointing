@@ -66,6 +66,7 @@ class GroupOfTags(object):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.broadcaster = tf2_ros.TransformBroadcaster()
+        self.camera_frame = rospy.get_param('cameraFrame', "rgbd_rgb_optical_frame")
 
     def add_urdf_params (self, args):
         import subprocess
@@ -156,20 +157,18 @@ class GroupOfTags(object):
         if len(results)>0:
             id, pose, residual = min (results, key=lambda x: x[-1])
 
-            # q: parent for measurement of group pose
-            # p(m): the (measured) group pose
-            # t(m): the  tag pose
-            pMtm = to_numpy(pose)
-            tMp = self.tiMp[id]
-            pMpm = pMtm.dot(tMp)
-            if args.parent != args.meas_parent:
-                t, ok = lookup_newest_transform (self.tf_buffer,
-                        args.meas_parent, args.parent, msg.header.stamp)
-                qMp = to_numpy(t)
-                qMpm = qMp.dot(pMpm)
-            else:
-                qMp = np.eye(4)
-                qMpm = pMpm
+            # p: frame relative to which measurements should be published.
+            # c: camera frame
+            # g(m): the (measured) group pose
+            # t(m): the (measured) tag pose
+            cMtm = to_numpy(pose)
+            tMg = self.tiMp[id]
+            cMgm = cMtm.dot(tMg)
+
+            _pMc, ok = lookup_newest_transform (self.tf_buffer,
+                    args.meas_parent, self.camera_frame, msg.header.stamp)
+            pMc = to_numpy(_pMc)
+            pMgm = pMc.dot(cMgm)
 
             transform = TransformStamped()
             transform.header.stamp = msg.header.stamp
@@ -177,7 +176,7 @@ class GroupOfTags(object):
             transform.header.frame_id = args.meas_parent
             transform.child_frame_id = args.parent + "_measured"
 
-            transform.transform = to_tf_transform (qMpm)
+            transform.transform = to_tf_transform (pMgm)
             self.broadcaster.sendTransform(transform)
 
 def run():
