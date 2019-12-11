@@ -389,8 +389,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: Table
-      Robot Description: table/robot_description
-      TF Prefix: table
+      Robot Description: /simulation/sim_table/robot_description
+      TF Prefix: sim_table
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -430,8 +430,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: Box
-      Robot Description: box/robot_description
-      TF Prefix: box
+      Robot Description: /simulation/sim_box/robot_description
+      TF Prefix: sim_box
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -471,8 +471,8 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: Box_rviz
-      Robot Description: box_rviz/robot_description
-      TF Prefix: box_rviz
+      Robot Description: /simulation/sim_box_rviz/robot_description
+      TF Prefix: sim_box_rviz
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -561,25 +561,25 @@ Visualization Manager:
           Value: false
         base_link:
           Value: false
-        box/base_link:
+        sim_box/base_link:
           Value: false
-        box/tag36_11_00020:
+        sim_box/tag36_11_00020:
           Value: false
-        box/tag36_11_00021:
+        sim_box/tag36_11_00021:
           Value: false
-        box/tag36_11_00022:
+        sim_box/tag36_11_00022:
           Value: false
-        box/tag36_11_00023:
+        sim_box/tag36_11_00023:
           Value: false
-        box_rviz/base_link:
+        sim_box_rviz/base_link:
           Value: false
-        box_rviz/tag36_11_00020:
+        sim_box_rviz/tag36_11_00020:
           Value: false
-        box_rviz/tag36_11_00021:
+        sim_box_rviz/tag36_11_00021:
           Value: false
-        box_rviz/tag36_11_00022:
+        sim_box_rviz/tag36_11_00022:
           Value: false
-        box_rviz/tag36_11_00023:
+        sim_box_rviz/tag36_11_00023:
           Value: false
         gripper_left_base_link:
           Value: false
@@ -661,13 +661,13 @@ Visualization Manager:
           Value: false
         right_sole_link:
           Value: false
-        table/base_link:
+        sim_table/base_link:
           Value: false
-        table/table_link:
+        sim_table/table_link:
           Value: false
-        table/tag36_11_00010:
+        sim_table/tag36_11_00010:
           Value: false
-        table/tag36_11_00011:
+        sim_table/tag36_11_00011:
           Value: false
         tag36_11_00100:
           Value: false

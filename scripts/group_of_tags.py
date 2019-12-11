@@ -20,8 +20,8 @@ parser.add_argument("-s", "--size", dest="size", required=True, type=float,
         help="Size of the tag (excluding the white border) in meter")
 parser.add_argument("--child-frame-format", dest="child_frame_fmt", default="tag36_11_{:0>5d}",
         type=str, help="Name of child frame in tf tree that will be formatted using Python str.format")
-parser.add_argument("--parent-frame", dest="parent", required=True,
-        type=str, help="Name of parent frame in tf tree")
+parser.add_argument("--group-frame", dest="group", required=True,
+        type=str, help="Name of the group frame (a valid frame in tf tree)")
 parser.add_argument("--measurement-parent-frame", dest="meas_parent", required=True,
         type=str, help="Name of measurement parent frame in tf tree")
 
@@ -94,7 +94,7 @@ class GroupOfTags(object):
         if readPosesFromTf:
             for id in args.tags:
                 pMt = to_numpy(
-                        self.tf_buffer.lookup_transform (args.parent,
+                        self.tf_buffer.lookup_transform (args.group,
                             args.child_frame_fmt.format(id),
                             rospy.Time(0), rospy.Duration(1.)).transform)
                 self.pMti[id] = pMt
@@ -119,7 +119,7 @@ class GroupOfTags(object):
 
                 transform = TransformStamped()
                 transform.header.stamp = rospy.Time.now()
-                transform.header.frame_id = args.parent
+                transform.header.frame_id = args.group
                 transform.child_frame_id = args.child_frame_fmt.format(id)
                 transform.transform = to_tf_transform (pMt)
                 transforms.append(transform)
@@ -134,10 +134,10 @@ class GroupOfTags(object):
         add_april_tag_detector = rospy.ServiceProxy("add_april_tag_detector", AddAprilTagService)
         for id in args.tags:
             tag_name = args.child_frame_fmt.format(id)
-            add_april_tag_detector(id, args.size, tag_name, args.parent)
+            add_april_tag_detector(id, args.size, tag_name, args.meas_parent)
             rospy.loginfo(
                 "Added APRIL tag {0}, size {1}m, {2}, {3}".format(
-                    id, args.size, tag_name, args.parent
+                    id, args.size, tag_name, args.meas_parent
                 )
             )
 
@@ -174,7 +174,7 @@ class GroupOfTags(object):
             transform.header.stamp = msg.header.stamp
 
             transform.header.frame_id = args.meas_parent
-            transform.child_frame_id = args.parent + "_measured"
+            transform.child_frame_id = args.group + "_measured"
 
             transform.transform = to_tf_transform (pMgm)
             self.broadcaster.sendTransform(transform)

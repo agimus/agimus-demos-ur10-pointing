@@ -7,18 +7,11 @@
     <arg name="prefix" value="box" />
     <arg name="id" value="$(arg plank_of_wood_id)" />
   </include>
-  <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
-    <arg name="prefix" value="box_rviz" />
-    <arg name="id" value="$(arg plank_of_wood_id)" />
-  </include>
   <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
     <arg name="prefix" value="table" />
   </include>
   <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
     args="0 0 0 0 0 0 1 world odom"
-    />
-  <node name="box_to_box_rviz" pkg="tf2_ros" type="static_transform_publisher"
-    args="0 0 0 0 0 0 1 box/base_link box_rviz/base_link"
     />
 
   <!-- Initialization of robot root_joint pose as a ROS param
@@ -59,7 +52,23 @@
   <include file="$(find agimus)/launch/path_execution.launch"/>
 
   <!-- Simulation -->
-  <node name="simulation" pkg="agimus_sot" type="simulation.py"/>
+  <group ns="simulation">
+      <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+          <arg name="prefix" value="sim_box" />
+          <arg name="id" value="$(arg plank_of_wood_id)" />
+      </include>
+      <include file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+          <arg name="prefix" value="sim_box_rviz" />
+          <arg name="id" value="$(arg plank_of_wood_id)" />
+      </include>
+      <include file="$(find gerard_bauzil)/launch/rolling_table.launch">
+          <arg name="prefix" value="sim_table" />
+      </include>
+      <node name="box_to_box_rviz" pkg="tf2_ros" type="static_transform_publisher"
+          args="0 0 0 0 0 0 1 sim_box/base_link sim_box_rviz/base_link"
+          />
+      <node name="simulation" pkg="agimus_sot" type="simulation.py" args="_tf_prefix:=sim_" />
+  </group>
 
   <include if="$(arg estimation)" file="$(find agimus_demos)/launch/talos_manipulate_boxes_estimation.launch"/>
 </launch>

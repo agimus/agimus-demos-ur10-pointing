@@ -21,8 +21,8 @@
     <!-- Table -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="table_tags" args="
         --child-frame-format 'table/tag36_11_{:0>5d}'
-        --measurement-parent-frame world
-        --parent-frame table/base_link
+        --measurement-parent-frame rgbd_rgb_optical_frame
+        --group-frame table/base_link
         --no-description
         --size 0.060
         --tag 10
@@ -34,8 +34,8 @@
     <!-- Plank of wood 1 -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="box_tags" args="
         --child-frame-format 'box/tag36_11_{:0>5d}'
-        --measurement-parent-frame world
-        --parent-frame box/base_link
+        --measurement-parent-frame rgbd_rgb_optical_frame
+        --group-frame box/base_link
         --no-description
         --size 0.060
         --tag $(arg plank_of_wood_id)0
@@ -47,8 +47,8 @@
         />
 
     <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_right_base_link
+        --measurement-parent-frame rgbd_rgb_optical_frame
+        --group-frame gripper_right_base_link
         --size 0.02
         --tag 104 -tq -0.0597703061973 -0.0548843086362 -0.00464359286373 0.608720825438 -0.290527938364 -0.307238129121 0.671310066752
         --tag 105 -tq 0.0541588920175 -0.0366957986813 0.0238339579491 0.654880893006 0.285237834209 0.271835134166 0.64488452745
@@ -57,8 +57,8 @@
         "
         />
     <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
-        --measurement-parent-frame world
-        --parent-frame gripper_left_base_link
+        --measurement-parent-frame rgbd_rgb_optical_frame
+        --group-frame gripper_left_base_link
         --size 0.02
         --tag 100 -tq -0.0450132213047 -0.0636604085295 -0.0152048613624 0.685936012185 -0.290138847703 -0.242273463087 0.621783567912
         --tag 101 -tq 0.0578556836541 -0.0773912642811 0.0178973601973 0.621746907453 0.25523011869 0.277762405012 0.686393776158
