@@ -30,7 +30,7 @@ class Box(HPPObj):
 
     rootJointType = "freeflyer"
     packageName = "gerard_bauzil"
-    urdfName = "plank_of_wood3"
+    urdfName = "plank_of_wood2"
     urdfSuffix = ""
     srdfSuffix = ""
     handles = ["handle1", "handle2", "handle3", "handle4"]
