@@ -54,6 +54,8 @@ def makeSupervisorWithFactory(robot):
     factory.gripperFrames["talos/right_gripper"].hasVisualTag = True
     for i in range(1,5):
         factory.handleFrames["box/handle"+str(i)].hasVisualTag = True
+    factory.contactFrames["table/top"].hasVisualTag = True
+    factory.contactFrames["box/front_surface"].hasVisualTag = True
     for gripper in grippers:
         for handle in handlesPerObjects[0]:
             factory.addAffordance(
