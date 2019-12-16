@@ -482,8 +482,10 @@ Visualization Manager:
       Display namespace: ""
       Enabled: true
       Frame Rate: -1
+      Image Encoding: mono8
       Image Topic: /rgbd/rgb/high_res/image_rect
       Name: CameraPub
+      Near Clip Distance: 0.00999999978
       Queue Size: 2
       Value: true
       Visibility:
@@ -496,6 +498,14 @@ Visualization Manager:
         Table: true
         Value: true
         camera: true
+        tag36_11_00100: true
+        tag36_11_00101: true
+        tag36_11_00102: true
+        tag36_11_00103: true
+        tag36_11_00104: true
+        tag36_11_00105: true
+        tag36_11_00106: true
+        tag36_11_00107: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /rgbd/rgb/high_res/image_rect
@@ -805,7 +815,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00060
+      Name: tag36_11_00104
       Robot Description: grippers/tag36_11_00104_description
       TF Prefix: ""
       Update Interval: 0
@@ -826,7 +836,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00061
+      Name: tag36_11_00105
       Robot Description: grippers/tag36_11_00105_description
       TF Prefix: ""
       Update Interval: 0
@@ -847,7 +857,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00062
+      Name: tag36_11_00106
       Robot Description: grippers/tag36_11_00106_description
       TF Prefix: ""
       Update Interval: 0
@@ -868,7 +878,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: tag36_11_00063
+      Name: tag36_11_00107
       Robot Description: grippers/tag36_11_00107_description
       TF Prefix: ""
       Update Interval: 0
