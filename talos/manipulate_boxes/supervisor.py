@@ -30,7 +30,7 @@
 
 
 def hpTasks(sotrobot):
-    from agimus_sot.tools import COM, Foot
+    from agimus_sot.task import COM, Foot
 
     com = COM("talos", sotrobot)
     lf = Foot("talos/leg_left_6_joint", sotrobot)
