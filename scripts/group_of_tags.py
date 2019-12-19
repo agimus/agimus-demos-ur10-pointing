@@ -178,6 +178,11 @@ class GroupOfTags(object):
 
             transform.transform = to_tf_transform (pMgm)
             self.broadcaster.sendTransform(transform)
+            delay = rospy.Time.now() - msg.header.stamp
+            max_delay = rospy.get_param('max_delay', 0.3)
+            if delay >= rospy.Duration(max_delay):
+                rospy.logwarn("Delay of transform {} is {}s"
+                        .format(transform.child_frame_id, delay.to_sec()))
 
 def run():
     rospy.init_node("group_of_tags", anonymous=True)
