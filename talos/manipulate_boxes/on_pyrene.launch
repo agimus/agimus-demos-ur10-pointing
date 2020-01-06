@@ -15,9 +15,10 @@
     args="0 0 0 0 0 0 1 world odom"
     />
 
-  <group ns="vision">
-  </group>
-
+  <!-- Initialization of robot root_joint pose as a ROS param
+       value = "x y z X Y Z W" where Xi+Yj+Zk+W is a quaternion -->
+  <param name="robot_initial_pose"
+         value="0.1 -0.65 1.0192720229567027 0 0 0.7071067811865476 0.7071067811865476"/>
   <!-- SoT parameters -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
