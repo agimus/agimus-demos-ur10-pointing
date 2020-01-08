@@ -43,7 +43,7 @@ args = p.parse_args ()
 if args.context != defaultContext:
     createContext (args.context)
 
-print ("context=" + args.context)
+print("context=" + args.context)
 loadServerPlugin (args.context, "manipulation-corba.so")
 
 isSimulation = args.context == "simulation"
@@ -140,13 +140,13 @@ robot.setCurrentConfig(q_neutral)
 graph = makeGraph(robot, table, objects)
 
 # Add other locked joints in the edges.
-for edgename, edgeid in graph.edges.iteritems():
+for edgename, edgeid in graph.edges.items():
     graph.addConstraints(
         edge=edgename, constraints=Constraints(numConstraints=table_lock)
     )
 # Add gaze and and COM constraints to each node of the graph
 if comConstraint:
-    for nodename, nodeid in graph.nodes.iteritems():
+    for nodename, nodeid in graph.nodes.items():
         graph.addConstraints(
             node=nodename, constraints=Constraints(numConstraints=["balance/relative-com", "gaze"])
         )
@@ -154,14 +154,14 @@ if comConstraint:
 # Add locked joints and foot placement constraints in the graph,
 # add foot placement complement in each edge.
 if footPlacement:
-    for edgename, edgeid in graph.edges.iteritems():
+    for edgename, edgeid in graph.edges.items():
         graph.addConstraints(
             edge=edgename,
             constraints=Constraints(numConstraints=foot_placement_complement),
         )
 
 if constantWaistYaw:
-    for edgename, edgeid in graph.edges.iteritems():
+    for edgename, edgeid in graph.edges.items():
         graph.addConstraints(
             edge=edgename, constraints=Constraints(numConstraints=["waist_yaw"])
         )
