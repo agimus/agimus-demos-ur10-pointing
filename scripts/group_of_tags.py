@@ -142,7 +142,6 @@ class GroupOfTags(object):
         if use_tracking:
             wait_for_service("/vision/tracker/add_object_tracking")
             add_object_tracking = rospy.ServiceProxy("/vision/tracker/add_object_tracking", AddObjectTracking)
-            print(type(args.visp_config), args.visp_config)
             add_object_tracking (
                     tags = [ AprilTag(id, args.size, to_tf_transform(self.pMti[id])) for id in args.tags ],
                     object_name = args.group + "_measured",
