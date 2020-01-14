@@ -1,3 +1,29 @@
+# Copyright 2018, 2019, 2020 CNRS - Airbus SAS
+# Author: Florent Lamiraux, Joseph Mirabel, Alexis Nicolin
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from datetime import datetime
 from math import sqrt
 import numpy as np
@@ -30,7 +56,7 @@ class Box(HPPObj):
 
     rootJointType = "freeflyer"
     packageName = "gerard_bauzil"
-    urdfName = "plank_of_wood3"
+    urdfName = "plank_of_wood2"
     urdfSuffix = ""
     srdfSuffix = ""
     handles = ["handle1", "handle2", "handle3", "handle4"]
@@ -184,7 +210,7 @@ def createConnection(ps, graph, e, q, maxIter):
             continue
         ps.addConfigToRoadmap(q1)
         ps.addEdgeToRoadmap(q, q1, p, True)
-        print(("Success (i={0})".format(i)))
+        print("Success (i={0})".format(i))
         return p, q1
     print("Failed  (maxIter={0})".format(maxIter))
     return None, None
@@ -310,12 +336,12 @@ class Solver(object):
             if q1 and q2:
                 res, p, msg = self.ps.directPath(q1, q2, True)
                 if res:
-                    print(("direct connection succeeded"))
+                    print("direct connection succeeded")
                     self.ps.addEdgeToRoadmap(q1, q2, p, True)
                 else:
-                    print(("failed direct connection: " + msg))
-                    print(("q1= " + str(q1)))
-                    print(("q2= " + str(q2)))
+                    print("failed direct connection: " + msg)
+                    print("q1= " + str(q1))
+                    print("q2= " + str(q2))
 
     def solve(self):
         assert (
@@ -343,9 +369,9 @@ class Solver(object):
         self.ps.addConfigToRoadmap(self.q_init)
         self.ps.addConfigToRoadmap(self.q_goal)
 
-        print(("Generating init waypoint."))
+        print("Generating init waypoint.")
         self.wp_init = self.addWaypoints(self.q_init)
-        print(("Generating goal waypoint."))
+        print("Generating goal waypoint.")
         self.wp_goal = self.addWaypoints(self.q_goal)
 
         ## Connections from init to grasp
@@ -447,10 +473,10 @@ class Solver(object):
         self.ps.setInitialConfig(self.q_init)
         self.ps.resetGoalConfigs()
         self.ps.addGoalConfig(self.q_goal)
-        print(("Running Manipulation RRT"))
+        print("Running Manipulation RRT")
         self.ps.solve()
         end = datetime.now()
-        print(("Resolution time : {0}".format(end - start)))
+        print("Resolution time : {0}".format(end - start))
 
     def makeBoxVisibleFrom(self, q_estimated, initObjectPose, initTablePose):
         # TODO: Doc + rename vars for clarity
@@ -598,7 +624,7 @@ class Solver(object):
         )
         # Move hands up.
         self.ps.addConfigToRoadmap(self.q_init)
-        print(("Generating init waypoint."))
+        print("Generating init waypoint.")
         self.wp_init = self.addWaypoints(self.q_init)
 
         self.q_goals = self.generateLeftHandGraspFrom(self.wp_init)
@@ -613,7 +639,7 @@ class Solver(object):
             self.ps.addGoalConfig(q_goal)
 
         duration = self.ps.solve()
-        print(("Resolution time : {0}h{1}m{2}s{3}us".format(*duration)))
+        print("Resolution time : {0}h{1}m{2}s{3}us".format(*duration))
         print("Initial path: ", initial_path_id)
         print("Path to achieve the box goal position: ", self.ps.numberPaths() - 1)
 

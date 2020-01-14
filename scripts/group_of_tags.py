@@ -13,17 +13,24 @@ def add_bool_option(p, opt, *args, **kwargs):
 parser.add_argument("-t", "--tag", dest="tags", action="append", type=int,
         help="The ID of a tag")
 parser.add_argument("-tq", "--transform-quat", dest="poses", action="append", type=float, nargs=7,
-        help="The pose of a tag")
+        help="The pose of a tag (tx, ty, tz, qx, qy, qz, qw)")
 parser.add_argument("-te", "--transform-euler", dest="poses", action="append", type=float, nargs=6,
         help="The pose of a tag")
 parser.add_argument("-s", "--size", dest="size", required=True, type=float,
         help="Size of the tag (excluding the white border) in meter")
 parser.add_argument("--child-frame-format", dest="child_frame_fmt", default="tag36_11_{:0>5d}",
         type=str, help="Name of child frame in tf tree that will be formatted using Python str.format")
-parser.add_argument("--parent-frame", dest="parent", required=True,
-        type=str, help="Name of parent frame in tf tree")
+parser.add_argument("--group-frame", dest="group", required=True,
+        type=str, help="Name of the group frame (a valid frame in tf tree)")
 parser.add_argument("--measurement-parent-frame", dest="meas_parent", required=True,
         type=str, help="Name of measurement parent frame in tf tree")
+
+parser.add_argument("--visp-model-file", default="",  dest="visp_model",
+        type=str, help="ViSP model file for the model based tracker.")
+parser.add_argument("--visp-config-file", default="", dest="visp_config",
+        type=str, help="ViSP config file for the model based tracker.")
+parser.add_argument("--tracker-type", default="apriltag", choices=("apriltag", "edgetracker", "edgeklttracker"), dest="tracker_type",
+        type=str, help="the ViSP tracker to use.")
 
 add_bool_option(parser, "description", dest="description", default=True, help="Put robot description in ROS param")
 
@@ -65,7 +72,9 @@ class GroupOfTags(object):
     def __init__(self):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        self.broadcaster = tf2_ros.TransformBroadcaster()
+        self.broadcaster = None
+        self.static_broadcaster = None
+        self.camera_frame = rospy.get_param('cameraFrame', "rgbd_rgb_optical_frame")
 
     def add_urdf_params (self, args):
         import subprocess
@@ -93,7 +102,7 @@ class GroupOfTags(object):
         if readPosesFromTf:
             for id in args.tags:
                 pMt = to_numpy(
-                        self.tf_buffer.lookup_transform (args.parent,
+                        self.tf_buffer.lookup_transform (args.group,
                             args.child_frame_fmt.format(id),
                             rospy.Time(0), rospy.Duration(1.)).transform)
                 self.pMti[id] = pMt
@@ -118,32 +127,51 @@ class GroupOfTags(object):
 
                 transform = TransformStamped()
                 transform.header.stamp = rospy.Time.now()
-                transform.header.frame_id = args.parent
+                transform.header.frame_id = args.group
                 transform.child_frame_id = args.child_frame_fmt.format(id)
                 transform.transform = to_tf_transform (pMt)
                 transforms.append(transform)
 
-            static_broadcaster = tf2_ros.StaticTransformBroadcaster()
-            static_broadcaster.sendTransform(transforms)
+            self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
+            self.static_broadcaster.sendTransform(transforms)
 
-    def add_tag_detection (self, args):
+    def add_tag_detection (self, args, use_tracking):
         from agimus_hpp.ros_tools import wait_for_service
-        from agimus_vision.srv import AddAprilTagService
-        wait_for_service("/vision/add_april_tag_detector")
-        add_april_tag_detector = rospy.ServiceProxy("add_april_tag_detector", AddAprilTagService)
-        for id in args.tags:
-            tag_name = args.child_frame_fmt.format(id)
-            add_april_tag_detector(id, args.size, tag_name, args.parent)
-            rospy.loginfo(
-                "Added APRIL tag {0}, size {1}m, {2}, {3}".format(
-                    id, args.size, tag_name, args.parent
+        from agimus_vision.srv import AddAprilTagService, AddObjectTracking
+        from agimus_vision.msg import AprilTag
+        if use_tracking:
+            wait_for_service("/vision/tracker/add_object_tracking")
+            add_object_tracking = rospy.ServiceProxy("/vision/tracker/add_object_tracking", AddObjectTracking)
+            print(type(args.visp_config), args.visp_config)
+            add_object_tracking (
+                    tags = [ AprilTag(id, args.size, to_tf_transform(self.pMti[id])) for id in args.tags ],
+                    object_name = args.group + "_measured",
+                    visp_xml_config_file = args.visp_config,
+                    tracker_type = args.tracker_type,
+                    model_path = args.visp_model,
+                    )
+        else:
+            wait_for_service("/vision/tracker/add_april_tag_detector")
+            add_april_tag_detector = rospy.ServiceProxy("add_april_tag_detector", AddAprilTagService)
+            for id in args.tags:
+                tag_name = args.child_frame_fmt.format(id)
+                add_april_tag_detector(id, args.size, tag_name, args.meas_parent)
+                rospy.loginfo(
+                    "Added APRIL tag {0}, size {1}m, {2}, {3}".format(
+                        id, args.size, tag_name, args.meas_parent
+                    )
                 )
-            )
 
     def image_detection_results (self, args):
+        assert args.visp_model is None
         from agimus_vision.msg import ImageDetectionResult
+        self.broadcaster = tf2_ros.TransformBroadcaster()
         rospy.Subscriber ("/agimus/vision/detection", ImageDetectionResult,
                 self.handle_detection_results)
+
+    def clean_tf_listener (self):
+        self.tf_listener = None
+        self.tf_buffer = None
 
     def handle_detection_results(self, msg):
         """
@@ -156,29 +184,37 @@ class GroupOfTags(object):
         if len(results)>0:
             id, pose, residual = min (results, key=lambda x: x[-1])
 
-            # q: parent for measurement of group pose
-            # p(m): the (measured) group pose
-            # t(m): the  tag pose
-            pMtm = to_numpy(pose)
-            tMp = self.tiMp[id]
-            pMpm = pMtm.dot(tMp)
-            if args.parent != args.meas_parent:
-                t, ok = lookup_newest_transform (self.tf_buffer,
-                        args.meas_parent, args.parent, msg.header.stamp)
-                qMp = to_numpy(t)
-                qMpm = qMp.dot(pMpm)
-            else:
-                qMp = np.eye(4)
-                qMpm = pMpm
+            # p: frame relative to which measurements should be published.
+            # c: camera frame
+            # g(m): the (measured) group pose
+            # t(m): the (measured) tag pose
+            cMtm = to_numpy(pose)
+            tMg = self.tiMp[id]
+            cMgm = cMtm.dot(tMg)
+
+            _pMc, ok = lookup_newest_transform (self.tf_buffer,
+                    args.meas_parent, self.camera_frame, msg.header.stamp)
+            pMc = to_numpy(_pMc)
+            pMgm = pMc.dot(cMgm)
 
             transform = TransformStamped()
+            transform.header.seq = msg.header.seq
             transform.header.stamp = msg.header.stamp
 
             transform.header.frame_id = args.meas_parent
-            transform.child_frame_id = args.parent + "_measured"
+            transform.child_frame_id = args.group + "_measured"
 
-            transform.transform = to_tf_transform (qMpm)
+            transform.transform = to_tf_transform (pMgm)
             self.broadcaster.sendTransform(transform)
+            delay = rospy.Time.now() - msg.header.stamp
+            max_delay = rospy.get_param('max_delay', 0.3)
+            if delay >= rospy.Duration(max_delay):
+                rospy.logwarn("Delay of transform {} is {}s"
+                        .format(transform.child_frame_id, delay.to_sec()))
+
+    def need_to_spin (self):
+        if self.broadcaster is not None: return True
+        if self.static_broadcaster is not None: return True
 
 def run():
     rospy.init_node("group_of_tags", anonymous=True)
@@ -193,12 +229,17 @@ def run():
     group_of_tags.compute_static_transforms (args)
 
     # Step 3: Request tag detection from agimus_vision
-    group_of_tags.add_tag_detection (args)
+    use_model_tracking = True
+    group_of_tags.add_tag_detection (args, use_model_tracking)
 
-    # Step 4: Register to topic /agimus/vision/detection to get the ImageDetectionResult message
-    group_of_tags.image_detection_results (args)
+    if not use_model_tracking:
+        # Step 4: Register to topic /agimus/vision/detection to get the ImageDetectionResult message
+        group_of_tags.image_detection_results (args)
+    else:
+        group_of_tags.clean_tf_listener ()
 
-    rospy.spin()
+    if not use_model_tracking or group_of_tags.need_to_spin():
+        rospy.spin()
 
 if __name__ == "__main__":
     try:

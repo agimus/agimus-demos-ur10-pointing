@@ -9,6 +9,7 @@ project(agimus_demos)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roslaunch
+  robot_state_publisher
 )
 
 catkin_package(
