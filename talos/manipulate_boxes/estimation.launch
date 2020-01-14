@@ -5,19 +5,19 @@
 
   <!-- Setup vision -->
   <group ns="vision">
-    <param name="imageTopic"      value="/rgbd/rgb/high_res/image_rect" />
-    <param name="cameraInfoTopic" value="/rgbd/rgb/high_res/camera_info" />
-    <param name="parentNode"      value="talos/rgbd_rgb_optical_frame" />
-    <param name="debugDisplay"    value="false" />
-    <param name="broadcastTopic"  value="true" />
-    <param name="broadcastTf"     value="true" />
-    <param name="broadcastTfPostfix" value="_tf" />
-    <param name="objectType" value="apriltag" />
-
     <node pkg="agimus_vision" type="tracker_object"
         output="$(arg output)"
-        name="tag_tracker"
-        />
+        name="tracker"
+        >
+        <param name="imageTopic"      value="/rgbd/rgb/high_res/image_rect" />
+        <param name="cameraInfoTopic" value="/rgbd/rgb/high_res/camera_info" />
+        <param name="debugDisplay"    value="false" />
+        <param name="broadcastTopic"  value="true" />
+        <param name="broadcastTf"     value="true" />
+        <param name="broadcastTfPostfix" value="_tf" />
+        <param name="objectType" value="apriltag" />
+    </node>
+
     <!-- Table -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="table_tags" args="
         --child-frame-format 'table/tag36_11_{:0>5d}'
@@ -42,6 +42,9 @@
         --tag $(arg plank_of_wood_id)1
         --tag $(arg plank_of_wood_id)2
         --tag $(arg plank_of_wood_id)3
+        --visp-model-file $(find gerard_bauzil)/meshes/visp/plank_of_wood.cao
+        --visp-config-file $(find agimus_vision)/config/visp/model-based-tracker.xml
+        --tracker-type edgetracker
         "
         output="$(arg output)"
         />
