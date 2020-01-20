@@ -33,7 +33,6 @@ from hpp.corbaserver import loadServerPlugin, createContext
 from common_hpp import *
 
 # parse arguments
-defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
                              'Initialize demo of Pyrene manipulating a box')
 p.add_argument ('--context', type=str, metavar='context',

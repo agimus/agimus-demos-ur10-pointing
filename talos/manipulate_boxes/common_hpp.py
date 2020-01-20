@@ -38,6 +38,7 @@ from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
 
+defaultContext = "corbaserver"
 
 class HPPObj(object):
     def __init__(self, name, vf):
