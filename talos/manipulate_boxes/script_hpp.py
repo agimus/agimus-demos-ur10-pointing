@@ -33,7 +33,6 @@ from hpp.corbaserver import loadServerPlugin, createContext
 from common_hpp import *
 
 # parse arguments
-defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
                              'Initialize demo of Pyrene manipulating a box')
 p.add_argument ('--context', type=str, metavar='context',
@@ -63,80 +62,24 @@ robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling
 if isSimulation:
     ps.setMaxIterProjection (1)
 
+
 q_neutral = robot.getCurrentConfig()
-
-ps.addPartialCom("talos", ["talos/root_joint"])
-ps.addPartialCom("talos_box", ["talos/root_joint", "box/root_joint"])
-
-# Static stability constraint
-robot.createStaticStabilityConstraint(
-    "balance/", "talos", robot.leftAnkle, robot.rightAnkle, init_conf
-)
-foot_placement = ["balance/pose-left-foot", "balance/pose-right-foot"]
-foot_placement_complement = []
-
-# Static stability constraint with box
-robot.createStaticStabilityConstraint(
-    "balance_box/", "talos_box", robot.leftAnkle, robot.rightAnkle, init_conf
-)
-
-
-# Gaze constraint
-ps.createPositionConstraint(
-    "gaze",
-    "talos/rgbd_optical_joint",
-    "box/root_joint",
-    (0, 0, 0),
-    (0, 0, 0),
-    (True, True, False),
-)
-
-# Constraint of constant yaw of the waist
-ps.createOrientationConstraint(
-    "waist_yaw", "", "talos/root_joint", (0, 0, 0, 1), [True, True, True]
-)
-ps.setConstantRightHandSide("waist_yaw", False)
-
-# Create lock joints for grippers
-table_lock = list()
-
-# lock position of table
-table_lock.append(table.name + "/root_joint")
-
-# Create locked joint for left arm
-left_arm_lock = list()
-for n in robot.jointNames:
-    if n.startswith("talos/arm_left"):
-        ps.createLockedJoint(n, n, [0])
-        ps.setConstantRightHandSide(n, False)
-        left_arm_lock.append(n)
-
-# Create locked joint for right arm
-right_arm_lock = list()
-for n in robot.jointNames:
-    if n.startswith("talos/arm_right"):
-        ps.createLockedJoint(n, n, [0])
-        ps.setConstantRightHandSide(n, False)
-        right_arm_lock.append(n)
-
-# Create locked joint for grippers
-left_gripper_lock = list()
-right_gripper_lock = list()
-for n in robot.jointNames:
-    s = robot.getJointConfigSize(n)
-    r = robot.rankInConfiguration[n]
-    if n.startswith("talos/gripper_right"):
-        ps.createLockedJoint(n, n, init_conf[r : r + s])
-        right_gripper_lock.append(n)
-    elif n.startswith("talos/gripper_left"):
-        ps.createLockedJoint(n, n, init_conf[r : r + s])
-        left_gripper_lock.append(n)
-    elif n in table_lock:
-        ps.createLockedJoint(n, n, init_conf[r : r + s])
-        ps.setConstantRightHandSide(n, False)
 
 # Set robot to neutral configuration before building constraint graph
 robot.setCurrentConfig(q_neutral)
+
+# create locked joint for table
+
+com_constraint, foot_placement, foot_placement_complement = \
+    createQuasiStaticEquilibriumConstraint (ps, init_conf)
+gaze_constraint = createGazeConstraint (ps)
+waist_constraint = createWaistYawConstraint (ps)
+left_arm_lock  = createLeftArmLockedJoints (ps)
+right_arm_lock = createRightArmLockedJoints (ps)
+left_gripper_lock, right_gripper_lock = \
+    createGripperLockedJoints (ps, init_conf)
+table_lock = createTableLockedJoint (ps, table, init_conf)
+
 graph = makeGraph(robot, table, objects)
 
 # Add other locked joints in the edges.
@@ -148,7 +91,9 @@ for edgename, edgeid in graph.edges.items():
 if comConstraint:
     for nodename, nodeid in graph.nodes.items():
         graph.addConstraints(
-            node=nodename, constraints=Constraints(numConstraints=["balance/relative-com", "gaze"])
+            node=nodename, constraints=Constraints(numConstraints=\
+                com_constraint + gaze_constraint
+            )
         )
 
 # Add locked joints and foot placement constraints in the graph,
@@ -163,7 +108,9 @@ if footPlacement:
 if constantWaistYaw:
     for edgename, edgeid in graph.edges.items():
         graph.addConstraints(
-            edge=edgename, constraints=Constraints(numConstraints=["waist_yaw"])
+            edge=edgename, constraints=Constraints(
+                numConstraints=waist_constraint
+            )
         )
 
 graph.addConstraints(
@@ -414,24 +361,8 @@ q_init_2 = [
  0.0,
  1.0]
 
+setGaussianShooter (ps, table, objects, q_init, 0.1)
 
-# Set Gaussian configuration shooter.
-robot.setCurrentConfig(q_init)
-# Set variance to 0.1 for all degrees of freedom
-sigma = robot.getNumberDof() * [0.1]
-# Set variance to 0.05 for robot free floating base
-rank = robot.rankInVelocity[robot.displayName + "/root_joint"]
-sigma[rank : rank + 6] = 6 * [0.0]
-# Set variance to 0.05 for box
-rank = robot.rankInVelocity[objects[0].name + "/root_joint"]
-sigma[rank : rank + 6] = 6 * [0.0]
-# Set variance to 0.05 for table
-rank = robot.rankInVelocity[table.name + "/root_joint"]
-sigma[rank : rank + 6] = 6 * [0.0]
-robot.setCurrentVelocity(sigma)
-ps.setParameter("ConfigurationShooter/Gaussian/useRobotVelocity", True)
-ps.client.basic.problem.selectConfigurationShooter("Gaussian")
-q_init[robot.rankInConfiguration["box/root_joint"] + 1] += 0.1
 # Set Optimization parameters
 ps.setParameter("SimpleTimeParameterization/safety", 0.25)
 ps.setParameter("SimpleTimeParameterization/order", 2)

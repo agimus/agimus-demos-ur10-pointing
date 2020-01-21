@@ -38,6 +38,7 @@ from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
 
+defaultContext = "corbaserver"
 
 class HPPObj(object):
     def __init__(self, name, vf):
@@ -658,3 +659,104 @@ class Solver(object):
         q_goal[rankO : rankO + 7] = self.q_init[rankO : rankO + 7]
         self.ps.addGoalConfig(q_goal)
         print(self.ps.solve())
+
+def createQuasiStaticEquilibriumConstraint (ps, q) :
+    robot = ps.robot
+    ps.addPartialCom("talos", ["talos/root_joint"])
+    # Static stability constraint
+    robot.createStaticStabilityConstraint(
+        "balance/", "talos", robot.leftAnkle, robot.rightAnkle, q
+    )
+    com_constraint = ["balance/relative-com",]
+    foot_placement = ["balance/pose-left-foot", "balance/pose-right-foot"]
+    foot_placement_complement = []
+    return com_constraint, foot_placement, foot_placement_complement
+
+
+# Gaze constraint
+def createGazeConstraint (ps):
+    ps.createPositionConstraint(
+        "gaze",
+        "talos/rgbd_optical_joint",
+        "box/root_joint",
+        (0, 0, 0),
+        (0, 0, 0),
+        (True, True, False),
+    )
+    return ["gaze"]
+
+# Constraint of constant yaw of the waist
+def createWaistYawConstraint (ps):
+    ps.createOrientationConstraint(
+        "waist_yaw", "", "talos/root_joint", (0, 0, 0, 1), [True, True, True]
+    )
+    ps.setConstantRightHandSide("waist_yaw", False)
+    return ["waist_yaw"]
+
+# Create locked joint for left arm
+def createLeftArmLockedJoints (ps):
+    left_arm_lock = list()
+    for n in ps.robot.jointNames:
+        if n.startswith("talos/arm_left"):
+            ps.createLockedJoint(n, n, [0])
+            ps.setConstantRightHandSide(n, False)
+            left_arm_lock.append(n)
+    return left_arm_lock
+
+# Create locked joint for right arm
+def createRightArmLockedJoints (ps):
+    right_arm_lock = list()
+    for n in ps.robot.jointNames:
+        if n.startswith("talos/arm_right"):
+            ps.createLockedJoint(n, n, [0])
+            ps.setConstantRightHandSide(n, False)
+            right_arm_lock.append(n)
+    return right_arm_lock
+
+# Create locked joint for grippers
+def createGripperLockedJoints (ps, q):
+    left_gripper_lock = list()
+    right_gripper_lock = list()
+    for n in ps.robot.jointNames:
+        s = ps.robot.getJointConfigSize(n)
+        r = ps.robot.rankInConfiguration[n]
+        if n.startswith("talos/gripper_right"):
+            ps.createLockedJoint(n, n, q[r : r + s])
+            right_gripper_lock.append(n)
+        elif n.startswith("talos/gripper_left"):
+            ps.createLockedJoint(n, n, q[r : r + s])
+            left_gripper_lock.append(n)
+
+    return left_gripper_lock, right_gripper_lock
+
+# Create locked joint for grippers and table
+def createTableLockedJoint (ps, table, q):
+    name = table.name + "/root_joint"
+    s = ps.robot.getJointConfigSize(name)
+    r = ps.robot.rankInConfiguration[name]
+    table_lock = [name]
+    ps.createLockedJoint(name, name, q[r : r + s])
+    ps.setConstantRightHandSide(name, False)
+    return table_lock
+
+# Set Gaussian shooter around input configuration with input variance
+def setGaussianShooter (ps, table, objects, q_mean, sigma):
+    robot = ps.robot
+    # Set Gaussian configuration shooter.
+    robot.setCurrentConfig(q_mean)
+    # Set variance to 0.1 for all degrees of freedom
+    u = robot.getNumberDof() * [sigma]
+    # Set variance to 0.05 for robot free floating base
+    rank = robot.rankInVelocity[robot.displayName + "/root_joint"]
+    u[rank : rank + 6] = 6 * [0.0]
+    # Set variance to 0.05 for box
+    rank = robot.rankInVelocity[objects[0].name + "/root_joint"]
+    u[rank : rank + 6] = 6 * [0.0]
+    # Set variance to 0.05 for table
+    rank = robot.rankInVelocity[table.name + "/root_joint"]
+    u[rank : rank + 6] = 6 * [0.0]
+    robot.setCurrentVelocity(u)
+    ps.setParameter("ConfigurationShooter/Gaussian/useRobotVelocity", True)
+    ps.client.basic.problem.selectConfigurationShooter("Gaussian")
+    q_mean[robot.rankInConfiguration["box/root_joint"] + 1] += 0.1
+
