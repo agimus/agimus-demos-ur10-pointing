@@ -144,7 +144,7 @@ class GroupOfTags(object):
             add_object_tracking = rospy.ServiceProxy("/vision/tracker/add_object_tracking", AddObjectTracking)
             add_object_tracking (
                     tags = [ AprilTag(id, args.size, to_tf_transform(self.pMti[id])) for id in args.tags ],
-                    object_name = args.group,
+                    object_name = args.group + "_measured",
                     visp_xml_config_file = args.visp_config,
                     tracker_type = args.tracker_type,
                     model_path = args.visp_model,
