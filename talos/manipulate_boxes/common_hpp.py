@@ -219,8 +219,6 @@ class Solver(object):
     Solver that tries direct connections before calling RRT.
     """
 
-    useRos = True
-
     def __init__(
         self,
         ps,
@@ -296,6 +294,8 @@ class Solver(object):
         self.e_r4_l3 = e_r4_l3
         self.q_init = q_init
         self.q_goal = q_goal
+
+        self.rosInitialized = False
 
     def addWaypoints(self, config):
         """
@@ -553,6 +553,7 @@ class Solver(object):
         tableRealHeight = 0.74
         boxExpectedZ = tableRealHeight + boxSizeZ / 2
 
+        self.initRosNode()
         import rospy
         from dynamic_graph_bridge_msgs.msg import Vector
         msg = rospy.wait_for_message(topic, Vector, timeout=2)
@@ -587,9 +588,10 @@ class Solver(object):
         return qestimated
 
     def initRosNode(self):
-        if self.useRos:
+        if self.rosInitialized:
             import rospy
             rospy.init_node("hpp_script", anonymous=True)
+            self.rosInitialized = True
 
     def solveFromEstimatedConfiguration(self, half_sitting, q_estimated=None):
         if q_estimated is None:

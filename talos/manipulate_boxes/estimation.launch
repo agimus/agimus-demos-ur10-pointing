@@ -88,7 +88,7 @@
   <group ns="agimus/hpp" if="$(arg state_estimation)">
     <node pkg="agimus_hpp" type="estimation.py" name="hpp_estimation"
       args="--continuous-estimation --joint-state /joint_states" output="screen">
-      <param name="default_state_id"  value="2" />
+      <param name="default_state_id"  value="251" />
       <param name="robot_name"  value="talos" />
       <!--<param name="use_configuration_constraint"  value="false" />-->
     </node>

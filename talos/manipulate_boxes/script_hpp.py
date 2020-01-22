@@ -426,7 +426,6 @@ if args.context == defaultContext:
         e_r4_l3,
     )
 
-    solver.initRosNode()
     qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
 
 # From an estimated configuration with position of objects
