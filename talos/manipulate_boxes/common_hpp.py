@@ -29,9 +29,6 @@ from math import sqrt
 import numpy as np
 import json
 
-import rospy
-from dynamic_graph_bridge_msgs.msg import Vector
-
 from hpp import Quaternion
 from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver, Rule
 from hpp.corbaserver.manipulation.robot import HumanoidRobot
@@ -556,6 +553,8 @@ class Solver(object):
         tableRealHeight = 0.74
         boxExpectedZ = tableRealHeight + boxSizeZ / 2
 
+        import rospy
+        from dynamic_graph_bridge_msgs.msg import Vector
         msg = rospy.wait_for_message(topic, Vector, timeout=2)
         qestimated = list(msg.data)
         # Fix estimation
@@ -589,6 +588,7 @@ class Solver(object):
 
     def initRosNode(self):
         if self.useRos:
+            import rospy
             rospy.init_node("hpp_script", anonymous=True)
 
     def solveFromEstimatedConfiguration(self, half_sitting, q_estimated=None):
