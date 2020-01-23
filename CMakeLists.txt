@@ -59,6 +59,7 @@ INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   on_pyrene.launch
   on_pyrene_no_estimation.launch
   geometric_simu.launch
+  robot_only.launch
   )
 
 # Install launch files in launch directory
