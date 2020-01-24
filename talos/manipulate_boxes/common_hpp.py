@@ -687,6 +687,18 @@ def createGazeConstraint (ps):
     )
     return ["gaze"]
 
+# Gaze cost
+def createGazeCost (ps):
+    ps.createPositionConstraint(
+        "gaze_cost",
+        "talos/rgbd_optical_joint",
+        "box/root_joint",
+        (0, 0, 0.4),
+        (0, 0, 0),
+        (False, False, True),
+    )
+    return ["gaze_cost"]
+
 # Constraint of constant yaw of the waist
 def createWaistYawConstraint (ps):
     ps.createOrientationConstraint(
@@ -761,4 +773,22 @@ def setGaussianShooter (ps, table, objects, q_mean, sigma):
     ps.setParameter("ConfigurationShooter/Gaussian/useRobotVelocity", True)
     ps.client.basic.problem.selectConfigurationShooter("Gaussian")
     q_mean[robot.rankInConfiguration["box/root_joint"] + 1] += 0.1
+
+def addCostToComponent(graph, costs, state=None, edge=None):
+    if (state is None and edge is None) or (state is not None and edge is not None):
+        raise ValueError ("Either state or edge arguments must be provided.")
+    if state is not None:
+        id = graph.states[state]
+    else:
+        id = graph.edges[edge]
+    _problem = graph.clientBasic.problem.getProblem()
+    _graph = _problem.getConstraintGraph()
+    _comp = _graph.get(id)
+    assert _comp.name() in [ state, edge ]
+    _configConstraint = _comp.configConstraint()
+    _cp = _configConstraint.getConfigProjector()
+    _cp.setLastIsOptional(True)
+    for cost in costs:
+        _cost = graph.clientBasic.problem.getConstraint(cost)                                                                                                                                                 
+        _cp.add(_cost, 1) 
 

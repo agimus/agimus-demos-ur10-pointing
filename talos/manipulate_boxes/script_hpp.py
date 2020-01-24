@@ -73,6 +73,7 @@ robot.setCurrentConfig(q_neutral)
 com_constraint, foot_placement, foot_placement_complement = \
     createQuasiStaticEquilibriumConstraint (ps, init_conf)
 gaze_constraint = createGazeConstraint (ps)
+gaze_cost = createGazeCost (ps)
 waist_constraint = createWaistYawConstraint (ps)
 left_arm_lock  = createLeftArmLockedJoints (ps)
 right_arm_lock = createRightArmLockedJoints (ps)
@@ -225,6 +226,8 @@ ps.selectPathValidation("Discretized", 0.01)
 graph.setWeight ('Loop | f', 1)
 
 graph.initialize()
+for edge in [ e_l1_r2, e_l1_r4, e_r1_l2, e_r1_l4, e_l2_r1, e_l2_r3, e_r2_l1, e_r2_l3, e_r3_l4, e_r3_l2, e_l3_r4, e_l3_r2, e_l4_r1, e_l4_r3, e_r4_l1, e_r4_l3,]:
+    addCostToComponent(graph, gaze_cost, edge=edge+"_01")
 
 q_init = [
     0.5402763680625408,
