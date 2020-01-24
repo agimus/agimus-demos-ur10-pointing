@@ -2,6 +2,20 @@
   <arg name="plank_of_wood_id" default="2"/>
   <arg name="output" default="log"/>
   <arg name="state_estimation" default="false"/>
+  <arg name="standalone" default="false"/>
+
+  <!-- World setup -->
+  <include if="$(arg standalone)" file="$(find gerard_bauzil)/launch/plank_of_wood.launch">
+    <arg name="prefix" value="box" />
+    <arg name="id" value="$(arg plank_of_wood_id)" />
+  </include>
+  <include if="$(arg standalone)" file="$(find gerard_bauzil)/launch/rolling_table.launch">
+    <arg name="prefix" value="table" />
+  </include>
+  <node if="$(arg standalone)" name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
+    args="0 0 0 0 0 0 1 world odom"
+    />
+
 
   <!-- Setup vision -->
   <group ns="vision">
@@ -53,28 +67,30 @@
         --measurement-parent-frame rgbd_rgb_optical_frame
         --group-frame gripper_right_base_link
         --size 0.02
-        --tag 104 -tq -0.0597703061973 -0.0548843086362 -0.00464359286373 0.608720825438 -0.290527938364 -0.307238129121 0.671310066752
-        --tag 105 -tq 0.0541588920175 -0.0366957986813 0.0238339579491 0.654880893006 0.285237834209 0.271835134166 0.64488452745
-        --tag 106 -tq 0.0418302557135 0.0345428541442 0.042940091577 0.280435483034 0.662965555318 0.635812656501 0.278522670802
-        --tag 107 -tq -0.0279886270817 0.0364362221915 0.0195308133806 -0.239390706163 0.667414917957 0.655180094502 -0.260745969978
+        --tag 104 -tq -0.05576495023223535  0.05627208178559162 0.006570662331490895 -0.637126509274665   -0.2746006193753955  0.2840690266666782  0.6617923383560552
+        --tag 105 -tq  0.05506516722990473  0.0486385750570834  0.00596127645222147   0.6468088012928551  -0.25991536879458493 0.263733391855639  -0.6667286356943092
+        --tag 106 -tq  0.0556747508746407  -0.05631252381693721 0.005181159546940872  0.27108733043333183 -0.6407665450418366  0.6654465232740207 -0.2703901231483798
+        --tag 107 -tq -0.05511165009120447 -0.0503426064617529  0.006957177577780221 -0.27274350244222806 -0.6465536993908779  0.6578502605563623  0.2735184278352059
         "
         />
     <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
         --measurement-parent-frame rgbd_rgb_optical_frame
         --group-frame gripper_left_base_link
         --size 0.02
-        --tag 100 -tq -0.0450132213047 -0.0636604085295 -0.0152048613624 0.685936012185 -0.290138847703 -0.242273463087 0.621783567912
-        --tag 101 -tq 0.0578556836541 -0.0773912642811 0.0178973601973 0.621746907453 0.25523011869 0.277762405012 0.686393776158
-        --tag 102 -tq 0.042811217565 0.0731362254805 0.0156500884207 0.275518717268 0.625012365728 0.686400818562 0.249605479507
-        --tag 103 -tq -0.060010931206 0.0395745656391 0.0328819574895 -0.248487966106 0.656250914159 0.674213785986 -0.230269926722
+        --tag 100 -tq -0.05706139560979502  0.06947014000023057 0.003213276121914632  -0.6461166251398941 -0.25680513983974834  0.27177886139039276 0.6653725853768417
+        --tag 101 -tq  0.06184065267634022  0.06346360489596961 0.0028884625817450216 -0.654282925427755  0.275154162705306    -0.26613887654577617 0.6522071286260163
+        --tag 102 -tq  0.06133460640302095 -0.06412790974206992 0.007987767837383197  -0.263174403212723  0.6361949599735485   -0.6698675192704378  0.27797969894284025
+        --tag 103 -tq -0.05905075867308641 -0.06142228418077923 0.007762430064224335  -0.2614342972558262 -0.6368107343591972   0.6754964543135633  0.2642512763130129
         "
         />
   </group>
 
   <group ns="agimus/hpp" if="$(arg state_estimation)">
-    <param name="default_state_id"  value="2" />
-    <!--<param name="use_configuration_constraint"  value="false" />-->
     <node pkg="agimus_hpp" type="estimation.py" name="hpp_estimation"
-      args="--continuous-estimation --joint-state /joint_states" output="screen" />
+      args="--continuous-estimation --joint-state /joint_states" output="screen">
+      <param name="default_state_id"  value="251" />
+      <param name="robot_name"  value="talos" />
+      <!--<param name="use_configuration_constraint"  value="false" />-->
+    </node>
   </group>
 </launch>
