@@ -118,8 +118,8 @@ waist_constraint = createWaistYawConstraint (ps)
 graph = ConstraintGraph(robot, "graph")
 
 graph.createNode(["free", "starting_state"])
-graph.createEdge("starting_state", "free", "apply_constraints", isInNode="starting_state")
-graph.createEdge("free", "starting_state", "release_constraints", isInNode="starting_state")
+graph.createEdge("starting_state", "free", "starting_motion", isInNode="starting_state")
+graph.createEdge("free", "starting_state", "go_to_starting_state", isInNode="starting_state")
 graph.createEdge("free", "free", "Loop | f", isInNode="starting_state")
 
 # Set constraints
@@ -137,7 +137,12 @@ graph.addConstraints (edge = "Loop | f", constraints = Constraints (
 
 graph.initialize ()
 
-res, q, err = graph.generateTargetConfig ("apply_constraints", initConf,
+ps.setParameter("SimpleTimeParameterization/safety", 0.5)
+ps.setParameter("SimpleTimeParameterization/order", 2)
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", .25)
+ps.addPathOptimizer ("SimpleTimeParameterization")
+
+res, q, err = graph.generateTargetConfig ("starting_motion", initConf,
                                           initConf)
 if not res:
     raise RuntimeError ('Failed to project initial configuration')
@@ -145,7 +150,9 @@ if not res:
 ps.setInitialConfig (initConf)
 ps.addGoalConfig (q)
 ps.solve ()
-pathId = ps.numberPaths () - 1
+assert (ps.numberPaths () == 2)
+ps.erasePath (0)
+
 configs = [q [::]]
 
 # Generate N random configurations
@@ -196,15 +203,6 @@ for i0, i1 in zip (visited, visited [1:]):
     ps.setInitialConfig (q_init)
     ps.addGoalConfig (q_goal)
     ps.solve ()
-    pid = ps.numberPaths () - 1
-    ps.concatenatePath (pathId, pid)
-
-ps.setParameter("SimpleTimeParameterization/safety", 0.5)
-ps.setParameter("SimpleTimeParameterization/order", 2)
-ps.setParameter("SimpleTimeParameterization/maxAcceleration", .25)
-ps.addPathOptimizer ("SimpleTimeParameterization")
-
-for i in range (ps.numberPaths () - 1, pathId, -1):
-    ps.erasePath (i)
-
-ps.optimizePath (pathId)
+    pid = ps.numberPaths () - 2
+    # remove non optimized path
+    ps.erasePath (pid)

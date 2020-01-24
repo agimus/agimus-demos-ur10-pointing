@@ -43,7 +43,7 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf
 
-    grippers = []
+    grippers = ["talos/left_gripper", "talos/right_gripper"]
     objects = []
     handlesPerObjects = []
     contactPerObjects = []
@@ -78,17 +78,6 @@ def makeSupervisorWithFactory(robot):
     # disabledGrippers=["table/pose",])
     factory.gripperFrames["talos/left_gripper" ].hasVisualTag = True
     factory.gripperFrames["talos/right_gripper"].hasVisualTag = True
-    for gripper in grippers:
-        factory.addAffordance(
-            Affordance(
-                gripper,
-                None,
-                openControlType="position",
-                closeControlType="position",
-                refs={"angle_open": (0,), "angle_close": (-0.5,), "torque": (-0.05,)},
-                simuParams={"refPos": (-0.2,)},
-            )
-        )
     factory.generate()
 
     supervisor.makeInitialSot()

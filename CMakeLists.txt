@@ -56,6 +56,7 @@ INSTALL_DEMO_LAUNCH_FILES(talos pickup_cardboard_box
 INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   gazebo.launch
   estimation.launch
+  calibration_tracker.launch
   on_pyrene.launch
   on_pyrene_no_estimation.launch
   geometric_simu.launch

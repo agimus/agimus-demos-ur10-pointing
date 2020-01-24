@@ -36,3 +36,5 @@
   </include>
 
   <include file="$(find agimus)/launch/path_execution.launch"/>
+  <include file="$(find agimus_demos)/launch/talos_manipulate_boxes_calibration_tracker.launch"/>
+</launch>
