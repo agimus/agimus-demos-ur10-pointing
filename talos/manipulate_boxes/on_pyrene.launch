@@ -27,10 +27,12 @@
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
-  <param name="/agimus/hpp/default_state_id"  value="2" />
-  <include file="$(find agimus_hpp)/launch/hpp_interface.launch" >
-    <arg name="machine" value="multimedia"/>
-  </include>
+  <group ns="agimus/hpp">
+    <node name="hpp_node" pkg="agimus_hpp" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      machine="multimedia"
+      output="screen" />
+  </group>
 
   <!--This starts sot supervisor in namespace agimus/sot-->
   <include file="$(find agimus_sot)/launch/supervisor.launch" >

@@ -58,7 +58,6 @@ INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   estimation.launch
   calibration_tracker.launch
   on_pyrene.launch
-  on_pyrene_no_estimation.launch
   geometric_simu.launch
   robot_only.launch
   support_calibration.launch
