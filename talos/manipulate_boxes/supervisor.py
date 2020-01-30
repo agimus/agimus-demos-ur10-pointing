@@ -54,7 +54,7 @@ def makeSupervisorWithFactory(robot):
         "srdf/plank_of_wood1.srdf", packageName="gerard_bauzil", prefix="box"
     )
     srdfTable = parse_srdf(
-        "srdf/table_140_70_73.srdf", packageName="gerard_bauzil", prefix="table"
+        "srdf/rolling_table.srdf", packageName="gerard_bauzil", prefix="table"
     )
     for w in ["grippers", "handles","contacts"]:
         srdf[w] = dict()

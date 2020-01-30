@@ -388,9 +388,9 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: Table
-      Robot Description: /simulation/sim_table/robot_description
-      TF Prefix: sim_table
+      Name: Table_rviz
+      Robot Description: /simulation/sim_table_rviz/robot_description
+      TF Prefix: sim_table_rviz
       Update Interval: 0
       Value: true
       Visual Enabled: true

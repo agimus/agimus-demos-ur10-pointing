@@ -60,6 +60,8 @@ INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   on_pyrene.launch
   geometric_simu.launch
   robot_only.launch
+  world_setup.launch
+
   support_calibration.launch
   )
 
