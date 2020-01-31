@@ -1,0 +1,17 @@
+This directory contains data and script to calibrate Pyrene robot using
+  - April tags attached to the wrist, and
+  - the RGB-D camera mounted on the head.
+
+Directory data contains configurations for which, the left or right wrist is
+visible from the camera. File "all-configurations.csv" is ordered using a naive
+traveller salesman solution.
+
+script "script_hpp.py" generate a list of collision-free paths going
+from the first configuration to the last one. Using options, this script
+can also generate such configurations.
+
+File "demo.launch" run the simulation using ROS. The command is
+
+  roslaunch agimus_demos talos_calibration_apriltags.launch
+
+File "play_motion.py" triggers execution of the paths planned by hppcorbaserver.

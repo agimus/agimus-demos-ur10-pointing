@@ -56,18 +56,26 @@ INSTALL_DEMO_LAUNCH_FILES(talos pickup_cardboard_box
 INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
   gazebo.launch
   estimation.launch
-  calibration_tracker.launch
   on_pyrene.launch
   geometric_simu.launch
-  robot_only.launch
   world_setup.launch
-
   support_calibration.launch
   )
 
 # Install launch files in launch directory
 INSTALL_DEMO_LAUNCH_FILES(talos camera_calibration
   on_pyrene.launch
+  )
+
+# Install talos/calibration/apriltags launch files
+INSTALL(FILES
+  talos/calibration/apriltags/demo.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_calibration_apriltags.launch
+  )
+INSTALL(FILES talos/calibration/apriltags/tracker.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_calibration_apriltags_tracker.launch
   )
 
 # Install other files with the same hierarchy as here.
