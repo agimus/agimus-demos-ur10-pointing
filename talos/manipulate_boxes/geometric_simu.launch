@@ -2,6 +2,7 @@
   <!-- World setup -->
   <arg name="plank_of_wood_id" default="2" />
   <arg name="estimation" default="false" />
+  <arg name="debug-sot" default="false" />
 
   <include file="$(find agimus_demos)/launch/talos_manipulate_boxes_world_setup.launch">
     <arg name="plank_of_wood_id" value="$(arg plank_of_wood_id)" />
@@ -26,7 +27,7 @@
     default="$(find agimus_demos)/talos/manipulate_boxes/supervisor.py" />
 
   <include file="$(find sot_pyrene_bringup)/launch/geometric_simu.launch" >
-      <!--<arg name="sot-launch-prefix" value="xterm -hold -e /opt/ros/kinetic/lib/gazebo_ros/gdbrun" />-->
+    <arg if="$(arg debug-sot)" name="sot-launch-prefix" value="xterm -e gdb --args" />
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
