@@ -1,4 +1,31 @@
-#!/usr/bin/env python  
+#!/usr/bin/env python
+# Copyright 2020 CNRS - Airbus SAS
+# Author: Florent Lamiraux
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+from csv import writer
 import roslib
 import rospy
 import math
@@ -7,6 +34,7 @@ from sensor_msgs.msg import JointState
 from dynamic_graph_bridge_msgs.msg import Vector
 import geometry_msgs.msg
 from sensor_msgs.msg import JointState
+from smach_msgs.msg import SmachContainerStatus
 from std_msgs.msg import Bool, UInt32
 from hpp.corbaserver import Client as HppClient
 
@@ -31,6 +59,9 @@ class CalibrationControl (object):
                                              queue_size=1)
         self.subRunning = rospy.Subscriber ("/agimus/status/running", Bool,
                                             self.runningCallback)
+        self.subStatus = rospy.Subscriber \
+                         ("/agimus/agimus/smach/container_status",
+                          SmachContainerStatus, self.statusCallback)
         self.subSotJointStates = rospy.Subscriber ("/agimus/sot/state", Vector,
                                                    self.sotJointStateCallback)
         self.subRosJointState = rospy.Subscriber ("/jointStates", JointState,
@@ -45,15 +76,15 @@ class CalibrationControl (object):
         self.measures = list ()
 
     def playPath (self, pathId):
-        rospy.loginfo ("Calling playPath")
         nbPaths = self.hppClient.problem.numberPaths ()
-        rospy.loginfo ("number paths: " + str (nbPaths))
         if pathId >= nbPaths:
             raise RuntimeError ("pathId ({}) is bigger than number paths {}"
                                 .format (pathId, nbPaths - 1))
+        self.errorOccured = False
         self.pubStartPath.publish (pathId)
         self.waitForEndOfMotion ()
-        self.collectData ()
+        if not self.errorOccured:
+            self.collectData ()
 
     def collectData (self):
         measure = dict ()
@@ -79,7 +110,7 @@ class CalibrationControl (object):
             t = self.leftGripperInCamera.header.stamp
             # Check that data is recent enough
             if abs (now - t) < self.maxDelay:
-                measure ["leftGripper"] = self.leftGripperInCamera.transform
+                measure ["left_gripper"] = self.leftGripperInCamera.transform
             else:
                 rospy.loginfo ("time left gripper from now: {}".
                                format ((now - t).secs + 1e-9*(now - t).nsecs))
@@ -88,7 +119,7 @@ class CalibrationControl (object):
             t = self.rightGripperInCamera.header.stamp
             # Check that data is recent enough
             if abs (now - t) < self.maxDelay:
-                measure ["rightGripper"] = \
+                measure ["right_gripper"] = \
                     self.rightGripperInCamera.transform
             else:
                 rospy.loginfo ("time right gripper from now: {}".
@@ -100,29 +131,34 @@ class CalibrationControl (object):
             measure ["joint_states"] = self.sotJointStates
         self.measures.append (measure)
 
-    def saveJointNames (self, filename):
-        with open(filename, "w") as f:
-            w = writer (f)
-            w.writerow (self.jointNames)
-
     def save (self, filename):
         with open (filename, "w") as f:
+            # Write joint names
+            if self.jointNames:
+                w = writer (f)
+                w.writerow (['joint_names'] + self.jointNames)
+            # write measures
             for measure in self.measures:
+                if not measure.has_key ("left_gripper") and \
+                   not measure.has_key ("right_gripper"):
+                    continue
+                line = ""
                 # joint_states
                 assert measure.has_key ("joint_states")
-                f.write ("joint_states,")
+                line += "joint_states,"
                 for jv in measure ["joint_states"]:
-                    f.write ("{},".format (jv))
+                    line += "{},".format (jv)
                 # grippers
-                for k in ["leftGripper", "rightGripper"]:
+                for k in ["left_gripper", "right_gripper"]:
                     if measure.has_key (k):
-                        f.write ("{},".format (k))
+                        line += "{},".format (k)
                         T = measure [k].translation
                         R = measure [k].rotation
-                        f.write ("{},{},{},{},{},{},{},".format
-                                 (T.x,T.y,T.z,R.x,R.y,R.z,R.w))
-                f.write ("\n")
-                        
+                        line += "{},{},{},{},{},{},{},".format\
+                        (T.x,T.y,T.z,R.x,R.y,R.z,R.w)
+                line = line [:-1] + "\n"
+                f.write (line)
+
     def waitForEndOfMotion (self):
         rate = rospy.Rate(2) # 2hz
         # wait for motion to start
@@ -143,6 +179,11 @@ class CalibrationControl (object):
     def runningCallback (self, msg):
         self.running = msg.data
 
+    def statusCallback (self, msg):
+        if msg.active_states [0] == 'Error':
+            self.errorOccured = True
+            rospy.loginfo ('Error occured.')
+
     def sotJointStateCallback (self, msg):
         self.sotJointStates = msg.data
 
@@ -153,4 +194,10 @@ class CalibrationControl (object):
 
 if __name__ == '__main__':
     cc = CalibrationControl ()
-    #cc.playPath (0)
+    i=0
+    nbPaths = cc.hppClient.problem.numberPaths ()
+    while i < nbPaths - 1:
+        cc.playPath (i)
+        if not cc.errorOccured:
+            i+=1
+        rospy.sleep (1)
