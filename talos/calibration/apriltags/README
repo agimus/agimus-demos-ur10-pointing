@@ -15,3 +15,6 @@ File "demo.launch" run the simulation using ROS. The command is
   roslaunch agimus_demos talos_calibration_apriltags.launch
 
 File "play_motion.py" triggers execution of the paths planned by hppcorbaserver.
+
+File "compute_calibration.py" solves the optimization problem that provide the
+calibration parameters.

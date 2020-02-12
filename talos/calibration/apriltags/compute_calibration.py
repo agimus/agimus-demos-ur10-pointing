@@ -142,7 +142,7 @@ class ComputeCalibration(object):
     headJoint = 'head_2_joint'
     lwJoint = 'arm_left_7_joint'
     rwJoint = 'arm_right_7_joint'
-    eps = 1e-2
+    eps = 1
     def __init__(self, urdfFilename, variable):
         self.cols = len(self.joints) + 3*6
         # warning, there is no root joint
@@ -265,7 +265,8 @@ class ComputeCalibration(object):
     def solve(self):
         nj = len(self.joints)
         self.computeValueAndJacobian()
-        dy = - self.eps * self.jacobian.T.dot(self.value)
+        dy = - self.eps * pinv(self.jacobian).dot(self.value)
+        print ("||dy|| = {}".format(norm(dy)))
         self.variable.q_off += dy[0:nj]
         hnuc = dy[nj:nj+6]
         lwnuls = dy[nj+6:nj+12]
@@ -352,4 +353,7 @@ if __name__ == '__main__':
                 np.array([0.000, 0.000, -0.092]).reshape(3,1))
     cc=ComputeCalibration(filename, Variable(q_off,hTc,lwTls,rwTrs))
     cc.readData('data/measures.csv')
-    cc.testJacobian()
+
+    for i in range (200):
+        cc.solve()
+        print ("||error|| = {}".format(norm(cc.value)))
