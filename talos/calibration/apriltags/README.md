@@ -34,7 +34,15 @@ by Python scripts.
     generate such configurations.
   * "play_motion.py" triggers execution of the paths planned by hppcorbaserver.
   * "compute_calibration.py" solves the optimization problem that provide the
-    calibration parameters.
+    calibration parameters. After running the script, the calibration parameters
+    are stored in
+      - cc.variable.hTc (SE3) for the position of the camera in 'head_2_joint',
+      - cc.variable.lwTls (SE3) for the position of the left support in
+        'arm_left_7_joint',
+      - cc.variable.rwTrs (SE3) for the position of the right support in
+        'arm_right_7_joint', and
+      - cc.variable.q_off for the vector of joint offsets in the order
+        provided by cc.joints.
 
 ### Launch files
 
