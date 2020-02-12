@@ -584,7 +584,7 @@ class Solver(object):
         return qestimated
 
     def initRosNode(self):
-        if self.rosInitialized:
+        if not self.rosInitialized:
             import rospy
             rospy.init_node("hpp_script", anonymous=True)
             self.rosInitialized = True
