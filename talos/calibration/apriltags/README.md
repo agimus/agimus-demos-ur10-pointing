@@ -11,9 +11,12 @@ visible from the camera.
 
   * File "all-configurations.csv" is ordered using a naive traveller salesman
     solution.
-  * "measures.csv" contains configurations and the corresponding measures
-    (positions of left or right support in camera coordinate frame). These data
-    have been obtained in simulation, but contain outliers.
+  * "measures-simulation.csv" contains configurations and the
+    corresponding measures (positions of left or right support in
+    camera coordinate frame). These data have been obtained in
+    simulation, but contain outliers.
+  * File "measures-offset-arm_left_1.csv" contains simulated data with an
+    offset of 0.025 radian on the measure of arm_left_1 encoder.
   * File "one-measure.csv" contains the first measure of the above file.
 
 ### Python scripts

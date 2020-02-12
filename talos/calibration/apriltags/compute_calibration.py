@@ -352,7 +352,7 @@ if __name__ == '__main__':
     rwTrs = SE3(Quaternion(x=0, y=0, z=1, w=0),
                 np.array([0.000, 0.000, -0.092]).reshape(3,1))
     cc=ComputeCalibration(filename, Variable(q_off,hTc,lwTls,rwTrs))
-    cc.readData('data/measures.csv')
+    cc.readData('data/measures-simulation.csv')
 
     for i in range (200):
         cc.solve()
