@@ -77,6 +77,10 @@ INSTALL(FILES talos/calibration/apriltags/tracker.launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
   RENAME talos_calibration_apriltags_tracker.launch
   )
+INSTALL(FILES talos/calibration/apriltags/on_pyrene.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  RENAME talos_calibration_apriltags_on_pyrene.launch
+  )
 
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf
