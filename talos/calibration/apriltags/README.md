@@ -19,6 +19,11 @@ visible from the camera.
     offset of 0.025 radian on the measure of arm_left_1 encoder.
   * File "one-measure.csv" contains the first measure of the above file.
 
+  * File measurements-pyrene-20200212-1.csv contains measurements obtained on
+    Pyrene with 67 configurations. Joint state is read from the SoT.
+  * File measurements-pyrene-20200212-2.csv contains measurements obtained on
+    Pyrene with 94 configurations. Joint state is read from the robot encoders.
+
 ### Python scripts
 
 Motion planning, motion generation and calibration computation are controlled
