@@ -60,10 +60,10 @@ def parseLine(line, i):
         raise SyntaxError \
            ('line {} contains both "left_gripper" and "right_gripper" tags.'
              .format(i+1))
-    measure = dict()
+    measurement = dict()
     if ilg:
         try:
-            measure['joint_states'] = map(float, line [1:ilg])
+            measurement['joint_states'] = map(float, line [1:ilg])
         except ValueError as exc:
             raise SyntaxError\
            ('line {}, tag "joint_states": could not convert list {} to array'.
@@ -72,14 +72,14 @@ def parseLine(line, i):
             v = map(float, line [ilg+1:])
             p = Quaternion(x=v[3], y=v[4], z=v[5], w=v[6])
             t = np.array(v[0:3]).reshape(3,1)
-            measure ['left_gripper'] = SE3(p,t)
+            measurement ['left_gripper'] = SE3(p,t)
         except ValueError as exc:
             raise SyntaxError\
            ('line {}, tag "left_gripper": could not convert list {} to array'.
                                format(i+1, line [ilg+1:]))
     if irg:
         try:
-            measure ['joint_states'] = map(float, line [1:irg])
+            measurement ['joint_states'] = map(float, line [1:irg])
         except ValueError as exc:
             raise SyntaxError\
            ('line {}, tag "joint_states": could not convert list {} to float'.
@@ -88,12 +88,12 @@ def parseLine(line, i):
             v = map(float, line [irg+1:])
             p = Quaternion(x=v[3], y=v[4], z=v[5], w=v[6])
             t = np.array(v[0:3]).reshape(3,1)
-            measure ['right_gripper'] =  SE3(p,t)
+            measurement ['right_gripper'] =  SE3(p,t)
         except ValueError as exc:
             raise SyntaxError\
            ('line {}, tag "right_gripper": could not convert list {} to float'.
                                format(i+1, line [irg+1:]))
-    return measure
+    return measurement
 
 class Variable(object):
     """
@@ -131,7 +131,7 @@ class SE3Integrator (object):
 
 class ComputeCalibration(object):
     # List of joints between the wrists and the camera.
-    # Other joints have no effect on the measure. They are omitted
+    # Other joints have no effect on the measurement. They are omitted
     joints = ['arm_left_1_joint','arm_left_2_joint','arm_left_3_joint',
               'arm_left_4_joint','arm_left_5_joint','arm_left_6_joint',
               'arm_left_7_joint',
@@ -157,7 +157,7 @@ class ComputeCalibration(object):
         assert(self.robot.model.names[self.headId] == self.headJoint)
         assert(self.robot.model.names[self.lwId] == self.lwJoint)
         assert(self.robot.model.names[self.rwId] == self.rwJoint)
-        self.measures = list()
+        self.measurements = list()
         self.variable = variable
         self.integrate = SE3Integrator()
         # allocate constant matrices
@@ -177,20 +177,20 @@ class ComputeCalibration(object):
                     self.allJoints = line [1:]
                     jointNamesRead = True
                 else:
-                    self.measures.append(parseLine(line, i))
+                    self.measurements.append(parseLine(line, i))
         # Allocate value and Jacobian
-        self.value = np.array(6*len(self.measures)*[0.])
-        self.value.shape =(6*len(self.measures),1)
-        self.jacobian = np.array(6*len(self.measures)*self.cols*[0.])
-        self.jacobian.shape =(6*len(self.measures), self.cols)
+        self.value = np.array(6*len(self.measurements)*[0.])
+        self.value.shape =(6*len(self.measurements),1)
+        self.jacobian = np.array(6*len(self.measurements)*self.cols*[0.])
+        self.jacobian.shape =(6*len(self.measurements), self.cols)
         # Compute list of joint indices
-        #  - measureIndices indices of self.joints in configurations of
-        #     measures,
+        #  - measurementIndices indices of self.joints in configurations of
+        #     measurements,
         #  - modelQIndices indices of self.joints in self.robot.model
         #     configurations
         #  - modelVIndices indices of self.joints in self.robot.model
         #     velocities.
-        self.measureIndices = list()
+        self.measurementIndices = list()
         self.modelQIndices = list()
         self.modelVIndices = list()
         model = self.robot.model
@@ -198,35 +198,35 @@ class ComputeCalibration(object):
             i = model.getJointId(j)
             self.modelQIndices.append(model.joints[i].idx_q)
             self.modelVIndices.append(model.joints[i].idx_v)
-            self.measureIndices.append(self.allJoints.index(j))
+            self.measurementIndices.append(self.allJoints.index(j))
         
     def computeValueAndJacobian(self):
         model = self.robot.model; data = self.robot.data
         nj = len(self.joints)
-        for im, measure in enumerate(self.measures):
+        for im, measurement in enumerate(self.measurements):
             #                            ^
             # compute configuration q  = q  + q
             #                        i    i    off
             qi = neutral(model)
             for i in range(nj):
-                imeas = self.measureIndices[i]
+                imeas = self.measurementIndices[i]
                 imodel = self.modelQIndices[i]
-                qi[imodel] = measure['joint_states'][imeas] + \
+                qi[imodel] = measurement['joint_states'][imeas] + \
                              self.variable.q_off[i,0]
             forwardKinematics(model, data, qi)
             computeJointJacobians(model, data)
             # position of the head
             Th = data.oMi[self.headId]
             hTc = self.variable.hTc
-            if measure.has_key('left_gripper'):
-                meas_cTs = measure['left_gripper']
+            if measurement.has_key('left_gripper'):
+                meas_cTs = measurement['left_gripper']
                 Tw = data.oMi[self.lwId]
                 wTs = self.variable.lwTls
                 Jw_full = getJointJacobian(model, data, self.lwId, \
                                            ReferenceFrame.LOCAL)
                 left = True
             else:
-                meas_cTs = measure['right_gripper']
+                meas_cTs = measurement['right_gripper']
                 Tw = data.oMi[self.rwId]
                 wTs = self.variable.rwTrs
                 Jw_full = getJointJacobian(model, data, self.rwId, \
@@ -352,8 +352,8 @@ if __name__ == '__main__':
     rwTrs = SE3(Quaternion(x=0, y=0, z=1, w=0),
                 np.array([0.000, 0.000, -0.092]).reshape(3,1))
     cc=ComputeCalibration(filename, Variable(q_off,hTc,lwTls,rwTrs))
-    cc.readData('data/measures-simulation.csv')
+    cc.readData('data/measurements-pyrene-20200212.csv')
 
-    for i in range (200):
+    for i in range (20):
         cc.solve()
         print ("||error|| = {}".format(norm(cc.value)))

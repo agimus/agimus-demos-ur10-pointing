@@ -64,7 +64,7 @@ class CalibrationControl (object):
                           SmachContainerStatus, self.statusCallback)
         self.subSotJointStates = rospy.Subscriber ("/agimus/sot/state", Vector,
                                                    self.sotJointStateCallback)
-        self.subRosJointState = rospy.Subscriber ("/jointStates", JointState,
+        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
                                                   self.rosJointStateCallback)
         self.running = False
         self.sotJointStates = None
@@ -73,7 +73,7 @@ class CalibrationControl (object):
         self.pathId = 0
         self.hppClient = HppClient ()
         self.count = 0
-        self.measures = list ()
+        self.measurements = list ()
 
     def playPath (self, pathId):
         nbPaths = self.hppClient.problem.numberPaths ()
@@ -87,7 +87,7 @@ class CalibrationControl (object):
             self.collectData ()
 
     def collectData (self):
-        measure = dict ()
+        measurement = dict ()
         # record position of left gripper
         try:
             self.leftGripperInCamera = self.tfBuffer.lookup_transform\
@@ -110,7 +110,8 @@ class CalibrationControl (object):
             t = self.leftGripperInCamera.header.stamp
             # Check that data is recent enough
             if abs (now - t) < self.maxDelay:
-                measure ["left_gripper"] = self.leftGripperInCamera.transform
+                measurement ["left_gripper"] = \
+                    self.leftGripperInCamera.transform
             else:
                 rospy.loginfo ("time left gripper from now: {}".
                                format ((now - t).secs + 1e-9*(now - t).nsecs))
@@ -119,17 +120,17 @@ class CalibrationControl (object):
             t = self.rightGripperInCamera.header.stamp
             # Check that data is recent enough
             if abs (now - t) < self.maxDelay:
-                measure ["right_gripper"] = \
+                measurement ["right_gripper"] = \
                     self.rightGripperInCamera.transform
             else:
                 rospy.loginfo ("time right gripper from now: {}".
                                format ((now - t).secs + 1e-9*(now - t).nsecs))
         # Get joint values
         if self.rosJointStates:
-            measure ["joint_states"] = self.rosJointStates
+            measurement ["joint_states"] = self.rosJointStates
         elif self.sotJointStates:
-            measure ["joint_states"] = self.sotJointStates
-        self.measures.append (measure)
+            measurement ["joint_states"] = self.sotJointStates
+        self.measurements.append (measurement)
 
     def save (self, filename):
         with open (filename, "w") as f:
@@ -137,23 +138,23 @@ class CalibrationControl (object):
             if self.jointNames:
                 w = writer (f)
                 w.writerow (['joint_names'] + self.jointNames)
-            # write measures
-            for measure in self.measures:
-                if not measure.has_key ("left_gripper") and \
-                   not measure.has_key ("right_gripper"):
+            # write measurements
+            for measurement in self.measurements:
+                if not measurement.has_key ("left_gripper") and \
+                   not measurement.has_key ("right_gripper"):
                     continue
                 line = ""
                 # joint_states
-                assert measure.has_key ("joint_states")
+                assert measurement.has_key ("joint_states")
                 line += "joint_states,"
-                for jv in measure ["joint_states"]:
+                for jv in measurement ["joint_states"]:
                     line += "{},".format (jv)
                 # grippers
                 for k in ["left_gripper", "right_gripper"]:
-                    if measure.has_key (k):
+                    if measurement.has_key (k):
                         line += "{},".format (k)
-                        T = measure [k].translation
-                        R = measure [k].rotation
+                        T = measurement [k].translation
+                        R = measurement [k].rotation
                         line += "{},{},{},{},{},{},{},".format\
                         (T.x,T.y,T.z,R.x,R.y,R.z,R.w)
                 line = line [:-1] + "\n"
