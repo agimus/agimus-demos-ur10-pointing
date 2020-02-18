@@ -38,4 +38,4 @@ def planPath (ps, pathId = None):
     ps.setInitialConfig (q1)
     ps.addGoalConfig (q2)
     ps.setMaxIterPathPlanning (1000)
-    ps.solve ()
+    return ps.solve ()
