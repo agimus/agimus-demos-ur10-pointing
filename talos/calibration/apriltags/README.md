@@ -43,6 +43,8 @@ by Python scripts.
         'arm_right_7_joint', and
       - cc.variable.q_off for the vector of joint offsets in the order
         provided by cc.joints.
+    You can use cc.write_xacro() to generate the xacro code that should be put
+    into talos_description_calibration/urdf/calibration/calibration_constants.urdf.xacro
 
 ### Launch files
 
