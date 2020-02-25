@@ -365,7 +365,7 @@ class ComputeCalibration(object):
             print(xacro_property.format("camera_orientation_"+s, v))
 
         for jn, v in zip(self.joints, self.variable.q_off.ravel()):
-            print(xacro_property.format(jn+"_offset", v))
+            print(xacro_property.format(jn+"_offset", -v))
 
 if __name__ == '__main__':
     filename = os.getenv('DEVEL_HPP_DIR') + \
