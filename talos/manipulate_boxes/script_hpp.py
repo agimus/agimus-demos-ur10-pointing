@@ -38,6 +38,8 @@ p = argparse.ArgumentParser (description=
 p.add_argument ('--context', type=str, metavar='context',
                 default=defaultContext,
                 help="identifier of ProblemSolver instance")
+p.add_argument ('--ros-param', type=str, metavar='ros_param',
+                help="The name of the ROS param containing the URDF.")
 args = p.parse_args ()
 if args.context != defaultContext:
     createContext (args.context)
@@ -58,7 +60,8 @@ if args.context != defaultContext:
 
 client.manipulation.problem.resetProblem()
 
-robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True)
+robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True,
+        rosParam=args.ros_param)
 if isSimulation:
     ps.setMaxIterProjection (1)
 
