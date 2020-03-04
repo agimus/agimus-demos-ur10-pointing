@@ -688,6 +688,26 @@ def createGazeConstraint (ps):
     )
     return ["gaze"]
 
+# Gaze constraints
+def createGazeConstraints (ps):
+    ps.createPositionConstraint(
+        "look_left_hand",
+        "talos/rgbd_optical_joint",
+        "talos/arm_left_7_joint",
+        (0, 0, 0),
+        (0, 0, -0.18),
+        (True, True, False),
+    )
+    ps.createPositionConstraint(
+        "look_right_hand",
+        "talos/rgbd_optical_joint",
+        "talos/arm_right_7_joint",
+        (0, 0, 0),
+        (0, 0, -0.18),
+        (True, True, False),
+    )
+    return ["look_left_hand", "look_right_hand"]
+
 # Gaze cost
 def createGazeCost (ps):
     ps.createPositionConstraint(
@@ -764,12 +784,16 @@ def setGaussianShooter (ps, table, objects, q_mean, sigma):
     # Set variance to 0.05 for robot free floating base
     rank = robot.rankInVelocity[robot.displayName + "/root_joint"]
     u[rank : rank + 6] = 6 * [0.0]
-    # Set variance to 0.05 for box
+    # Set variance to 0.0 for box
     rank = robot.rankInVelocity[objects[0].name + "/root_joint"]
     u[rank : rank + 6] = 6 * [0.0]
-    # Set variance to 0.05 for table
+    # Set variance to 0.0 for table
     rank = robot.rankInVelocity[table.name + "/root_joint"]
     u[rank : rank + 6] = 6 * [0.0]
+    # Set variance to 0.0 for head
+    rank = robot.rankInVelocity[robot.displayName + '/head_1_joint']
+    u[rank : rank + 2] = 2* [0.0]
+
     robot.setCurrentVelocity(u)
     ps.setParameter("ConfigurationShooter/Gaussian/useRobotVelocity", True)
     ps.client.basic.problem.selectConfigurationShooter("Gaussian")

@@ -74,7 +74,7 @@ ps.setMaxIterPathPlanning (40)
 
 com_constraint, foot_placement, foot_placement_complement = \
     createQuasiStaticEquilibriumConstraint (ps, init_conf)
-gaze_constraint = createGazeConstraint (ps)
+gaze_constraints = createGazeConstraints (ps)
 gaze_cost = createGazeCost (ps)
 waist_constraint = createWaistYawConstraint (ps)
 left_arm_lock  = createLeftArmLockedJoints (ps)
@@ -95,7 +95,7 @@ if comConstraint:
     for nodename, nodeid in graph.nodes.items():
         graph.addConstraints(
             node=nodename, constraints=Constraints(numConstraints=\
-                com_constraint + gaze_constraint
+                com_constraint
             )
         )
 
@@ -159,6 +159,21 @@ graph.addConstraints(
         numConstraints=["place_box/complement"] + table_lock
     ),
 )
+# Add appropriate gaze constraint for each node
+prefixLeft = 'talos/left_gripper > box/handle'
+prefixRight = 'talos/right_gripper > box/handle'
+l = len(prefixLeft)
+r = len(prefixRight)
+
+for n in graph.nodes.keys():
+    if n[:l] == prefixLeft:
+        graph.addConstraints(
+            node=n,
+            constraints=Constraints(numConstraints=["look_left_hand"]))
+    elif n[:r] == prefixRight:
+        graph.addConstraints(
+            node=n,
+            constraints=Constraints(numConstraints=["look_right_hand"]))
 
 # Loop transitions
 e_l_l1 = "Loop | 0-0"
