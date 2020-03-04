@@ -126,6 +126,7 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
     ps.setMaxIterProjection(40)
     ps.addPathOptimizer("EnforceTransitionSemantic")
     ps.addPathOptimizer("SimpleTimeParameterization")
+    ps.selectPathValidation('Graph-Dichotomy', 0.0)
 
     vf = ViewerFactory(ps)
 

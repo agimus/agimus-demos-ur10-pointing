@@ -67,6 +67,8 @@ q_neutral = robot.getCurrentConfig()
 
 # Set robot to neutral configuration before building constraint graph
 robot.setCurrentConfig(q_neutral)
+ps.setDefaultLineSearchType ("ErrorNormBased")
+ps.setMaxIterPathPlanning (40)
 
 # create locked joint for table
 
