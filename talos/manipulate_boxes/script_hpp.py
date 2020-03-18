@@ -83,7 +83,7 @@ left_gripper_lock, right_gripper_lock = \
     createGripperLockedJoints (ps, init_conf)
 table_lock = createTableLockedJoint (ps, table, init_conf)
 
-graph = makeGraph(robot, table, objects)
+graph, factory = makeGraph(ps, table, objects)
 
 # Add other locked joints in the edges.
 for edgename, edgeid in graph.edges.items():
@@ -237,9 +237,6 @@ if fixedArmWhenGrasping:
 
 ps.setRandomSeed(123)
 ps.selectPathProjector("Progressive", 0.2)
-# ps.selectPathValidation("Progressive", 0.01)
-ps.selectPathValidation("Discretized", 0.01)
-# ps.selectPathValidation("Dichotomy", 0.0)
 graph.setWeight ('Loop | f', 1)
 
 graph.initialize()

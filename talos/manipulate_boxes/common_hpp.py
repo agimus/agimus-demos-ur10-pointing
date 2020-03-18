@@ -87,7 +87,65 @@ class RollingTable(HPPObj):
     handles = []
     contacts = ["top"]
 
+## Helper class to map joints to robots, contact surfaces to joints...
+class GrippersAndObjects(object):
+    ## Constructor
+    #  \param robotsAndObjects list of robots and objects. It is assumed that
+    #         joints names are prefixed by these name followed by "/"
+    def __init__(self, problemSolver, robotsAndObjects):
+        self.ps = problemSolver
+        self.robot = self.ps.robot
+        self.robotsAndObjects = robotsAndObjects
+        self.computeJoints()
+        self.computeJoints()
+        self.computeGrippers()
+        self.computePossibleContacts()
 
+    def computeJoints(self):
+        self.robotToJoints = dict()
+        for ro in self.robotsAndObjects:
+            l = len(ro)
+            self.robotToJoints[ro] = filter(lambda n:n[:l+1] == ro + "/",
+                                            self.robot.jointNames)
+        self.robotToJoints["universe"] = ['NONE']
+        self.jointToRobot = dict()
+        for ro, joints in self.robotToJoints.items():
+            for j in joints:
+                self.jointToRobot[j] = ro
+
+    def computePossibleContacts(self):
+        names = ["universe"]
+        names += self.robot.jointNames
+        # separate joint names
+        self.contactSurfaces = dict()
+        for k in self.robotToJoints.keys():
+            self.contactSurfaces[k] = list()
+        # Sort contact surfaces by object
+        surfaces = self.ps.getEnvironmentContactNames()
+        for s in surfaces:
+            contacts = self.ps.getEnvironmentContact(s)
+            joint = contacts[0][0]
+            self.contactSurfaces[self.jointToRobot[joint]].append(s)
+        surfaces = self.ps.getRobotContactNames()
+        for s in surfaces:
+            contacts = self.ps.getRobotContact(s)
+            joint = contacts[0][0]
+            self.contactSurfaces[self.jointToRobot[joint]].append(s)
+        # Compute pair of objects that can be in contact
+        self.possibleContacts = list()
+        for o1, l1 in self.contactSurfaces.items():
+            for o2, l2 in self.contactSurfaces.items():
+                if o1 != o2 and len(l1) > 0 and len(l2) > 0:
+                    self.possibleContacts.append ((o1,o2))
+
+    def computeGrippers(self):
+        grippers = self.ps.getAvailable("gripper")
+        self.gripperToRobot = dict()
+        self.gripperToJoints = dict()
+        for g in grippers:
+            j = self.ps.robot.getGripperPositionInJoint(g)[0]
+            self.gripperToRobot[g] = self.jointToRobot[j]
+            self.gripperToJoints[g] = [j] + self.ps.robot.getChildJoints(j)
 
 HumanoidRobot.packageName = "talos_data"
 HumanoidRobot.urdfName = "talos"
@@ -171,7 +229,78 @@ def makeRules (robot, grippers):
                       handles = [handles [3], handles [2]], link = True))
     return res
 
-def makeGraph(robot, table, objects):
+# Get list of constraints that are active somewhere along the edge
+#
+# The result is a dictionary with
+#  - key "place" and value a list of objects,
+#  - key "grasp" and value a list of pairs (gripper, object).
+def getActiveConstraintsAlongEdge (factory, graph, edge):
+    p = graph.clientBasic.problem.getProblem()
+    g = p.getConstraintGraph()
+    e = g.get(graph.edges[edge])
+    s1 = e.stateFrom()
+    s2 = e.stateTo()
+    c1 = map(lambda c:c.function().name(), s1.numericalConstraints())
+    c1 += map(lambda c:c.function().name(), g.numericalConstraints())
+    c2 = map(lambda c:c.function().name(), s2.numericalConstraints())
+    c2 += map(lambda c:c.function().name(), g.numericalConstraints())
+    d = set(c1).union(set(c2))
+    res = dict()
+    res["place"] = list()
+    res["grasp"] = list()
+    for c in d:
+        for o in factory.objects:
+            if c == "place_" + o:
+                res["place"].append(o)
+        for g in factory.grippers:
+            for o, handles in zip(factory.objects, factory.handlesPerObjects):
+                # o object
+                # handles <- indices of handles of object o
+                for h in handles:
+                    handle = factory.handles[h]
+                    if c == g + " grasps " + handle:
+                        res["grasp"].append((g,o))
+    return res
+
+# Set input security margin between
+#  - robot bodies and objects,
+#  - robot bodies and environment,
+#  - objects and environment,
+#
+#  for edges that are not grasp, release, put of lift transitions.
+def setSecurityMargins (ps, factory, graph, margin):
+    grippersAndObjects = GrippersAndObjects(ps, ["talos", "box", "table"])
+    # Set security margin for each edge
+    for e in graph.edges.keys():
+        # first set maximal security margin between each pair of objects
+        for i1, ro1 in enumerate(grippersAndObjects.robotsAndObjects):
+            for i2, ro2 in enumerate(grippersAndObjects.robotsAndObjects):
+                if i2 <= i1: continue
+                for k1, j1 in enumerate(grippersAndObjects.robotToJoints[ro1]):
+                    for k2, j2 in enumerate\
+                        (grippersAndObjects.robotToJoints[ro2]):
+                        graph.setSecurityMarginForEdge(e, j1, j2, margin)
+                                 (margin, j1, j2))
+        # Then set 0 margin where necessary.
+        # for grasps, set 0 between gripper and object.
+        constraints = getActiveConstraintsAlongEdge(factory, graph, e)
+        for g, ro1 in constraints["grasp"]:
+            for j1 in grippersAndObjects.robotToJoints[ro1]:
+                for j2 in grippersAndObjects.gripperToJoints[g]:
+                    graph.setSecurityMarginForEdge(e, j1, j2, 0)
+        # For placement set 0 between object and any other object that can
+        # be in contact.
+        for o1 in constraints["place"]:
+            for o2, o3 in grippersAndObjects.possibleContacts:
+                if o1 == o2:
+                    for j1 in grippersAndObjects.robotToJoints[o1]:
+                        for j2 in grippersAndObjects.robotToJoints[o3]:
+                            graph.setSecurityMarginForEdge(e, j1, j2, 0)
+                                   (0, j1, j2))
+
+
+def makeGraph(ps, table, objects):
+    robot = ps.robot
     graph = ConstraintGraph(robot, "graph")
     factory = ConstraintGraphFactory(graph)
     grippers = ["talos/left_gripper", "talos/right_gripper"]
@@ -185,7 +314,8 @@ def makeGraph(robot, table, objects):
     factory.constraints.strict = True
     factory.setRules (makeRules (robot, grippers))
     factory.generate()
-    return graph
+    setSecurityMargins (ps, factory, graph, 0.02)
+    return graph, factory
 
 
 def shootConfig(robot, q, i):
@@ -814,6 +944,5 @@ def addCostToComponent(graph, costs, state=None, edge=None):
     _cp = _configConstraint.getConfigProjector()
     _cp.setLastIsOptional(True)
     for cost in costs:
-        _cost = graph.clientBasic.problem.getConstraint(cost)                                                                                                                                                 
-        _cp.add(_cost, 1) 
-
+        _cost = graph.clientBasic.problem.getConstraint(cost)
+        _cp.add(_cost, 1)
