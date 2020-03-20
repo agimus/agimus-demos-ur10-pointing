@@ -105,8 +105,8 @@ class GrippersAndObjects(object):
         self.robotToJoints = dict()
         for ro in self.robotsAndObjects:
             l = len(ro)
-            self.robotToJoints[ro] = filter(lambda n:n[:l+1] == ro + "/",
-                                            self.robot.jointNames)
+            self.robotToJoints[ro] = list(filter(lambda n:n[:l+1] == ro + "/",
+                                            self.robot.jointNames))
         self.robotToJoints["universe"] = ['NONE']
         self.jointToRobot = dict()
         for ro, joints in self.robotToJoints.items():
@@ -240,10 +240,10 @@ def getActiveConstraintsAlongEdge (factory, graph, edge):
     e = g.get(graph.edges[edge])
     s1 = e.stateFrom()
     s2 = e.stateTo()
-    c1 = map(lambda c:c.function().name(), s1.numericalConstraints())
-    c1 += map(lambda c:c.function().name(), g.numericalConstraints())
-    c2 = map(lambda c:c.function().name(), s2.numericalConstraints())
-    c2 += map(lambda c:c.function().name(), g.numericalConstraints())
+    c1 = list(map(lambda c:c.function().name(), s1.numericalConstraints()))
+    c1 += list(map(lambda c:c.function().name(), g.numericalConstraints()))
+    c2 = list(map(lambda c:c.function().name(), s2.numericalConstraints()))
+    c2 += list(map(lambda c:c.function().name(), g.numericalConstraints()))
     d = set(c1).union(set(c2))
     res = dict()
     res["place"] = list()
@@ -280,7 +280,6 @@ def setSecurityMargins (ps, factory, graph, margin):
                     for k2, j2 in enumerate\
                         (grippersAndObjects.robotToJoints[ro2]):
                         graph.setSecurityMarginForEdge(e, j1, j2, margin)
-                                 (margin, j1, j2))
         # Then set 0 margin where necessary.
         # for grasps, set 0 between gripper and object.
         constraints = getActiveConstraintsAlongEdge(factory, graph, e)
@@ -296,8 +295,6 @@ def setSecurityMargins (ps, factory, graph, margin):
                     for j1 in grippersAndObjects.robotToJoints[o1]:
                         for j2 in grippersAndObjects.robotToJoints[o3]:
                             graph.setSecurityMarginForEdge(e, j1, j2, 0)
-                                   (0, j1, j2))
-
 
 def makeGraph(ps, table, objects):
     robot = ps.robot
