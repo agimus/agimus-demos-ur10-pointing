@@ -25,15 +25,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import numpy as np
+import numpy as np, pinocchio
 from numpy.linalg import norm, pinv
 from csv import reader
 from pinocchio import computeJointJacobians, forwardKinematics, \
     getJointJacobian, integrate, Jlog6, JointModelFreeFlyer, log6, Model, \
     neutral, Quaternion, ReferenceFrame, SE3
 from pinocchio.robot_wrapper import RobotWrapper
-import eigenpy
-eigenpy.switchToNumpyArray()
+pinocchio.switchToNumpyArray()
 
 def parseLine(line, i):
     # check that line starts with joint_states
@@ -337,7 +336,36 @@ class ComputeCalibration(object):
             error = (v1 - v0)/(2*dq) - J[:,nj+12+i:nj+12+i+1]
             print ("||error|| = {}".format(norm(error)))
         self.variable.rwTrs = rwTrs0
-        
+
+    def write_xacro(self):
+        import itertools
+        # The xacro file contains:
+        # - the relative transform from head_2_link to rgbd_link, under camera_position_[xyz] and camera_orientation_[rpy] variables.
+        # - the joint offsets, under variables <joint_name>_offset
+        # Compute camera pose
+        # hTc: head_2_joint (a) to rgbd_rgb_optical_frame (d)
+        # desired: head_2_link (b) to rgbd_link (c)
+        model = self.robot.model
+        head_2_link = model.frames[model.getFrameId("head_2_link")]
+        rgbd_rgb_optical_frame = model.frames[model.getFrameId("rgbd_rgb_optical_frame")]
+        rgbd_link = model.frames[model.getFrameId("rgbd_link")]
+        assert model.names[head_2_link.parent] == "head_2_joint"
+        assert model.names[rgbd_rgb_optical_frame.parent] == "head_2_joint"
+        assert model.names[rgbd_link.parent] == "head_2_joint"
+
+        aMb = head_2_link.placement
+        cMd = rgbd_link.placement.inverse() * rgbd_rgb_optical_frame.placement
+        aMd = self.variable.hTc
+
+        bMc = aMb.inverse() * aMd * cMd.inverse()
+        xacro_property = """<xacro:property name="{}" value="{}" />"""
+        for s, v in zip('xyz', bMc.translation):
+            print(xacro_property.format("camera_position_"+s, v))
+        for s, v in zip('rpy', pinocchio.rpy.matrixToRpy(bMc.rotation).ravel()):
+            print(xacro_property.format("camera_orientation_"+s, v))
+
+        for jn, v in zip(self.joints, self.variable.q_off.ravel()):
+            print(xacro_property.format(jn+"_offset", -v))
 
 if __name__ == '__main__':
     filename = os.getenv('DEVEL_HPP_DIR') + \

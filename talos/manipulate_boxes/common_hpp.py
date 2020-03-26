@@ -87,12 +87,16 @@ class RollingTable(HPPObj):
     handles = []
     contacts = ["top"]
 
+rosInitialized = False
+def ros_init():
+    global rosInitialized
+    if not rosInitialized:
+        import rospy
+        rospy.init_node("hpp_script", anonymous=True)
+        rosInitialized = True
 
-
-HumanoidRobot.packageName = "talos_data"
-HumanoidRobot.urdfName = "talos"
-HumanoidRobot.urdfSuffix = "_full_v2"
-HumanoidRobot.srdfSuffix = ""
+HumanoidRobot.urdfFilename = "package://talos_data/urdf/pyrene.urdf"
+HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
 
 init_conf = json.load(open('../common/half_sitting.json', 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
@@ -113,7 +117,14 @@ def shrinkJointRange (robot, ratio):
                 robot.setJointBounds (j, [m, M])
 
 
-def makeRobotProblemAndViewerFactory(clients, rolling_table=True):
+def makeRobotProblemAndViewerFactory(clients, rolling_table=True, rosParam=None):
+    if rosParam is not None:
+        import rospy, os, hpp
+        HumanoidRobot.urdfString = rospy.get_param(rosParam)
+        srdfFilename = hpp.retrieveRosResource(HumanoidRobot.srdfFilename)
+        with open(srdfFilename, 'r') as f:
+            HumanoidRobot.srdfString = f.read()
+
     objects = list()
     robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
     robot.leftAnkle = "talos/leg_left_6_joint"
@@ -295,8 +306,6 @@ class Solver(object):
         self.e_r4_l3 = e_r4_l3
         self.q_init = q_init
         self.q_goal = q_goal
-
-        self.rosInitialized = False
 
     def addWaypoints(self, config):
         """
@@ -554,7 +563,7 @@ class Solver(object):
         tableRealHeight = 0.74
         boxExpectedZ = tableRealHeight + boxSizeZ / 2
 
-        self.initRosNode()
+        ros_init()
         import rospy
         from dynamic_graph_bridge_msgs.msg import Vector
         msg = rospy.wait_for_message(topic, Vector, timeout=2)
@@ -587,12 +596,6 @@ class Solver(object):
         # TODO: We can also correct with the estimation of the table height and ORIENTATION against the real values
 
         return qestimated
-
-    def initRosNode(self):
-        if not self.rosInitialized:
-            import rospy
-            rospy.init_node("hpp_script", anonymous=True)
-            self.rosInitialized = True
 
     def solveFromEstimatedConfiguration(self, half_sitting, q_estimated=None):
         if q_estimated is None:

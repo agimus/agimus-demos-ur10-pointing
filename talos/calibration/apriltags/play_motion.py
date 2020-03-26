@@ -193,12 +193,16 @@ class CalibrationControl (object):
         if not self.jointNames:
             self.jointNames = msg.name
 
-if __name__ == '__main__':
-    cc = CalibrationControl ()
-    i=0
-    nbPaths = cc.hppClient.problem.numberPaths ()
+def playAllPaths (startIndex):
+    i = startIndex
     while i < nbPaths - 1:
         cc.playPath (i)
         if not cc.errorOccured:
+            print("Ran {}".format(i))
             i+=1
         rospy.sleep (1)
+
+if __name__ == '__main__':
+    cc = CalibrationControl ()
+    nbPaths = cc.hppClient.problem.numberPaths ()
+    # playAllPaths (0)

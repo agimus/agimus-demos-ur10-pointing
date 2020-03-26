@@ -66,6 +66,7 @@ def makeSupervisorWithFactory(robot):
     factory.parameters["period"] = 0.001  # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = False
+    factory.parameters["addTracerToVisualServoing"] = True
     # factory.parameters["addTimerToSotControl"] = True
     factory.setGrippers(grippers)
     factory.setObjects(objects, handlesPerObjects, contactPerObjects)
