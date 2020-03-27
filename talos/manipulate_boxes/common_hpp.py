@@ -34,6 +34,7 @@ from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver, Rule
 from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import ConstraintGraphFactory
+from hpp.corbaserver.manipulation import SecurityMargins
 
 defaultContext = "corbaserver"
 
@@ -182,7 +183,8 @@ def makeRules (robot, grippers):
                       handles = [handles [3], handles [2]], link = True))
     return res
 
-def makeGraph(robot, table, objects):
+def makeGraph(ps, table, objects):
+    robot = ps.robot
     graph = ConstraintGraph(robot, "graph")
     factory = ConstraintGraphFactory(graph)
     grippers = ["talos/left_gripper", "talos/right_gripper"]
@@ -196,7 +198,11 @@ def makeGraph(robot, table, objects):
     factory.constraints.strict = True
     factory.setRules (makeRules (robot, grippers))
     factory.generate()
-    return graph
+    sm = SecurityMargins(ps, factory, ["talos", "box", "table"])
+    sm.setSecurityMarginBetween ("talos", "box", 0.02)
+    sm.setSecurityMarginBetween ("box", "table", 0.02)
+    sm.apply()
+    return graph, factory
 
 
 def shootConfig(robot, q, i):
@@ -817,6 +823,5 @@ def addCostToComponent(graph, costs, state=None, edge=None):
     _cp = _configConstraint.getConfigProjector()
     _cp.setLastIsOptional(True)
     for cost in costs:
-        _cost = graph.clientBasic.problem.getConstraint(cost)                                                                                                                                                 
-        _cp.add(_cost, 1) 
-
+        _cost = graph.clientBasic.problem.getConstraint(cost)
+        _cp.add(_cost, 1)
