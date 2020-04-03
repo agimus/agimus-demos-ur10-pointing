@@ -1,0 +1,28 @@
+<launch>
+  <arg name="simulation"/>
+
+  <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
+    args="0 0 0 0 0 0 1 world odom"
+    />
+
+  <group ns="skin">
+    <param name="robot_description" textfile="$(find agimus_demos)/urdf/aircraft_skin_with_marker.urdf"/>
+    <param name="tf_prefix" value="skin"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+    <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
+      args="0 0 0 0 0 0 1 world skin/base_link"
+      />
+  </group>
+
+  <group ns="driller">
+    <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/driller_with_qr_drill.urdf"/>
+    <param name="tf_prefix" value="sim_driller"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  </group>
+
+  <!-- Simulation -->
+  <group if="$(arg simulation)" ns="simulation">
+    <node name="simulation" pkg="agimus_sot" type="simulation.py" args="_tf_prefix:=sim_" />
+  </group>
+
+</launch>

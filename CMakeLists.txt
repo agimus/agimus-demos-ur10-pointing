@@ -33,6 +33,7 @@ MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
 ENDMACRO()
 
 ADD_SUBDIRECTORY(talos)
+ADD_SUBDIRECTORY(tiago)
 
 # Install talos/calibration/apriltags launch files
 INSTALL(FILES
