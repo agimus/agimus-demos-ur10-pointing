@@ -19,53 +19,21 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-MACRO(INSTALL_DEMO_LAUNCH_FILES ROBOT DEMO)
+MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
   SET (LAUNCH_FILES ${ARGN})
+  FILE(RELATIVE_PATH robot ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+  MESSAGE(STATUS "Add demonstration ${robot}/${DEMO}")
   FOREACH (launch_file ${LAUNCH_FILES})
     install(FILES
-      ${ROBOT}/${DEMO}/${launch_file}
+      ${DEMO}/${launch_file}
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-      RENAME ${ROBOT}_${DEMO}_${launch_file}
+      RENAME ${robot}_${DEMO}_${launch_file}
     )
   ENDFOREACH ()
 ENDMACRO()
 
-# Install launch files in launch directory
-INSTALL_DEMO_LAUNCH_FILES(talos pass_box_between_hands
-  geometric_simu.launch
-  gazebo.launch
-  on_pyrene.launch
-  )
-
-# Install launch files in launch directory
-INSTALL_DEMO_LAUNCH_FILES(talos pickup_object
-  geometric_simu.launch
-  gazebo.launch
-  on_pyrene_no_vision.launch
-  )
-
-# Install launch files in launch directory
-INSTALL_DEMO_LAUNCH_FILES(talos pickup_cardboard_box
-  geometric_simu.launch
-  gazebo.launch
-  on_pyrene_no_vision.launch
-  on_pyrene.launch
-  )
-
-# Install launch files in launch directory
-INSTALL_DEMO_LAUNCH_FILES(talos manipulate_boxes
-  gazebo.launch
-  estimation.launch
-  on_pyrene.launch
-  geometric_simu.launch
-  world_setup.launch
-  support_calibration.launch
-  )
-
-# Install launch files in launch directory
-INSTALL_DEMO_LAUNCH_FILES(talos camera_calibration
-  on_pyrene.launch
-  )
+ADD_SUBDIRECTORY(talos)
+ADD_SUBDIRECTORY(tiago)
 
 # Install talos/calibration/apriltags launch files
 INSTALL(FILES
