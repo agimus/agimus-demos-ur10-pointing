@@ -138,7 +138,7 @@ def makeRobotProblemAndViewerFactory(clients, rolling_table=True, rosParam=None)
     ps.setMaxIterProjection(40)
     ps.addPathOptimizer("EnforceTransitionSemantic")
     ps.addPathOptimizer("SimpleTimeParameterization")
-    ps.selectPathValidation('Graph-Dichotomy', 0.0)
+    ps.selectPathValidation('Graph-Progressive', 0.01)
 
     vf = ViewerFactory(ps)
 
@@ -197,10 +197,11 @@ def makeGraph(ps, table, objects):
     factory.environmentContacts(table.contacts)
     factory.constraints.strict = True
     factory.setRules (makeRules (robot, grippers))
+    factory.setPreplacementDistance("box", 0.1)
     factory.generate()
     sm = SecurityMargins(ps, factory, ["talos", "box", "table"])
     sm.setSecurityMarginBetween ("talos", "box", 0.02)
-    sm.setSecurityMarginBetween ("box", "table", 0.02)
+    sm.setSecurityMarginBetween ("box", "table", 0.03)
     sm.apply()
     return graph, factory
 
