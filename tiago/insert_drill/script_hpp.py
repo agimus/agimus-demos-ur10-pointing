@@ -45,6 +45,7 @@ robot.setJointBounds('driller/root_joint', [-2, 2, -2, 2, 0, 2])
 
 ps.selectPathValidation("Graph-Dichotomy", 0)
 ps.selectPathProjector("Progressive", 0.2)
+ps.addPathOptimizer("EnforceTransitionSemantic")
 ps.addPathOptimizer("SimpleTimeParameterization")
 if isSimulation:
     ps.setMaxIterProjection (1)
@@ -96,7 +97,7 @@ ps.createPositionConstraint("gaze", "tiago/xtion_rgb_optical_frame", "driller/ta
 from hpp.corbaserver.manipulation import ConstraintGraphFactory
 graph = ConstraintGraph(robot, 'graph')
 factory = ConstraintGraphFactory(graph)
-factory.setGrippers([ "driller/drill_tip", "tiago/gripper", ])
+factory.setGrippers([ "tiago/gripper", "driller/drill_tip", ])
 factory.setObjects([ "driller", "skin", ],
         [ [ "driller/handle", ], [ "skin/hole", ], ],
         [ [ ], [ ], ])
@@ -109,7 +110,7 @@ factory.setRules([
 factory.generate()
 
 graph.addConstraints(graph=True, constraints=Constraints(numConstraints=ljs))
-for n in [ 'driller/drill_tip > skin/hole | 1-0_pregrasp', 'driller/drill_tip grasps skin/hole : tiago/gripper grasps driller/handle' ]:
+for n in [ 'driller/drill_tip > skin/hole | 0-0_pregrasp', 'tiago/gripper grasps driller/handle : driller/drill_tip grasps skin/hole' ]:
     graph.addConstraints(node=n, constraints=Constraints(numConstraints=["gaze"]))
 graph.initialize()
 
@@ -126,7 +127,7 @@ ps.setInitialConfig(q1)
 if not isSimulation:
     qrand = q1
     for i in range(100):
-        q2valid, q2, err = graph.generateTargetConfig('driller/drill_tip > skin/hole | 1-0', q1, qrand)
+        q2valid, q2, err = graph.generateTargetConfig('driller/drill_tip > skin/hole | 0-0', q1, qrand)
         if q2valid:
             q2valid, msg = robot.isConfigValid(q2)
         if q2valid:

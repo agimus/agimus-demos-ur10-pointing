@@ -1,0 +1,50 @@
+<launch>
+  <arg name="output" default="log"/>
+  <arg name="state_estimation" default="false"/>
+  <arg name="standalone" default="false"/>
+
+  <!-- World setup -->
+  <include if="$(arg standalone)" file="$(find agimus_demos)/launch/tiago_insert_drill_world_setup.launch">
+    <arg name="simulation" value="false"/>
+  </include>
+
+  <!-- Setup vision -->
+  <group ns="vision">
+    <node pkg="agimus_vision" type="tracker_object"
+        output="$(arg output)"
+        name="tracker"
+        >
+        <param name="imageTopic"      value="/rgb/image" />
+        <param name="cameraInfoTopic" value="/rgb/camera_info" />
+        <param name="debugDisplay"    value="false" />
+        <param name="broadcastTopic"  value="true" />
+        <param name="broadcastTf"     value="true" />
+        <param name="broadcastTfPostfix" value="_tf" />
+        <param name="objectType" value="apriltag" />
+    </node>
+
+    <!-- Table -->
+    <node pkg="agimus_demos" type="group_of_tags.py" name="skin_tags" args="
+        --child-frame-format 'skin/tag36_11_{:0>5d}'
+        --measurement-parent-frame xtion_optical_frame
+        --group-frame skin/hole_link
+        --no-description
+        --size 0.040
+        --tag 20
+        "
+        output="$(arg output)"
+        />
+
+    <!-- Plank of wood 1 -->
+    <node pkg="agimus_demos" type="group_of_tags.py" name="driller_tags" args="
+        --child-frame-format 'driller/tag36_11_{:0>5d}'
+        --measurement-parent-frame xtion_optical_frame
+        --group-frame driller/base_link
+        --no-description
+        --size 0.040
+        --tag 10
+        "
+        output="$(arg output)"
+        />
+  </group>
+</launch>

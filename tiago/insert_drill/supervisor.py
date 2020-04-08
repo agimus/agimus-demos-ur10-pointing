@@ -41,12 +41,20 @@ def hpTasks(sotrobot):
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
     from agimus_sot.factory import Factory, Affordance
-    from agimus_sot.srdf_parser import parse_srdf
+    from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
+    import pinocchio
+    from rospkg import RosPack
+    rospack = RosPack()
 
-    grippers = "driller/drill_tip", "tiago/gripper",
+    if not hasattr(robot, "camera_frame"):
+        robot.camera_frame = "xtion_optical_frame"
+
+    grippers = "tiago/gripper", "driller/drill_tip",
     objects = "driller", "skin",
     handlesPerObjects = [ "driller/handle", ], [ "skin/hole", ],
     contactPerObjects = [], [],
+
+    drillerModel = pinocchio.buildModelFromUrdf (rospack.get_path("gerard_bauzil") + "/urdf/driller_with_qr_drill.urdf")
 
     srdf = {}
     srdfTiago = parse_srdf("srdf/pal_hey5_gripper.srdf", packageName="tiago_data", prefix="tiago")
@@ -59,6 +67,9 @@ def makeSupervisorWithFactory(robot):
     srdfSkin = parse_srdf(
         "srdf/aircraft_skin_with_marker.srdf", packageName="agimus_demos", prefix="skin"
     )
+    attach_all_to_link(drillerModel, "base_link", srdfDriller)
+    attach_all_to_link(drillerModel, "base_link", srdfQRDrill)
+
     for w in ["grippers", "handles","contacts"]:
         srdf[w] = dict()
         for d in [srdfTiago, srdfDriller, srdfQRDrill, srdfSkin]:
@@ -79,28 +90,16 @@ def makeSupervisorWithFactory(robot):
         Rule([ "tiago/gripper", ], [ "driller/handle", ], True), Rule([ "tiago/gripper", ], [ ".*", ], False),
         # Allow to associate drill_tip with skin/hole only.
         Rule([ "driller/drill_tip", ], [ "driller/handle", ], False), Rule([ "driller/drill_tip", ], [ ".*", ], True), ])
-    factory.setupFrames(srdf["grippers"], srdf["handles"], robot,
-            disabledGrippers=["driller/drill_tip",])
+    factory.setupFrames(srdf["grippers"], srdf["handles"], robot)
     factory.gripperFrames["driller/drill_tip" ].hasVisualTag = True
     factory.handleFrames["skin/hole"].hasVisualTag = True
     factory.addAffordance(
         Affordance("tiago/gripper", "driller/handle",
-            openControlType="torque",
-            closeControlType="position_torque",
+            openControlType="position",
+            closeControlType="position",
             refs={
-                "angle_open": (0,),
-                "angle_close": (-0.5,),
-                "torque": (-0.07,),
-                },
-            controlParams={
-                "torque_num": (1.,),
-                "torque_denom": (10.,1.),
-                },
-            simuParams={
-                "M": 0.,
-                "d": 5.,
-                "k": 100.,
-                "refPos": (-0.4,),
+                "angle_open": (0.,0.,0.),
+                "angle_close": (1.,1.,1.),
                 },
             )
         )
@@ -141,6 +140,3 @@ supervisor = makeSupervisorWithFactory(robot)
 
 supervisor.plugTopicsToRos()
 supervisor.plugSot("")
-
-assert robot.device.control.isPlugged()
-print(robot.device.control.name)
