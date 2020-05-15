@@ -32,11 +32,29 @@
 def hpTasks(sotrobot):
     # Two possible cases
     # - lock the base.
-    # - make the base holonomic. This solution needs a bit more work
-    #   as the HolonomicProjection creates a projection matrix which
-    #   should be passed to all the SOT solvers.
+    # - make the base holonomic.
     from agimus_sot.task import Task, Posture
-    return Task()
+    task = Task()
+    if False:
+        from dynamic_graph.sot.tiago.diff_drive_controller import HolonomicProjection
+        projection = HolonomicProjection("base_projection")
+        projection.setSize(robot.dynamic.getDimension())
+        projection.setLeftWheel(6)
+        projection.setRightWheel(7)
+        # The wheel separation could be obtained with pinocchio.
+        # See pmb2_description/urdf/base.urdf.xacro
+        projection.setWheelRadius(0.0985)
+        projection.setWheelSeparation(0.4044)
+        plug(sotrobot.dynamic.mobilebase, projection.basePose)
+        task.projector = projection.projection
+    else:
+        from dynamic_graph.sot.core import MatrixConstant
+        import numpy as np
+        N = sotrobot.dynamic.getDimension()
+        projection = MatrixConstant("base_projection")
+        projection.set(np.vstack((np.zeros((6, N-6)), np.identity(N-6))).tolist())
+        task.projector = projection.sout
+    return task
 
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
