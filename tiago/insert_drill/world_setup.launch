@@ -37,7 +37,7 @@
       <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
     </group>
 
-    <!--node name="simulation" pkg="agimus_sot" type="simulation.py" args="_tf_prefix:=sim_" /-->
+    <!--node name="simulation" pkg="agimus-sot" type="simulation.py" args="_tf_prefix:=sim_" /-->
     <node name="simulation" pkg="tf2_ros" type="static_transform_publisher"
       args="0.037999999999100344 0.010000000000804704 0.21657500000013716 0.49999999999994843 0.50000000000250011 0.49999999999994832 -0.49999999999760331
       arm_7_link driller/base_link" />

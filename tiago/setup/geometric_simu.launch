@@ -26,7 +26,7 @@
     <node name="smach_node" pkg="hpp_ros_interface"
       type="smach_node.py"
       output="screen" />
-    <node name="start_supervisor" pkg="agimus_sot"
+    <node name="start_supervisor" pkg="agimus-sot"
       type="start_supervisor.py"
       output="screen"
       args="--input $(arg script_file) --prefix tiago/"

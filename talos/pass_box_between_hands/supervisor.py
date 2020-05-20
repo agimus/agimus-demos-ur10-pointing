@@ -11,7 +11,7 @@ if not hasattr(sys, "argv"):
 
 
 def hpTasks(sotrobot):
-    from agimus_sot.tools import COM, Foot
+    from agimus-sot.tools import COM, Foot
 
     com = COM("talos", sotrobot)
     lf = Foot(
@@ -22,9 +22,9 @@ def hpTasks(sotrobot):
 
 
 def makeSupervisorWithFactory(robot):
-    from agimus_sot import Supervisor
-    from agimus_sot.factory import Factory, Affordance
-    from agimus_sot.srdf_parser import parse_srdf
+    from agimus-sot import Supervisor
+    from agimus-sot.factory import Factory, Affordance
+    from agimus-sot.srdf_parser import parse_srdf
     from hpp.corbaserver.manipulation import Rule
 
     grippers = ["talos/left_gripper", "talos/right_gripper"]
