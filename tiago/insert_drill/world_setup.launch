@@ -1,5 +1,6 @@
 <launch>
   <arg name="simulation"/>
+  <arg name="gazebo" default="false"/>
 
   <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
     args="0 0 0 0 0 0 1 world odom"
@@ -18,6 +19,19 @@
     <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/driller_with_qr_drill.urdf"/>
     <param name="tf_prefix" value="driller"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  </group>
+
+  <!-- Gazebo -->
+  <group if="$(arg gazebo)" ns="gazebo">
+    <group ns="skin">
+      <node name="spawn" pkg="gazebo_ros" type="spawn_model"
+        args="-file $(find agimus_demos)/urdf/aircraft_skin_with_marker.urdf -urdf -model skin" />
+    </group>
+
+    <group ns="driller">
+      <node name="spawn" pkg="gazebo_ros" type="spawn_model"
+        args="-file $(find gerard_bauzil)/urdf/driller_with_qr_drill.urdf -urdf -model driller" />
+    </group>
   </group>
 
   <!-- Simulation -->
