@@ -1,0 +1,10 @@
+<launch>
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <group ns="agimus/hpp">
+    <node name="hpp_node" pkg="agimus-hpp" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      output="screen" />
+  </group>
+
+  <include file="$(find agimus)/launch/path_execution.launch"/>
+</launch>

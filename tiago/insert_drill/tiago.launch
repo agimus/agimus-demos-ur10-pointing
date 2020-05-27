@@ -25,22 +25,12 @@
     <arg name="simulation" value="false"/>
   </include>
 
-  <!--This starts the HPP interface in namespace agimus/hpp-->
-  <group ns="agimus/hpp">
-    <node name="hpp_node" pkg="agimus-hpp" type="hpp_node.py"
-      args="hpp-manipulation-server" respawn="true"
-      output="screen" />
-  </group>
-
   <!--This starts sot supervisor in namespace agimus/sot-->
   <include file="$(find agimus-sot)/launch/supervisor.launch" >
     <arg name="script_file" value="$(arg script_file)"/>
     <arg name="robot_prefix" value="tiago/"/>
-    <arg name="simulate_torque_feedback" value="true"/>
     <arg name="required" value="false"/>
   </include>
-
-  <include file="$(find agimus)/launch/path_execution.launch"/>
 
   <include if="$(arg estimation)" file="$(find agimus_demos)/launch/tiago_insert_drill_estimation.launch"/>
 </launch>
