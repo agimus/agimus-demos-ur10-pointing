@@ -76,11 +76,11 @@
   </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
-  <include file="$(find agimus_hpp)/launch/hpp_interface.launch" >
+  <include file="$(find agimus-hpp)/launch/hpp_interface.launch" >
   </include>
 
   <!--This starts sot supervisor in namespace agimus/sot-->
-  <include file="$(find agimus_sot)/launch/supervisor.launch" >
+  <include file="$(find agimus-sot)/launch/supervisor.launch" >
     <arg name="script_file" value="$(arg script_file)"/>
     <arg name="robot_prefix" value="talos/"/>
     <arg name="simulate_torque_feedback" value="true"/>

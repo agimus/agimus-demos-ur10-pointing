@@ -32,7 +32,7 @@
          into
          $(arg dirname)/supervisor.py
          -->
-    <node name="start_supervisor" pkg="agimus_sot"
+    <node name="start_supervisor" pkg="agimus-sot"
       type="start_supervisor.py"
       output="screen"
       args="--input $(arg script_file) --prefix talos/ --simulate-torque-feedback"

@@ -6,7 +6,8 @@
     doc="set to true to launch the SoT in gdb."/>
 
   <include file="$(find agimus_demos)/launch/tiago_insert_drill_world_setup.launch">
-    <arg name="simulation" value="true" />
+    <arg name="simulation" value="false" />
+    <arg name="gazebo" value="true" />
   </include>
 
   <!-- Initialization of robot root_joint pose as a ROS param
@@ -14,26 +15,25 @@
   <param name="robot_initial_pose"
          value="0 -0.9 0 0 0 0.7071067811865476 0.7071067811865476"/>
 
-  <group ns="vision">
-    <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
-      args="$(find agimus_demos)/tiago/common/camera_info.yaml /rgb/camera_info xtion_optical_frame" />
-    <!-- rviz with camera simulation -->
-    <node name="rviz" pkg="rviz" type="rviz"
-          launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,xtion_optical_frame -- "
-          args="-d $(find agimus_demos)/tiago/insert_drill/config.rviz" />
-  </group>
-
   <!-- SoT parameters -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/tiago/insert_drill/supervisor.py" />
 
-  <include file="$(find sot_tiago_bringup)/launch/geometric_simu.launch" >
+  <include file="$(find tiago_gazebo)/launch/tiago_gazebo.launch" >
+    <arg name="arm" value="true"/>
+    <arg name="end_effector" value="pal-hey5"/>
+    <arg name="ft_sensor"  default="schunk-ft"/>
+
+    <arg name="tuck_arm" default="false"/>
+    <arg name="public_sim" default="true"/>
+
+    <arg name="gzpose" default="-x 0.0 -y 0.9 -z 0.0 -R 0.0 -P 0.0 -Y 1.570796"/>
+  </include>
+  <include file="$(find roscontrol_sot_tiago)/launch/controller.launch" >
     <arg name="use_mobile_base" value="false"/>
     <arg name="end_effector" value="pal-hey5"/>
-    <arg if="$(arg debug_sot)" name="sot-launch-prefix" value="xterm -e gdb --args" />
+    <arg name="simulation" value="true"/>
   </include>
-  <param if="$(arg debug_sot)" name="/test/sot-launch-prefix" value="xterm -e gdb -ex run --args"/>
-  <param unless="$(arg debug_sot)" name="/test/sot-launch-prefix" value="not-set"/>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
   <group ns="agimus/hpp">
