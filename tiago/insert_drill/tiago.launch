@@ -30,6 +30,7 @@
     <arg name="script_file" value="$(arg script_file)"/>
     <arg name="robot_prefix" value="tiago/"/>
     <arg name="required" value="false"/>
+    <arg name="simulate_torque_feedback" value="false"/>
   </include>
 
   <include if="$(arg estimation)" file="$(find agimus_demos)/launch/tiago_insert_drill_estimation.launch"/>

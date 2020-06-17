@@ -579,12 +579,12 @@ Visualization Manager:
       Update Interval: 0
       Value: false
     - Background Color: 0; 0; 0
-      Camera Info Topic: /rgb/camera_info
+      Camera Info Topic: /xtion/rgb/camera_info
       Class: rviz_camera_stream/CameraPub
       Display namespace: ""
       Enabled: true
       Frame Rate: -1
-      Image Topic: /rgb/image
+      Image Topic: /xtion/rgb/image
       Image encoding: Suggested
       Name: CameraPub
       Queue Size: 2

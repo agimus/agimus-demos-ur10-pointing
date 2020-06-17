@@ -16,7 +16,7 @@
 
   <group ns="vision">
     <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
-      args="$(find agimus_demos)/tiago/common/camera_info.yaml /rgb/camera_info xtion_optical_frame" />
+      args="$(find agimus_demos)/tiago/common/camera_info.yaml /xtion/rgb/camera_info xtion_optical_frame" />
     <!-- rviz with camera simulation -->
     <node name="rviz" pkg="rviz" type="rviz"
           launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,xtion_optical_frame -- "
