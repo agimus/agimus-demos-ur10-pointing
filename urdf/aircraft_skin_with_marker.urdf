@@ -1,5 +1,6 @@
 <robot name="aircraft_skin">
-  <link name="base_link">
+  <link name="base_link"/>
+  <link name="skin_link">
     <collision>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/AircraftSkinWithFrame.stl"/>
@@ -11,23 +12,28 @@
       </geometry>
     </visual>
   </link>
+  <joint name="to_skin" type="fixed">
+    <parent link="base_link"/>
+    <child link="skin_link"/>
+    <origin xyz="0 0 -0.09"/>
+  </joint>
   <link name="hole_link"/>
   <joint name="to_hole" type="fixed">
-    <parent link="base_link"/>
+    <parent link="skin_link"/>
     <child link="hole_link"/>
     <origin xyz="0.30576 -0.0138 1.5835" rpy="1.8 0 0"/>
   </joint>
-  <link name="tag36_11_00020">
+  <link name="tag36_11_00233">
     <visual>
       <origin xyz="0 0 0.00001"/>
       <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00020.dae" scale="0.04 0.04 1."/>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00233.dae" scale="0.0573 0.0573 1."/>
       </geometry>
     </visual>
   </link>
   <joint name="to_tag" type="fixed">
     <parent link="hole_link"/>
-    <child link="tag36_11_00020"/>
+    <child link="tag36_11_00233"/>
     <origin xyz="-0.20 0 0"/>
   </joint>
 </robot>

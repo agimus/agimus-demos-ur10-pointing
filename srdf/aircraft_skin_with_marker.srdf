@@ -1,6 +1,6 @@
 <robot name="aircraft_skin">
   <handle name="hole" clearance="0.01">
-    <position rpy="-1.5707963267948966 1.5707963267948966 0"/>
+    <position xyz="0 0 0.02" rpy="-1.5707963267948966 1.5707963267948966 0"/>
     <link name="hole_link"/>
   </handle>
 </robot>
