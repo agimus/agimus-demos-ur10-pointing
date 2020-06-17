@@ -515,8 +515,8 @@ class Solver(object):
         self.ps.addEdgeToRoadmap(q_proj, qres, pid, True)
         if res:
             self.ps.optimizePath(pid)
-            print("Initial path", pid + 1)
-            return qres, pid + 1
+            print("Initial path", self.ps.numberPaths()-1)
+            return qres, self.ps.numberPaths() - 1
         else:
             print("Failed: directPath", msg)
             return qres, None

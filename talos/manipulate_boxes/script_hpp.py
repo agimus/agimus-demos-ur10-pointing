@@ -26,7 +26,7 @@
 
 import argparse, numpy as np
 from hpp import Quaternion, Transform
-from hpp.corbaserver.manipulation import Constraints, ProblemSolver
+from hpp.corbaserver.manipulation import Constraints, ProblemSolver, newProblem
 from hpp.corbaserver.manipulation.robot import CorbaClient
 from hpp.corbaserver import loadServerPlugin, createContext
 
@@ -55,10 +55,7 @@ constantWaistYaw = not isSimulation
 fixedArmWhenGrasping = not isSimulation
 
 client = CorbaClient(context=args.context)
-if args.context != defaultContext:
-    client.manipulation.problem.selectProblem (args.context)
-
-client.manipulation.problem.resetProblem()
+newProblem(client=client.manipulation, name=args.context)
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(client, rolling_table=True,
         rosParam=args.ros_param)
@@ -390,6 +387,8 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", 1.0)
 ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setMaxIterPathPlanning(50)
 
+if isSimulation:
+    ps.setInitialConfig(q_init)
 if args.context == defaultContext:
     # Define problem
     res, q_init, err = graph.generateTargetConfig("Loop | f", q_init, q_init)
