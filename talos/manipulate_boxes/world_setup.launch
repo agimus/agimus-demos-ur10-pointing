@@ -38,7 +38,7 @@
       <node name="simulation_gui" pkg="rqt_gui" type="rqt_gui"
         args="--standalone rqt_agimus.simulation.Simulation --args
         --tf-editor sim_box/base_link sim_box_rviz/base_link
-        --tf-editor sim_table/base_link sim_table_rviz/base_link"
+        --tf-editor sim_table/table_link sim_table_rviz/table_link"
         />
   </group>
 
