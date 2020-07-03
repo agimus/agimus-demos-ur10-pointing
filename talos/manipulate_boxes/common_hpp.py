@@ -102,8 +102,8 @@ HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
 init_conf = json.load(open('../common/half_sitting.json', 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
-init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
-               0, 0, 0, 0, 0, 0, 1] # table
+init_conf += [0.45891797741593393, -0.25, 0.832, -0.5, 0.5, 0.5, 0.5,# box
+              0, 0, 0, 0, 0, 0, 1] # table
 
 ## Reduce joint range for security
 def shrinkJointRange (robot, ratio):
@@ -503,23 +503,30 @@ class Solver(object):
         if initTablePose:
             q[rank_table : rank_table + 7] = self.q_init[rank_table : rank_table + 7]
 
-        res, q_proj, err = self.graph.generateTargetConfig("loop_ss", q, q)
+        res, q1, err = self.graph.generateTargetConfig("loop_ss", q, q)
         assert res, "Failed: generateTargetConfig loop_ss"
-        res, qres, err = self.graph.generateTargetConfig(
-            "starting_motion", q_proj, q_proj
-        )
+        res, q2, err = self.graph.generateTargetConfig("starting_motion", q1,
+                                                       q1)
         assert res, "Failed: generateTargetConfig starting_motion"
-        res, pid, msg = self.ps.directPath(q_proj, qres, True)
-        self.ps.addConfigToRoadmap(q_proj)
-        self.ps.addConfigToRoadmap(qres)
-        self.ps.addEdgeToRoadmap(q_proj, qres, pid, True)
-        if res:
-            self.ps.optimizePath(pid)
-            print("Initial path", self.ps.numberPaths()-1)
-            return qres, self.ps.numberPaths() - 1
+        res, q3, err = self.graph.generateTargetConfig("look_to_box", q2, q2)
+        assert res, "Failed: generateTargetConfig look_to_box"
+        res12, pid12, msg = self.ps.directPath(q1, q2, True)
+        res23, pid23, msg = self.ps.directPath(q2, q3, True)
+        self.ps.addConfigToRoadmap(q1)
+        self.ps.addConfigToRoadmap(q2)
+        self.ps.addConfigToRoadmap(q3)
+        self.ps.addEdgeToRoadmap(q1, q2, pid12, True)
+        self.ps.addEdgeToRoadmap(q1, q2, pid23, True)
+        if res12 and res23:
+            self.ps.erasePath(self.ps.numberPaths()-1)
+            self.ps.erasePath(self.ps.numberPaths()-1)
+            self.ps.setInitialConfig(q1)
+            self.ps.addGoalConfig(q3)
+            self.ps.solve()
+            return q, self.ps.numberPaths() - 1
         else:
             print("Failed: directPath", msg)
-            return qres, None
+            return q2, None
 
     # \param qEstimated box should be visible.
     def generateGoalFrom(self, qEstimated, qDesiredRobot):
@@ -689,7 +696,7 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
 # Gaze constraint
 def createGazeConstraint (ps):
     ps.createPositionConstraint(
-        "gaze",
+        "look_at_box",
         "talos/rgbd_optical_joint",
         "box/root_joint",
         (0, 0, 0),
