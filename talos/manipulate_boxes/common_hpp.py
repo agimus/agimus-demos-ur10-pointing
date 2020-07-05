@@ -213,26 +213,6 @@ def shootConfig(robot, q, i):
     return q if i == 0 else robot.shootRandomConfig()
 
 
-def createConnection(ps, graph, e, q, maxIter):
-    """
-    Try to build a path along a transition from a given configuration
-    """
-    for i in range(maxIter):
-        q_rand = shootConfig(ps.robot, q, i)
-        res, q1, err = graph.generateTargetConfig(e, q, q_rand)
-        if not res:
-            continue
-        res, p, msg = ps.directPath(q, q1, True)
-        if not res:
-            continue
-        ps.addConfigToRoadmap(q1)
-        ps.addEdgeToRoadmap(q, q1, p, True)
-        print("Success (i={0})".format(i))
-        return p, q1
-    print("Failed  (maxIter={0})".format(maxIter))
-    return None, None
-
-
 class Solver(object):
     """
     Solver that tries direct connections before calling RRT.
@@ -335,6 +315,7 @@ class Solver(object):
             if res:
                 # call steering method
                 res, p, msg = self.ps.directPath(config, wp, True)
+                self.erasePath(p)
                 if res:
                     # add node and edge
                     self.ps.addConfigToRoadmap(wp)
@@ -343,6 +324,28 @@ class Solver(object):
                     return wp
         return config
 
+    def createConnection(self, e, q, maxIter):
+        """
+        Try to build a path along a transition from a given configuration
+        """
+        ps = self.ps
+        graph = self.graph
+        for i in range(maxIter):
+            q_rand = shootConfig(ps.robot, q, i)
+            res, q1, err = graph.generateTargetConfig(e, q, q_rand)
+            if not res:
+                continue
+            res, p, msg = ps.directPath(q, q1, True)
+            self.erasePath(p)
+            if not res:
+                continue
+            ps.addConfigToRoadmap(q1)
+            ps.addEdgeToRoadmap(q, q1, p, True)
+            print("Success (i={0})".format(i))
+            return p, q1
+        print("Failed  (maxIter={0})".format(maxIter))
+        return None, None
+
     def tryDirectPaths(self, possibleConnections):
         """
         Add direct paths between pairs of configurations if possible
@@ -350,6 +353,7 @@ class Solver(object):
         for q1, q2 in possibleConnections:
             if q1 and q2:
                 res, p, msg = self.ps.directPath(q1, q2, True)
+                self.erasePath(p)
                 if res:
                     print("direct connection succeeded")
                     self.ps.addEdgeToRoadmap(q1, q2, p, True)
@@ -358,11 +362,16 @@ class Solver(object):
                     print("q1= " + str(q1))
                     print("q2= " + str(q2))
 
+    def erasePath(self, p):
+        if p != -1:
+            self.pathToBeErased.append(p)
+
     def solve(self):
         assert (
             np.linalg.norm(np.array(self.q_init[-7:]) - np.array(self.q_goal[-7:])) # Assert that the table is not to be moved
             < 1e-7
         )
+        self.pathToBeErased = list()
         start = datetime.now()
         q_l1 = q_r1 = q_l2 = q_r2 = q_l3 = q_r3 = q_l4 = q_r4 = None
         q_l1_r2 = None
@@ -391,87 +400,88 @@ class Solver(object):
 
         ## Connections from init to grasp
         print("Edge e_l1   : ")
-        p, q_l1 = createConnection(self.ps, self.graph, self.e_l1, self.wp_init, 20)
+        p, q_l1 = self.createConnection(self.e_l1, self.wp_init, 40)
         print("Edge e_r1   : ")
-        p, q_r1 = createConnection(self.ps, self.graph, self.e_r1, self.wp_init, 20)
+        p, q_r1 = self.createConnection(self.e_r1, self.wp_init, 40)
         print("Edge e_l2   : ")
-        p, q_l2 = createConnection(self.ps, self.graph, self.e_l2, self.wp_init, 20)
+        p, q_l2 = self.createConnection(self.e_l2, self.wp_init, 40)
         print("Edge e_r2   : ")
-        p, q_r2 = createConnection(self.ps, self.graph, self.e_r2, self.wp_init, 20)
+        p, q_r2 = self.createConnection(self.e_r2, self.wp_init, 40)
         print("Edge e_l3   : ")
-        p, q_l3 = createConnection(self.ps, self.graph, self.e_l3, self.wp_init, 20)
+        p, q_l3 = self.createConnection(self.e_l3, self.wp_init, 40)
         print("Edge e_r3   : ")
-        p, q_r3 = createConnection(self.ps, self.graph, self.e_r3, self.wp_init, 20)
+        p, q_r3 = self.createConnection(self.e_r3, self.wp_init, 40)
         print("Edge e_l4   : ")
-        p, q_l4 = createConnection(self.ps, self.graph, self.e_l4, self.wp_init, 20)
+        p, q_l4 = self.createConnection(self.e_l4, self.wp_init, 40)
         print("Edge e_r4   : ")
-        p, q_r4 = createConnection(self.ps, self.graph, self.e_r4, self.wp_init, 20)
+        p, q_r4 = self.createConnection(self.e_r4, self.wp_init, 40)
         ## Connections from goal to grasp
+        print ("connecting goal configuration")
         if q_l1 is None:
             print("Edge e_l1   : ")
-            p, q_l1 = createConnection(self.ps, self.graph, self.e_l1, self.wp_goal, 20)
+            p, q_l1 = self.createConnection(self.e_l1, self.wp_goal, 40)
         if q_r1 is None:
             print("Edge e_r1   : ")
-            p, q_r1 = createConnection(self.ps, self.graph, self.e_r1, self.wp_goal, 20)
+            p, q_r1 = self.createConnection(self.e_r1, self.wp_goal, 40)
         if q_l2 is None:
             print("Edge e_l2   : ")
-            p, q_l2 = createConnection(self.ps, self.graph, self.e_l2, self.wp_goal, 20)
+            p, q_l2 = self.createConnection(self.e_l2, self.wp_goal, 40)
         if q_r2 is None:
             print("Edge e_r2   : ")
-            p, q_r2 = createConnection(self.ps, self.graph, self.e_r2, self.wp_goal, 20)
+            p, q_r2 = self.createConnection(self.e_r2, self.wp_goal, 40)
         if q_l3 is None:
             print("Edge e_l3   : ")
-            p, q_l3 = createConnection(self.ps, self.graph, self.e_l3, self.wp_goal, 20)
+            p, q_l3 = self.createConnection(self.e_l3, self.wp_goal, 40)
         if q_r3 is None:
             print("Edge e_r3   : ")
-            p, q_r3 = createConnection(self.ps, self.graph, self.e_r3, self.wp_goal, 20)
+            p, q_r3 = self.createConnection(self.e_r3, self.wp_goal, 40)
         if q_l4 is None:
             print("Edge e_l4   : ")
-            p, q_l4 = createConnection(self.ps, self.graph, self.e_l4, self.wp_goal, 20)
+            p, q_l4 = self.createConnection(self.e_l4, self.wp_goal, 40)
         if q_r4 is None:
             print("Edge e_r4   : ")
-            p, q_r4 = createConnection(self.ps, self.graph, self.e_r4, self.wp_goal, 20)
+            p, q_r4 = self.createConnection(self.e_r4, self.wp_goal, 40)
         ## Connections from one grasp to two grasps
         if q_l1:
             print("Edge e_l1_r2: ")
-            p, q_l1_r2 = createConnection(self.ps, self.graph, self.e_l1_r2, q_l1, 20)
+            p, q_l1_r2 = self.createConnection(self.e_l1_r2, q_l1, 40)
             print("Edge e_l1_r4: ")
-            p, q_l1_r4 = createConnection(self.ps, self.graph, self.e_l1_r4, q_l1, 20)
+            p, q_l1_r4 = self.createConnection(self.e_l1_r4, q_l1, 40)
         if q_r1:
             print("Edge e_r1_l2: ")
-            p, q_r1_l2 = createConnection(self.ps, self.graph, self.e_r1_l2, q_r1, 20)
+            p, q_r1_l2 = self.createConnection(self.e_r1_l2, q_r1, 40)
             print("Edge e_r1_l4: ")
-            p, q_r1_l4 = createConnection(self.ps, self.graph, self.e_r1_l4, q_r1, 20)
+            p, q_r1_l4 = self.createConnection(self.e_r1_l4, q_r1, 40)
         if q_l2:
             print("Edge e_l2_r1: ")
-            p, q_l2_r1 = createConnection(self.ps, self.graph, self.e_l2_r1, q_l2, 20)
+            p, q_l2_r1 = self.createConnection(self.e_l2_r1, q_l2, 40)
             print("Edge e_l2_r3: ")
-            p, q_l2_r3 = createConnection(self.ps, self.graph, self.e_l2_r3, q_l2, 20)
+            p, q_l2_r3 = self.createConnection(self.e_l2_r3, q_l2, 40)
         if q_r2:
             print("Edge e_r2_l1: ")
-            p, q_r2_l1 = createConnection(self.ps, self.graph, self.e_r2_l1, q_r2, 20)
+            p, q_r2_l1 = self.createConnection(self.e_r2_l1, q_r2, 40)
             print("Edge e_r2_l3: ")
-            p, q_r2_l3 = createConnection(self.ps, self.graph, self.e_r2_l3, q_r2, 20)
+            p, q_r2_l3 = self.createConnection(self.e_r2_l3, q_r2, 40)
         if q_l3:
             print("Edge e_l3_r4: ")
-            p, q_l3_r4 = createConnection(self.ps, self.graph, self.e_l3_r4, q_l3, 20)
+            p, q_l3_r4 = self.createConnection(self.e_l3_r4, q_l3, 40)
             print("Edge e_l3_r2: ")
-            p, q_l3_r2 = createConnection(self.ps, self.graph, self.e_l3_r2, q_l3, 20)
+            p, q_l3_r2 = self.createConnection(self.e_l3_r2, q_l3, 40)
         if q_r3:
             print("Edge e_r3_l4: ")
-            p, q_r3_l4 = createConnection(self.ps, self.graph, self.e_r3_l4, q_r3, 20)
+            p, q_r3_l4 = self.createConnection(self.e_r3_l4, q_r3, 40)
             print("Edge e_r3_l2: ")
-            p, q_r3_l2 = createConnection(self.ps, self.graph, self.e_r3_l2, q_r3, 20)
+            p, q_r3_l2 = self.createConnection(self.e_r3_l2, q_r3, 40)
         if q_l4:
             print("Edge e_l4_r1: ")
-            p, q_l4_r1 = createConnection(self.ps, self.graph, self.e_l4_r1, q_l4, 20)
+            p, q_l4_r1 = self.createConnection(self.e_l4_r1, q_l4, 40)
             print("Edge e_l4_r3: ")
-            p, q_l4_r3 = createConnection(self.ps, self.graph, self.e_l4_r3, q_l4, 20)
+            p, q_l4_r3 = self.createConnection(self.e_l4_r3, q_l4, 40)
         if q_r4:
             print("Edge e_r4_l1: ")
-            p, q_r4_l1 = createConnection(self.ps, self.graph, self.e_r4_l1, q_r4, 20)
+            p, q_r4_l1 = self.createConnection(self.e_r4_l1, q_r4, 40)
             print("Edge e_r4_l3: ")
-            p, q_r4_l3 = createConnection(self.ps, self.graph, self.e_r4_l3, q_r4, 20)
+            p, q_r4_l3 = self.createConnection(self.e_r4_l3, q_r4, 40)
 
         possibleConnections = [
             (q_l1_r2, q_r2_l1),
@@ -489,6 +499,8 @@ class Solver(object):
         self.ps.resetGoalConfigs()
         self.ps.addGoalConfig(self.q_goal)
         print("Running Manipulation RRT")
+        for p in self.pathToBeErased[::-1]:
+            self.ps.erasePath(p)
         self.ps.solve()
         end = datetime.now()
         print("Resolution time : {0}".format(end - start))
@@ -558,13 +570,13 @@ class Solver(object):
 
         ## Connections from init to grasp
         print("Edge e_l1   : ")
-        p, q_l1 = createConnection(self.ps, self.graph, self.e_l1, self.wp_init, 20)
+        p, q_l1 = self.createConnection(self.e_l1, self.wp_init, 40)
         print("Edge e_l2   : ")
-        p, q_l2 = createConnection(self.ps, self.graph, self.e_l2, self.wp_init, 20)
+        p, q_l2 = self.createConnection(self.e_l2, self.wp_init, 40)
         print("Edge e_l3   : ")
-        p, q_l3 = createConnection(self.ps, self.graph, self.e_l3, self.wp_init, 20)
+        p, q_l3 = self.createConnection(self.e_l3, self.wp_init, 40)
         print("Edge e_l4   : ")
-        p, q_l4 = createConnection(self.ps, self.graph, self.e_l4, self.wp_init, 20)
+        p, q_l4 = self.createConnection(self.e_l4, self.wp_init, 40)
         if q_l1: qgoals.append (q_l1)
         if q_l2: qgoals.append (q_l2)
         if q_l3: qgoals.append (q_l3)
@@ -793,6 +805,7 @@ def createTableLockedJoint (ps, table, q):
 
 # Set Gaussian shooter around input configuration with input variance
 def setGaussianShooter (ps, table, objects, q_mean, sigma):
+    ps.setParameter("ConfigurationShooter/Gaussian/center", q_mean)
     robot = ps.robot
     # Set Gaussian configuration shooter.
     robot.setCurrentConfig(q_mean)

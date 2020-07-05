@@ -26,9 +26,10 @@
 
 from hpp import Quaternion
 # Plan a path to flip the box starting at the end of pathId.
-def flipBox (ps, pathId = None):
+def flipBox (solver, pathId = None):
+    ps = solver.ps
     if pathId is None: pathId = ps.numberPaths () - 1
-    q1 = ps.configAtParam (0, ps.pathLength (pathId))
+    q1 = ps.configAtParam (pathId, ps.pathLength (pathId))
     q2 = q1 [::]
     rank = ps.robot.rankInConfiguration["box/root_joint"]
     q2 [rank + 3 : rank + 7] = (
@@ -38,4 +39,4 @@ def flipBox (ps, pathId = None):
     ps.setInitialConfig (q1)
     ps.addGoalConfig (q2)
     ps.setMaxIterPathPlanning (1000)
-    return ps.solve ()
+    return solver.solve ()
