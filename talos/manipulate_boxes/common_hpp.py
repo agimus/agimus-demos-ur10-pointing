@@ -294,6 +294,7 @@ class Solver(object):
         self.q_init = q_init
         self.q_goal = q_goal
         self.verbose = False
+        self.clearRoadmap = self.ps.clearRoadmap
 
     def addWaypoints(self, config):
         """
