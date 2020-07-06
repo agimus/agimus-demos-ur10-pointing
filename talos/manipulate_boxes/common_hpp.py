@@ -293,6 +293,7 @@ class Solver(object):
         self.e_r4_l3 = e_r4_l3
         self.q_init = q_init
         self.q_goal = q_goal
+        self.verbose = False
 
     def addWaypoints(self, config):
         """
@@ -341,9 +342,9 @@ class Solver(object):
                 continue
             ps.addConfigToRoadmap(q1)
             ps.addEdgeToRoadmap(q, q1, p, True)
-            print("Success (i={0})".format(i))
+            if self.verbose: print("Success (i={0})".format(i))
             return p, q1
-        print("Failed  (maxIter={0})".format(maxIter))
+        if self.verbose: print("Failed  (maxIter={0})".format(maxIter))
         return None, None
 
     def tryDirectPaths(self, possibleConnections):
@@ -355,12 +356,12 @@ class Solver(object):
                 res, p, msg = self.ps.directPath(q1, q2, True)
                 self.erasePath(p)
                 if res:
-                    print("direct connection succeeded")
+                    if self.verbose: print("direct connection succeeded")
                     self.ps.addEdgeToRoadmap(q1, q2, p, True)
                 else:
-                    print("failed direct connection: " + msg)
-                    print("q1= " + str(q1))
-                    print("q2= " + str(q2))
+                    if self.verbose: print("failed direct connection: " + msg)
+                    if self.verbose: print("q1= " + str(q1))
+                    if self.verbose: print("q2= " + str(q2))
 
     def erasePath(self, p):
         if p != -1:
@@ -393,94 +394,94 @@ class Solver(object):
         self.ps.addConfigToRoadmap(self.q_init)
         self.ps.addConfigToRoadmap(self.q_goal)
 
-        print("Generating init waypoint.")
+        if self.verbose: print("Generating init waypoint.")
         self.wp_init = self.addWaypoints(self.q_init)
-        print("Generating goal waypoint.")
+        if self.verbose: print("Generating goal waypoint.")
         self.wp_goal = self.addWaypoints(self.q_goal)
 
         ## Connections from init to grasp
-        print("Edge e_l1   : ")
+        if self.verbose: print("Edge e_l1   : ")
         p, q_l1 = self.createConnection(self.e_l1, self.wp_init, 40)
-        print("Edge e_r1   : ")
+        if self.verbose: print("Edge e_r1   : ")
         p, q_r1 = self.createConnection(self.e_r1, self.wp_init, 40)
-        print("Edge e_l2   : ")
+        if self.verbose: print("Edge e_l2   : ")
         p, q_l2 = self.createConnection(self.e_l2, self.wp_init, 40)
-        print("Edge e_r2   : ")
+        if self.verbose: print("Edge e_r2   : ")
         p, q_r2 = self.createConnection(self.e_r2, self.wp_init, 40)
-        print("Edge e_l3   : ")
+        if self.verbose: print("Edge e_l3   : ")
         p, q_l3 = self.createConnection(self.e_l3, self.wp_init, 40)
-        print("Edge e_r3   : ")
+        if self.verbose: print("Edge e_r3   : ")
         p, q_r3 = self.createConnection(self.e_r3, self.wp_init, 40)
-        print("Edge e_l4   : ")
+        if self.verbose: print("Edge e_l4   : ")
         p, q_l4 = self.createConnection(self.e_l4, self.wp_init, 40)
-        print("Edge e_r4   : ")
+        if self.verbose: print("Edge e_r4   : ")
         p, q_r4 = self.createConnection(self.e_r4, self.wp_init, 40)
         ## Connections from goal to grasp
-        print ("connecting goal configuration")
+        if self.verbose: print ("connecting goal configuration")
         if q_l1 is None:
-            print("Edge e_l1   : ")
+            if self.verbose: print("Edge e_l1   : ")
             p, q_l1 = self.createConnection(self.e_l1, self.wp_goal, 40)
         if q_r1 is None:
-            print("Edge e_r1   : ")
+            if self.verbose: print("Edge e_r1   : ")
             p, q_r1 = self.createConnection(self.e_r1, self.wp_goal, 40)
         if q_l2 is None:
-            print("Edge e_l2   : ")
+            if self.verbose: print("Edge e_l2   : ")
             p, q_l2 = self.createConnection(self.e_l2, self.wp_goal, 40)
         if q_r2 is None:
-            print("Edge e_r2   : ")
+            if self.verbose: print("Edge e_r2   : ")
             p, q_r2 = self.createConnection(self.e_r2, self.wp_goal, 40)
         if q_l3 is None:
-            print("Edge e_l3   : ")
+            if self.verbose: print("Edge e_l3   : ")
             p, q_l3 = self.createConnection(self.e_l3, self.wp_goal, 40)
         if q_r3 is None:
-            print("Edge e_r3   : ")
+            if self.verbose: print("Edge e_r3   : ")
             p, q_r3 = self.createConnection(self.e_r3, self.wp_goal, 40)
         if q_l4 is None:
-            print("Edge e_l4   : ")
+            if self.verbose: print("Edge e_l4   : ")
             p, q_l4 = self.createConnection(self.e_l4, self.wp_goal, 40)
         if q_r4 is None:
-            print("Edge e_r4   : ")
+            if self.verbose: print("Edge e_r4   : ")
             p, q_r4 = self.createConnection(self.e_r4, self.wp_goal, 40)
         ## Connections from one grasp to two grasps
         if q_l1:
-            print("Edge e_l1_r2: ")
+            if self.verbose: print("Edge e_l1_r2: ")
             p, q_l1_r2 = self.createConnection(self.e_l1_r2, q_l1, 40)
-            print("Edge e_l1_r4: ")
+            if self.verbose: print("Edge e_l1_r4: ")
             p, q_l1_r4 = self.createConnection(self.e_l1_r4, q_l1, 40)
         if q_r1:
-            print("Edge e_r1_l2: ")
+            if self.verbose: print("Edge e_r1_l2: ")
             p, q_r1_l2 = self.createConnection(self.e_r1_l2, q_r1, 40)
-            print("Edge e_r1_l4: ")
+            if self.verbose: print("Edge e_r1_l4: ")
             p, q_r1_l4 = self.createConnection(self.e_r1_l4, q_r1, 40)
         if q_l2:
-            print("Edge e_l2_r1: ")
+            if self.verbose: print("Edge e_l2_r1: ")
             p, q_l2_r1 = self.createConnection(self.e_l2_r1, q_l2, 40)
-            print("Edge e_l2_r3: ")
+            if self.verbose: print("Edge e_l2_r3: ")
             p, q_l2_r3 = self.createConnection(self.e_l2_r3, q_l2, 40)
         if q_r2:
-            print("Edge e_r2_l1: ")
+            if self.verbose: print("Edge e_r2_l1: ")
             p, q_r2_l1 = self.createConnection(self.e_r2_l1, q_r2, 40)
-            print("Edge e_r2_l3: ")
+            if self.verbose: print("Edge e_r2_l3: ")
             p, q_r2_l3 = self.createConnection(self.e_r2_l3, q_r2, 40)
         if q_l3:
-            print("Edge e_l3_r4: ")
+            if self.verbose: print("Edge e_l3_r4: ")
             p, q_l3_r4 = self.createConnection(self.e_l3_r4, q_l3, 40)
-            print("Edge e_l3_r2: ")
+            if self.verbose: print("Edge e_l3_r2: ")
             p, q_l3_r2 = self.createConnection(self.e_l3_r2, q_l3, 40)
         if q_r3:
-            print("Edge e_r3_l4: ")
+            if self.verbose: print("Edge e_r3_l4: ")
             p, q_r3_l4 = self.createConnection(self.e_r3_l4, q_r3, 40)
-            print("Edge e_r3_l2: ")
+            if self.verbose: print("Edge e_r3_l2: ")
             p, q_r3_l2 = self.createConnection(self.e_r3_l2, q_r3, 40)
         if q_l4:
-            print("Edge e_l4_r1: ")
+            if self.verbose: print("Edge e_l4_r1: ")
             p, q_l4_r1 = self.createConnection(self.e_l4_r1, q_l4, 40)
-            print("Edge e_l4_r3: ")
+            if self.verbose: print("Edge e_l4_r3: ")
             p, q_l4_r3 = self.createConnection(self.e_l4_r3, q_l4, 40)
         if q_r4:
-            print("Edge e_r4_l1: ")
+            if self.verbose: print("Edge e_r4_l1: ")
             p, q_r4_l1 = self.createConnection(self.e_r4_l1, q_r4, 40)
-            print("Edge e_r4_l3: ")
+            if self.verbose: print("Edge e_r4_l3: ")
             p, q_r4_l3 = self.createConnection(self.e_r4_l3, q_r4, 40)
 
         possibleConnections = [
@@ -498,7 +499,7 @@ class Solver(object):
         self.ps.setInitialConfig(self.q_init)
         self.ps.resetGoalConfigs()
         self.ps.addGoalConfig(self.q_goal)
-        print("Running Manipulation RRT")
+        if self.verbose: print("Running Manipulation RRT")
         for p in self.pathToBeErased[::-1]:
             self.ps.erasePath(p)
         self.ps.solve()
@@ -554,7 +555,7 @@ class Solver(object):
         )
         success = "free" == self.graph.getNode(qgoal)
         if not res or not success:
-            print("Could not generate goal")
+            if self.verbose: print("Could not generate goal")
         qgoalInStartingState = (
             qDesiredRobot[: min(rankO, rankT)] + qgoal[min(rankO, rankT) :]
         )
@@ -569,13 +570,13 @@ class Solver(object):
         qgoals = []
 
         ## Connections from init to grasp
-        print("Edge e_l1   : ")
+        if self.verbose: print("Edge e_l1   : ")
         p, q_l1 = self.createConnection(self.e_l1, self.wp_init, 40)
-        print("Edge e_l2   : ")
+        if self.verbose: print("Edge e_l2   : ")
         p, q_l2 = self.createConnection(self.e_l2, self.wp_init, 40)
-        print("Edge e_l3   : ")
+        if self.verbose: print("Edge e_l3   : ")
         p, q_l3 = self.createConnection(self.e_l3, self.wp_init, 40)
-        print("Edge e_l4   : ")
+        if self.verbose: print("Edge e_l4   : ")
         p, q_l4 = self.createConnection(self.e_l4, self.wp_init, 40)
         if q_l1: qgoals.append (q_l1)
         if q_l2: qgoals.append (q_l2)
@@ -657,7 +658,7 @@ class Solver(object):
         )
         # Move hands up.
         self.ps.addConfigToRoadmap(self.q_init)
-        print("Generating init waypoint.")
+        if self.verbose: print("Generating init waypoint.")
         self.wp_init = self.addWaypoints(self.q_init)
 
         self.q_goals = self.generateLeftHandGraspFrom(self.wp_init)
