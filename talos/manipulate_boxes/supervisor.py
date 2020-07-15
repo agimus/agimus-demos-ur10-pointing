@@ -43,6 +43,9 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf
 
+    if not hasattr(robot, "camera_frame"):
+        robot.camera_frame = "rgbd_rgb_optical_frame"
+
     grippers = ["talos/left_gripper", "talos/right_gripper"]
     objects = ["box"]
     handlesPerObjects = [["box/handle" + str(i) for i in range(1, 5)]]

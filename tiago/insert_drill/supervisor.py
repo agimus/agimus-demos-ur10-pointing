@@ -117,7 +117,7 @@ def makeSupervisorWithFactory(robot):
             closeControlType="position",
             refs={
                 "angle_open": (0.,0.,0.),
-                "angle_close": (1.,1.,1.),
+                "angle_close": (5.3,5.72,8.0),  #"angle_close": (6.2,6.7,9.1),
                 },
             )
         )

@@ -64,7 +64,6 @@ vf.loadObjectModel (AircraftSkin, "skin")
 #vf.loadRobotModelFromString ("skin", AircraftSkin.rootJointType, AircraftSkin.urdfString, AircraftSkin.srdfString)
 #robot.setRootJointPosition("skin", oMsk)
 #robot.setJointPosition("skin/root_joint", oMsk)
-vf.loadPolyhedronObstacleModel('skin', "/home/jmirabel/devel/hpp/src/gerard-bauzil/meshes/AircraftSkinWithFrame.stl")
 
 q0 = robot.getCurrentConfig()
 q0[:4] = [0, -0.9, 0, 1]

@@ -14,8 +14,8 @@
         output="$(arg output)"
         name="tracker"
         >
-        <param name="imageTopic"      value="/rgb/image" />
-        <param name="cameraInfoTopic" value="/rgb/camera_info" />
+        <param name="imageTopic"      value="/xtion/rgb/image_raw" />
+        <param name="cameraInfoTopic" value="/xtion/rgb/camera_info" />
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
@@ -29,8 +29,8 @@
         --measurement-parent-frame xtion_optical_frame
         --group-frame skin/hole_link
         --no-description
-        --size 0.040
-        --tag 20
+        --size 0.0573
+        --tag 233
         "
         output="$(arg output)"
         />
@@ -42,7 +42,7 @@
         --group-frame driller/base_link
         --no-description
         --size 0.040
-        --tag 10
+        --tag 230
         "
         output="$(arg output)"
         />
