@@ -48,7 +48,7 @@ def hpTasks(sotrobot):
         plug(sotrobot.dynamic.mobilebase, projection.basePose)
         task.projector = projection.projection
     else:
-        from dynamic_graph.sot.core import MatrixConstant
+        from dynamic_graph.sot.core.matrix_constant import MatrixConstant
         import numpy as np
         N = sotrobot.dynamic.getDimension()
         projection = MatrixConstant("base_projection")
