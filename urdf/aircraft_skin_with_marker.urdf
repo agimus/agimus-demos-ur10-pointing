@@ -21,7 +21,7 @@
   <joint name="to_hole" type="fixed">
     <parent link="skin_link"/>
     <child link="hole_link"/>
-    <origin xyz="0.30576 -0.0138 1.5835" rpy="1.8 0 0"/>
+    <origin xyz="0.30576 -0.0138 1.5535" rpy="1.8 0 0"/>
   </joint>
   <link name="tag36_11_00233">
     <visual>
