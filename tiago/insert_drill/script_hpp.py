@@ -67,6 +67,15 @@ vf.loadObjectModel (AircraftSkin, "skin")
 
 q0 = robot.getCurrentConfig()
 q0[:4] = [0, -0.9, 0, 1]
+q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.15
+q0[robot.rankInConfiguration['tiago/arm_1_joint']] = 0.10
+q0[robot.rankInConfiguration['tiago/arm_2_joint']] = -1.47
+q0[robot.rankInConfiguration['tiago/arm_3_joint']] = -0.16
+q0[robot.rankInConfiguration['tiago/arm_4_joint']] = 1.87
+q0[robot.rankInConfiguration['tiago/arm_5_joint']] = -1.57
+q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 0.01
+q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
+
 q0[robot.rankInConfiguration['tiago/hand_thumb_abd_joint']] = 1.5707
 
 q0[robot.rankInConfiguration['tiago/hand_index_abd_joint']]  = 0.35
