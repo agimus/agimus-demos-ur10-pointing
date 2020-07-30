@@ -99,7 +99,8 @@ def ros_init():
 HumanoidRobot.urdfFilename = "package://talos_data/urdf/pyrene.urdf"
 HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
 
-init_conf = json.load(open('../common/half_sitting.json', 'r'))
+import os
+init_conf = json.load(open(os.path.join(os.path.dirname(__file__), '..', 'common', 'half_sitting.json'), 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf += [-0.04, 0, 1.095 + 0.071, 0, 0, 1, 0, # box
