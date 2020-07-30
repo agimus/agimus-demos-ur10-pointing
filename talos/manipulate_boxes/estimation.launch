@@ -30,7 +30,7 @@
     <node pkg="agimus_demos" type="group_of_tags.py" name="table_tags" args="
         --child-frame-format 'table/tag36_11_{:0>5d}'
         --measurement-parent-frame rgbd_rgb_optical_frame
-        --group-frame table/base_link
+        --group-frame table/table_link
         --no-description
         --size 0.060
         --tag 10

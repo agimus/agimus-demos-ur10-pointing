@@ -175,6 +175,29 @@ for n in graph.nodes.keys():
             node=n,
             constraints=Constraints(numConstraints=["look_right_hand"]))
 
+# Add a transition to look at the box
+graph.createNode('look_at_box')
+graph.createEdge('free', 'look_at_box', 'look_to_box', isInNode='free',
+                 weight=0)
+graph.addConstraints(edge='look_to_box',
+    constraints=Constraints(numConstraints=table_lock+['place_box/complement']))
+if comConstraint:
+    graph.addConstraints(node='look_at_box',
+                         constraints=Constraints(numConstraints=com_constraint))
+
+if footPlacement:
+    graph.addConstraints(
+        edge='look_to_box',
+        constraints=Constraints(numConstraints=foot_placement_complement))
+
+if constantWaistYaw:
+    graph.addConstraints(edge='look_to_box',
+        constraints=Constraints(numConstraints=waist_constraint))
+
+createGazeConstraint(ps)
+graph.addConstraints(node='look_at_box', constraints=
+                     Constraints(numConstraints=["look_at_box"]))
+
 # Loop transitions
 e_l_l1 = "Loop | 0-0"
 e_l_r1 = "Loop | 1-0"
@@ -243,140 +266,7 @@ graph.initialize()
 for edge in [ e_l1_r2, e_l1_r4, e_r1_l2, e_r1_l4, e_l2_r1, e_l2_r3, e_r2_l1, e_r2_l3, e_r3_l4, e_r3_l2, e_l3_r4, e_l3_r2, e_l4_r1, e_l4_r3, e_r4_l1, e_r4_l3,]:
     addCostToComponent(graph, gaze_cost, edge=edge+"_01")
 
-q_init = [
-    0.5402763680625408,
-    -0.833196863501999,
-    1.0199316910041052,
-    -0.03128842007165536,
-    0.013789190720970665,
-    0.7297271046306221,
-    0.6828830395873728,
-    -0.002517657851415276,
-    0.03462520266527989,
-    -0.5316498053579248,
-    0.8402250533557625,
-    -0.3730641123290547,
-    -0.011780954381969872,
-    -0.0025270209724267243,
-    0.034480300571697056,
-    -0.5168007496652326,
-    0.8113706150231745,
-    -0.3590584062316795,
-    -0.011635750462120158,
-    0.0,
-    0.4392076095335054,
-    0.2806705510519144,
-    0.5,
-    0.0019674899062759165,
-    -0.5194264855927397,
-    1.2349417194832937e-05,
-    0.0007850050683513623,
-    0.10090925286890041,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    -0.2814831804277627,
-    -0.5,
-    -0.004238959829568303,
-    -0.5200522586579716,
-    0.00014996678886283413,
-    -0.0015425422291322729,
-    0.10092910629223316,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.0,
-    0.5143008291852817,
-    0.0455661913503581,
-    0.45891797741593393,
-    -0.25,
-    0.832,
-    -0.5,
-    0.5,
-    0.5,
-    0.5,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-]
-
-q_init_2 = [
- 0.10232996455082483,
- -0.6765907825598196,
- 1.0127532891272562,
- -0.03128842007165536,
- 0.013789190720970663,
- 0.7297271046306221,
- 0.6828830395873728,
- -0.06433916542939629,
- 0.043870498049689115,
- -0.5628242161042075,
- 0.8841899013297069,
- -0.38432624897999573,
- -0.018779273888610132,
- -0.0643874479810337,
- 0.043105369681181664,
- -0.5358746332937586,
- 0.8649692122276535,
- -0.39205304402506713,
- -0.018012626496066456,
- 0.024791641046798815,
- 0.4783976095641855,
- 0.25329292829053024,
- 0.49327117282521676,
- 0.000516614757372389,
- -0.5245691832414258,
- -2.0805143073940602e-05,
- 0.00033056419866755993,
- 0.10017774309160198,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- -0.2561311712465022,
- -0.46825515018405794,
- 0.0017989159336655495,
- -0.5246715517230384,
- 1.3018926440700662e-05,
- 0.00020463708980818305,
- 0.10020429676688965,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.5257065303386299,
- 0.06401831552114343,
- 0.0002964373153980979,
- -0.2,
- 0.8574835283167916,
- -0.5,
- 0.5,
- 0.5,
- 0.5,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- 1.0]
+q_init = init_conf[::]
 
 setGaussianShooter (ps, table, objects, q_init, 0.1)
 
@@ -445,7 +335,7 @@ if args.context == defaultContext:
         e_r4_l3,
     )
 
-    qBoxVisible, pathId = solver.makeBoxVisibleFrom(init_conf, True, True)
+    qBoxVisible, pathId = solver.makeBoxVisibleFrom(q_init, True, True)
 
 # From an estimated configuration with position of objects
 # solver.solveFromEstimatedConfiguration (init_conf)
