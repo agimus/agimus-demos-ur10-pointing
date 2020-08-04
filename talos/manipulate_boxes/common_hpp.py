@@ -366,7 +366,7 @@ class Solver(object):
                     if self.verbose: print("q2= " + str(q2))
 
     def erasePath(self, p):
-        if p != -1:
+        if p != -1 and p != 4294967295L:
             self.pathToBeErased.append(p)
 
     def solve(self):
