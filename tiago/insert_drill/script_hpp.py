@@ -29,6 +29,20 @@ class AircraftSkin:
     srdfFilename = "package://agimus_demos/srdf/aircraft_skin_with_marker.srdf"
     rootJointType = "anchor"
 
+## Reduce joint range for security
+def shrinkJointRange (robot, ratio):
+    for j in robot.jointNames:
+        if j[:6] != "tiago/": continue
+        tj = j[6:]
+        if tj.startswith("torso") or tj.startswith("arm") or tj.startswith("head"):
+            bounds = robot.getJointBounds (j)
+            if len (bounds) == 2:
+                width = bounds [1] - bounds [0]
+                mean = .5 * (bounds [1] + bounds [0])
+                m = mean - .5 * ratio * width
+                M = mean + .5 * ratio * width
+                robot.setJointBounds (j, [m, M])
+
 print("context=" + args.context)
 loadServerPlugin (args.context, "manipulation-corba.so")
 client = CorbaClient(context=args.context)
@@ -64,6 +78,8 @@ vf.loadObjectModel (AircraftSkin, "skin")
 #vf.loadRobotModelFromString ("skin", AircraftSkin.rootJointType, AircraftSkin.urdfString, AircraftSkin.srdfString)
 #robot.setRootJointPosition("skin", oMsk)
 #robot.setJointPosition("skin/root_joint", oMsk)
+
+shrinkJointRange(robot, 0.95)
 
 q0 = robot.getCurrentConfig()
 q0[:4] = [0, -0.9, 0, 1]
