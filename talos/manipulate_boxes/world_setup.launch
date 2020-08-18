@@ -34,11 +34,13 @@
           <arg name="prefix" value="sim_table_rviz" />
       </include>
 
-      <node name="simulation" pkg="agimus-sot" type="simulation.py" args="_tf_prefix:=sim_" />
+      <node name="simulation" pkg="agimus-sot" type="simulation.py" args="_tf_prefix:=sim_">
+          <param name="initialization_command" value="/usr/bin/python2.7 $(find agimus_demos)/talos/manipulate_boxes/script_hpp.py --context simulation" />
+      </node>
       <node name="simulation_gui" pkg="rqt_gui" type="rqt_gui"
         args="--standalone rqt_agimus.simulation.Simulation --args
         --tf-editor sim_box/base_link sim_box_rviz/base_link
-        --tf-editor sim_table/base_link sim_table_rviz/base_link"
+        --tf-editor sim_table/table_link sim_table_rviz/table_link"
         />
   </group>
 
