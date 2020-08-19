@@ -392,7 +392,7 @@ if __name__ == '__main__':
     rwTrs = SE3(Quaternion(x=0, y=0, z=1, w=0),
                 np.array([0.000, 0.000, -0.092]).reshape(3,1))
     cc=ComputeCalibration(filename, Variable(q_off,hTc,lwTls,rwTrs))
-    cc.readData('data/measurements-pyrene-20200212-2.csv')
+    cc.readData('data/measurements-pyrene-20200819-1-filtered.csv')
 
     for i in range (20):
         cc.solve()
