@@ -367,6 +367,18 @@ class ComputeCalibration(object):
         for jn, v in zip(self.joints, self.variable.q_off.ravel()):
             print(xacro_property.format(jn+"_offset", -v))
 
+    def histogram(self):
+        # Build and display an histogram of the measurement errors stored
+        # in self.value
+        # the output is stored in self.errors
+        import matplotlib.pyplot as plt
+        self.errors = np.zeros(len(self.value)/6)
+        for i in range(len(self.errors)):
+            self.errors[i] = norm(self.value[6*i:6*i+6])
+        fig,axs = plt.subplots(1,1)
+        axs.hist(self.errors, bins=20)
+        fig.show()
+
 if __name__ == '__main__':
     filename = os.getenv('DEVEL_HPP_DIR') + \
                '/install/share/talos_data/urdf/pyrene.urdf'
@@ -380,7 +392,7 @@ if __name__ == '__main__':
     rwTrs = SE3(Quaternion(x=0, y=0, z=1, w=0),
                 np.array([0.000, 0.000, -0.092]).reshape(3,1))
     cc=ComputeCalibration(filename, Variable(q_off,hTc,lwTls,rwTrs))
-    cc.readData('data/measurements-pyrene-20200212-2.csv')
+    cc.readData('data/measurements-pyrene-20200819-1-filtered.csv')
 
     for i in range (20):
         cc.solve()
