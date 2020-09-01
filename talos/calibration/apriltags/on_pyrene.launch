@@ -31,5 +31,4 @@
     <arg name="machine" value="multimedia"/>
     <arg name="gui" value="false"/>
   </include>
-  <include file="$(find agimus_demos)/launch/talos_calibration_apriltags_tracker.launch"/>
 </launch>
