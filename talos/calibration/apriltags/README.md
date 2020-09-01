@@ -34,6 +34,14 @@ visible from the camera.
     "Pyrene manipulate a box". The joints angles measured are corrected by the
     previous calibration data (20200819).
 
+  * Files
+     - measurements-pyrene-20200901-1.csv,
+     - measurements-pyrene-20200901-2.csv,
+     - measurements-pyrene-20200901-3.csv correspond to  calibration data
+    acquired on Pyrene. The joint angles measured are corrected by calibration
+    data computed on 2020/08/19. The first and third files contain the same
+    first configurations.
+
 ### Python scripts
 
 Motion planning, motion generation and calibration computation are controlled
