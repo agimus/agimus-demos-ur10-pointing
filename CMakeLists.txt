@@ -51,7 +51,7 @@ INSTALL(FILES talos/calibration/apriltags/on_pyrene.launch
   )
 
 # Install other files with the same hierarchy as here.
-install(DIRECTORY talos tiago urdf srdf
+install(DIRECTORY talos tiago urdf srdf meshes
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   FILES_MATCHING
   PATTERN "*"
