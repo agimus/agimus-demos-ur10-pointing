@@ -8,3 +8,6 @@ INSTALL_DEMO_LAUNCH_FILES(insert_drill
   world_setup.launch
   )
 
+INSTALL_DEMO_LAUNCH_FILES(deburring
+  gazebo.launch
+  )

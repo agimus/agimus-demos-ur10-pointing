@@ -1,3 +1,4 @@
+from __future__ import print_function
 from CORBA import Any, TC_long
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, createContext, newProblem, ProblemSolver, ConstraintGraph, Rule, Constraints, CorbaClient
 from hpp.gepetto.manipulation import ViewerFactory
@@ -252,9 +253,10 @@ class InStatePlanner:
             res, qgoal2 = self.cconstraints.apply(qgoal)
             self.cproblem.addGoalConfig(qgoal2)
 
-        self.roadmap = wd(ps.hppcorba.problem.createRoadmap(
+        self.roadmap = wd(ps.client.manipulation.problem.createRoadmap(
                 wd(self.cproblem.getDistance()),
                 self.crobot))
+        self.roadmap.constraintGraph(self.cgraph)
         self.planner = wd(ps.hppcorba.problem.createPathPlanner(
             self.plannerType,
             self.cproblem,
@@ -290,13 +292,13 @@ class InStatePlanner:
                         print("Failed to connect", i, "to", j)
                         paths[i][j] = None
                         distances[j,i] = distances[i,j] = 1e8
-        # In Python 2.
-        #from tsp import dynamic_programming as solve_tsp
-        # In Python 3
-        if l <= 10:
-            from python_tsp.exact import solve_tsp_dynamic_programming as solve_tsp
-        else:
-            from python_tsp import simulated_annealing as solve_tsp
+        if sys.version_info[0] == 2:
+            from tsp import dynamic_programming as solve_tsp
+        elif sys.version_info[0] == 3:
+            if l <= 10:
+                from python_tsp.exact import solve_tsp_dynamic_programming as solve_tsp
+            else:
+                from python_tsp import simulated_annealing as solve_tsp
         permutation, distance = solve_tsp(distances)
         # rotate permutation so that 0 is the first index.
         k = permutation.index(0)
@@ -310,11 +312,12 @@ class InStatePlanner:
             solution.append(p)
         return permutation, solution
 
-    def saveRoadmap(self, filename):
-        self.roadmap.save(filename)
+    def writeRoadmap(self, filename):
+        ps.client.manipulation.problem.writeRoadmap\
+                       (filename, self.roadmap, self.crobot, self.cgraph)
 
-    def loadRoadmap(self, filename):
-        self.roadmap = ps.client.manipulation.problem.loadRoadmap\
+    def readRoadmap(self, filename):
+        self.roadmap = ps.client.manipulation.problem.readRoadmap\
                        (filename, self.crobot, self.cgraph)
 
 def concatenate_paths(paths):
@@ -328,7 +331,7 @@ armPlanner.setEdge("Loop | f")
 
 basePlanner = InStatePlanner ()
 basePlanner.plannerType = "kPRM*"
-ps.setParameter('kPRM*/numberOfNodes', 10)
+basePlanner.cproblem.setParameter('kPRM*/numberOfNodes', Any(TC_long,2000))
 basePlanner.optimizerTypes.append("RandomShortcut")
 basePlanner.setEdge("move_base")
 basePlanner.setReedsAndSheppSteeringMethod()
