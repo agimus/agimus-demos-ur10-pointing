@@ -1,3 +1,4 @@
+from CORBA import Any, TC_long
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, createContext, newProblem, ProblemSolver, ConstraintGraph, Rule, Constraints, CorbaClient
 from hpp.gepetto.manipulation import ViewerFactory
 import sys, argparse, numpy as np, time, tqdm
@@ -208,14 +209,24 @@ def find_clusters(handles):
     return clusters
 
 class InStatePlanner:
+    # Default path planner
+    plannerType = "BiRRT*"
+    optimizerTypes = []
+    maxIterPathPlanning = None
+    parameters = {'kPRM*/numberOfNodes': Any(TC_long,2000)}
+
     def __init__(self):
-        self.plannerType = "BiRRT*"
-        self.optimizerTypes = []
 
         manipulationProblem = wd(ps.hppcorba.problem.getProblem())
         self.crobot = manipulationProblem.robot()
+        # create a new problem with the robot
         self.cproblem = wd(ps.hppcorba.problem.createProblem(self.crobot))
+        # Set parameters
+        for k, v in self.parameters.items():
+            self.cproblem.setParameter(k, v)
+        # get reference to constraint graph
         self.cgraph = manipulationProblem.getConstraintGraph()
+        # Add obstacles to new problem
         for obs in ps.getObstacleNames(True,False):
             self.cproblem.addObstacle(wd(ps.hppcorba.problem.getObstacle(obs)))
 
@@ -230,13 +241,16 @@ class InStatePlanner:
     def setReedsAndSheppSteeringMethod(self):
         sm = wd(ps.hppcorba.problem.createSteeringMethod("ReedsShepp", self.cproblem))
         self.cproblem.setSteeringMethod(sm)
+        dist = ps.hppcorba.problem.createDistance("ReedsShepp", self.cproblem)
+        self.cproblem.setDistance(dist)
 
     def computePath(self, qinit, qgoal):
         wd(self.cconstraints.getConfigProjector()).setRightHandSideFromConfig(qinit)
-        res, qgoal2 = self.cconstraints.apply(qgoal)
         self.cproblem.setInitConfig(qinit)
         self.cproblem.resetGoalConfigs()
-        self.cproblem.addGoalConfig(qgoal2)
+        if not qgoal is None:
+            res, qgoal2 = self.cconstraints.apply(qgoal)
+            self.cproblem.addGoalConfig(qgoal2)
 
         self.roadmap = wd(ps.hppcorba.problem.createRoadmap(
                 wd(self.cproblem.getDistance()),
@@ -245,9 +259,10 @@ class InStatePlanner:
             self.plannerType,
             self.cproblem,
             self.roadmap))
-        if self.plannerType == "BiRRT*":
-            self.planner.maxIterations(1000)
+        if self.maxIterPathPlanning:
+            self.planner.maxIterations(self.maxIterPathPlanning)
         path = wd(self.planner.solve())
+        if not path: return None
         for optType in self.optimizerTypes:
             from hpp_idl.hpp import Error
             optimizer = wd(ps.hppcorba.problem.createPathOptimizer(optType, self.cproblem))
@@ -295,6 +310,13 @@ class InStatePlanner:
             solution.append(p)
         return permutation, solution
 
+    def saveRoadmap(self, filename):
+        self.roadmap.save(filename)
+
+    def loadRoadmap(self, filename):
+        self.roadmap = ps.client.manipulation.problem.loadRoadmap\
+                       (filename, self.crobot, self.cgraph)
+
 def concatenate_paths(paths):
     p = paths[0].asVector()
     for q in paths[1:]:
@@ -305,34 +327,9 @@ armPlanner = InStatePlanner ()
 armPlanner.setEdge("Loop | f")
 
 basePlanner = InStatePlanner ()
-basePlanner.plannerType = "DiffusingPlanner"
+basePlanner.plannerType = "kPRM*"
+ps.setParameter('kPRM*/numberOfNodes', 10)
 basePlanner.optimizerTypes.append("RandomShortcut")
 basePlanner.setEdge("move_base")
 basePlanner.setReedsAndSheppSteeringMethod()
-
-clusters = find_clusters(handles)
-
-clusters_path = []
-qhomes = []
-for cluster in tqdm.tqdm(clusters, "Find path for each clusters"):
-    # Create home position
-    res, qhome, err = graph.generateTargetConfig('end_arm', cluster[0][1], cluster[0][1])
-    qhomes.append(qhome)
-    configs = [ qhome, ] + [ c for _,c in cluster ]
-
-    _, paths = armPlanner.solveTSP(configs)
-    clusters_path.append(concatenate_paths(paths))
-
-start = time.time()
-# Find the order into which to solve the clusters
-cluster_order, base_paths = basePlanner.solveTSP(qhomes)
-complete_solution = None
-for icluster, base_path in zip(cluster_order,base_paths):
-    if complete_solution is None:
-        complete_solution = clusters_path[icluster].asVector()
-    else:
-        complete_solution.appendPath(clusters_path[icluster])
-    complete_solution.appendPath(base_path)
-print("Connected the clusters in", time.time()-start)
-
-ps.hppcorba.problem.addPath(complete_solution)
+#basePlanner.computePath(q0,None)
