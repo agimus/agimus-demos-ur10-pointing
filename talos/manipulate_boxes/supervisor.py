@@ -44,7 +44,7 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.srdf_parser import parse_srdf
 
     if not hasattr(robot, "camera_frame"):
-        robot.camera_frame = "rgbd_rgb_optical_frame"
+        robot.camera_frame = 'head_d435_camera_color_optical_frame'
 
     grippers = ["talos/left_gripper", "talos/right_gripper"]
     objects = ["box"]

@@ -94,7 +94,7 @@ def createGazeConstraint (ps, whichArm):
         return list()
     ps.createPositionConstraint(
         "gaze",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_frame",
         "talos/arm_" + whichArm + "_7_joint",
         (0, 0, 0),
         (0, 0, -0.1),
@@ -106,9 +106,10 @@ def createGazeConstraint (ps, whichArm):
 def validateGazeConstraint (ps, q, whichArm):
     robot = ps.robot
     robot.setCurrentConfig (q)
-    Mcamera = Transform (robot.getLinkPosition ("talos/rgbd_optical_frame"))
-    Mtarget = Transform (robot.getLinkPosition ("talos/arm_" + whichArm +
-                                                "_7_link"))
+    Mcamera = Transform(robot.getLinkPosition
+                        ("talos/head_d435_camera_color_optical_frame"))
+    Mtarget = Transform(robot.getLinkPosition("talos/arm_" + whichArm +
+                                              "_7_link"))
     z = (Mcamera.inverse () * Mtarget).translation [2]
     if z < .1: return False
     return True

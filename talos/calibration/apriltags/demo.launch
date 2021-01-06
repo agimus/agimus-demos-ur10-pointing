@@ -6,10 +6,10 @@
          value="0 0 1.0192720229567027 0 0 0 1"/>
   <group ns="vision">
     <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
-          args="$(find agimus_demos)/talos/common/camera_info.yaml" />
+          args="$(find agimus_demos)/talos/common/camera_info.yaml /rgbd/rgb/high_res/camera_info head_d435_camera_color_optical_frame" />
     <!-- rviz with camera simulation -->
     <node name="rviz" pkg="rviz" type="rviz"
-          launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,rgbd_rgb_optical_frame -- "
+          launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,head_d435_camera_color_optical_frame -- "
           args="-d $(find agimus_demos)/talos/manipulate_boxes/config.rviz" />
   </group>
 

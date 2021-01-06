@@ -711,7 +711,7 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
 def createGazeConstraint (ps):
     ps.createPositionConstraint(
         "look_at_box",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "box/root_joint",
         (0, 0, 0),
         (0, 0, 0),
@@ -723,7 +723,7 @@ def createGazeConstraint (ps):
 def createGazeConstraints (ps):
     ps.createPositionConstraint(
         "look_left_hand",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "talos/arm_left_7_joint",
         (0, 0, 0),
         (0, 0, -0.18),
@@ -731,7 +731,7 @@ def createGazeConstraints (ps):
     )
     ps.createPositionConstraint(
         "look_right_hand",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "talos/arm_right_7_joint",
         (0, 0, 0),
         (0, 0, -0.18),
@@ -743,7 +743,7 @@ def createGazeConstraints (ps):
 def createGazeCost (ps):
     ps.createPositionConstraint(
         "gaze_cost",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "box/root_joint",
         (0, 0, 0.4),
         (0, 0, 0),
