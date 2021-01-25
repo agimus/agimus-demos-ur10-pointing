@@ -1,0 +1,24 @@
+<launch>
+  <arg name="gazebo" default="false"/>
+
+  <!-- salle Gerard Bauzil -->
+  <group ns="gerard_bauzil">
+    <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/gerard_bauzil.urdf"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+    <node if="$(arg gazebo)" name="spawn_room" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find gerard_bauzil)/urdf/gerard_bauzil.urdf -urdf -model gerard_bauzil -X -0 -Y 0. -Z -0.3 -R 0.0 -P 0.0 -Y 0" />
+  </group>
+
+  <group ns="part">
+    <param name="robot_description" textfile="$(find agimus_demos)/urdf/cylinder.urdf"/>
+    <param name="tf_prefix" value="part"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+    <!--node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
+      args="0 0 0 0 0 0 1 world part/base_link"
+      /-->
+
+    <node if="$(arg gazebo)" name="spawn_cylinder" pkg="gazebo_ros" type="spawn_model"
+      args="-file $(find agimus_demos)/urdf/cylinder.urdf -urdf -model part" />
+  </group>
+</launch>
+

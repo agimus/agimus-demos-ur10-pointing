@@ -11,5 +11,12 @@ INSTALL_DEMO_LAUNCH_FILES(insert_drill
 
 INSTALL_DEMO_LAUNCH_FILES(deburring
   LAUNCHFILES
+  2d_navigation.launch
+  world_setup.launch
+  estimation.launch
+
   gazebo.launch
+
+  SCRIPTS
+  publish_initial_pose.py
   )

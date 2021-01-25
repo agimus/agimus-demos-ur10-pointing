@@ -18,7 +18,7 @@ def generate_srdf(bvh_file, N, output):
 
     mask = "1 1 1 1 1 1"
     clearance = 0.01
-    link = "base_link"
+    link = "cylinder"
 
     output.write("""<robot name="cylinder">""")
     for ih in range(N):
