@@ -20,15 +20,23 @@ catkin_package(
 )
 
 MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
-  SET (LAUNCH_FILES ${ARGN})
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs LAUNCHFILES SCRIPTS)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   FILE(RELATIVE_PATH robot ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
   MESSAGE(STATUS "Add demonstration ${robot}/${DEMO}")
-  FOREACH (launch_file ${LAUNCH_FILES})
+  FOREACH (launch_file ${ARG_LAUNCHFILES})
     install(FILES
       ${DEMO}/${launch_file}
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
       RENAME ${robot}_${DEMO}_${launch_file}
     )
+  ENDFOREACH ()
+  FOREACH (script_file ${ARG_SCRIPTS})
+    install(PROGRAMS "${DEMO}/${script_file}"
+      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+      RENAME ${robot}_${DEMO}_${script_file})
   ENDFOREACH ()
 ENDMACRO()
 
@@ -64,4 +72,4 @@ install(PROGRAMS
   scripts/calibration_frames_grabber.py
   scripts/publish_constants.py
   scripts/group_of_tags.py
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

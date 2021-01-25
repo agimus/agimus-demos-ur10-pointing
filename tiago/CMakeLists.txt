@@ -1,5 +1,6 @@
 # Install launch files in launch directory
 INSTALL_DEMO_LAUNCH_FILES(insert_drill
+  LAUNCHFILES
   estimation.launch
   gazebo.launch
   geometric_simu.launch
@@ -9,5 +10,6 @@ INSTALL_DEMO_LAUNCH_FILES(insert_drill
   )
 
 INSTALL_DEMO_LAUNCH_FILES(deburring
+  LAUNCHFILES
   gazebo.launch
   )
