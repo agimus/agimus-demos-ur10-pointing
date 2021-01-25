@@ -17,6 +17,7 @@
     <arg name="map"            value="$(arg map)"/>
     <arg name="public_sim"     value="$(arg public_sim)"/>
     <arg name="laser_model"    value="$(arg laser_model)"/>
+    <arg name="config_base_path" default="$(find agimus_demos)/tiago"/>
   </include>
 
   <group unless="$(arg public_sim)">
