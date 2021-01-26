@@ -18,6 +18,7 @@ catkin_package(
 #  CATKIN_DEPENDS roslaunch
 #  DEPENDS system_lib
 )
+find_package(Eigen3)
 
 MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
   set(options)
@@ -42,6 +43,8 @@ ENDMACRO()
 
 ADD_SUBDIRECTORY(talos)
 ADD_SUBDIRECTORY(tiago)
+add_subdirectory(src)
+add_subdirectory(tests)
 
 # Install talos/calibration/apriltags launch files
 INSTALL(FILES
