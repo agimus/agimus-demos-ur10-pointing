@@ -99,7 +99,8 @@ def ros_init():
 HumanoidRobot.urdfFilename = "package://talos_data/urdf/pyrene.urdf"
 HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
 
-init_conf = json.load(open('../common/half_sitting.json', 'r'))
+import os
+init_conf = json.load(open(os.path.join(os.path.dirname(__file__), '..', 'common', 'half_sitting.json'), 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf += [0, -0.1, 0.8525, 0.5, -0.5, -0.5, -0.5,# box
@@ -365,7 +366,7 @@ class Solver(object):
                     if self.verbose: print("q2= " + str(q2))
 
     def erasePath(self, p):
-        if p != -1:
+        if p != -1 and p != 4294967295L:
             self.pathToBeErased.append(p)
 
     def solve(self):

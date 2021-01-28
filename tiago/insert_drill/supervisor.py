@@ -95,7 +95,7 @@ def makeSupervisorWithFactory(robot):
 
     supervisor = Supervisor(robot, hpTasks=hpTasks(robot))
     factory = Factory(supervisor)
-    factory.parameters["period"] = 0.001  # TODO soon: robot.getTimeStep()
+    factory.parameters["period"] = 0.01  # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = False
     # factory.parameters["addTimerToSotControl"] = True

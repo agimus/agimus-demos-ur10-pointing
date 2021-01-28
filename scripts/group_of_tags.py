@@ -16,8 +16,8 @@ parser.add_argument("-tq", "--transform-quat", dest="poses", action="append", ty
         help="The pose of a tag (tx, ty, tz, qx, qy, qz, qw)")
 parser.add_argument("-te", "--transform-euler", dest="poses", action="append", type=float, nargs=6,
         help="The pose of a tag")
-parser.add_argument("-s", "--size", dest="size", required=True, type=float,
-        help="Size of the tag (excluding the white border) in meter")
+parser.add_argument("-s", "--size", dest="sizes", required=True, type=float, action="append"
+        help="Size of a tag (excluding the white border) in meter. If specified only once, all the tags are of that size. Otherwise, it must be specified as many times as option `--tag`")
 parser.add_argument("--child-frame-format", dest="child_frame_fmt", default="tag36_11_{:0>5d}",
         type=str, help="Name of child frame in tf tree that will be formatted using Python str.format")
 parser.add_argument("--group-frame", dest="group", required=True,
@@ -38,6 +38,9 @@ args = parser.parse_args(rospy.myargv()[1:])
 
 readPosesFromTf = (args.poses is None)
 assert readPosesFromTf or len(args.tags) == len(args.poses), "There should be either no poses or as many poses as tags."
+assert len(args.sizes) == 1 or len(args.sizes) == len(args.tags), "Argument `--size` must appear either once or as many times as option `--tag`"
+if len(args.sizes) == 1:
+  args.sizes = args.sizes * len(args.tags)
 
 tag_id_fmt = "tag36_11_{:0>5d}"
 param_tag_description_fmt = "/grippers/" + tag_id_fmt + "_description"
@@ -83,12 +86,12 @@ class GroupOfTags(object):
         gerard_bauzil = rospack.get_path('gerard_bauzil')
 
         xacro_cmd = ['xacro', '--inorder', gerard_bauzil +"/xacro/apriltag.xacro",
-                "make_urdf:=true", "size:=" + str(args.size), ]
+                "make_urdf:=true", ]
 
-        for id in args.tags:
+        for id, size in zip(args.tags, args.sizes):
             tag_name = args.child_frame_fmt.format(id)
             tag_id = tag_id_fmt.format(id)
-            process = subprocess.Popen(xacro_cmd + [ "name:="+tag_name, "id:="+tag_id, ],
+            process = subprocess.Popen(xacro_cmd + [ "name:="+tag_name, "id:="+tag_id, "size:=" + str(size), ],
                     stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = process.communicate ()
             if process.returncode != 0:
@@ -143,7 +146,7 @@ class GroupOfTags(object):
             wait_for_service("/vision/tracker/add_object_tracking")
             add_object_tracking = rospy.ServiceProxy("/vision/tracker/add_object_tracking", AddObjectTracking)
             add_object_tracking (
-                    tags = [ AprilTag(id, args.size, to_tf_transform(self.pMti[id])) for id in args.tags ],
+                    tags = [ AprilTag(id, size, to_tf_transform(self.pMti[id])) for id, size in zip(args.tags, args.sizes) ],
                     object_name = args.group + "_measured",
                     visp_xml_config_file = args.visp_config,
                     tracker_type = args.tracker_type,
@@ -152,12 +155,12 @@ class GroupOfTags(object):
         else:
             wait_for_service("/vision/tracker/add_april_tag_detector")
             add_april_tag_detector = rospy.ServiceProxy("add_april_tag_detector", AddAprilTagService)
-            for id in args.tags:
+            for id, size in zip(args.tags, args.sizes):
                 tag_name = args.child_frame_fmt.format(id)
-                add_april_tag_detector(id, args.size, tag_name, args.meas_parent)
+                add_april_tag_detector(id, size, tag_name, args.meas_parent)
                 rospy.loginfo(
                     "Added APRIL tag {0}, size {1}m, {2}, {3}".format(
-                        id, args.size, tag_name, args.meas_parent
+                        id, size, tag_name, args.meas_parent
                     )
                 )
 
