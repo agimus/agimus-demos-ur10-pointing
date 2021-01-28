@@ -25,4 +25,10 @@ PYBIND11_PLUGIN(pytsp) {
       auto submodule = m.def_submodule("brute_force");
       submodule.def("solve", &tsp::brute_force::solve);
     }
+
+    {
+      auto submodule = m.def_submodule("approximative_kopt");
+      submodule.def("solve_2opt", &tsp::approximative_kopt::solve2opt);
+      submodule.def("solve_3opt", &tsp::approximative_kopt::solve3opt);
+    }
 }
