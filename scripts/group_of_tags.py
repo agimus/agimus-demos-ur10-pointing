@@ -16,7 +16,7 @@ parser.add_argument("-tq", "--transform-quat", dest="poses", action="append", ty
         help="The pose of a tag (tx, ty, tz, qx, qy, qz, qw)")
 parser.add_argument("-te", "--transform-euler", dest="poses", action="append", type=float, nargs=6,
         help="The pose of a tag")
-parser.add_argument("-s", "--size", dest="sizes", required=True, type=float, action="append"
+parser.add_argument("-s", "--size", dest="sizes", required=True, type=float, action="append",
         help="Size of a tag (excluding the white border) in meter. If specified only once, all the tags are of that size. Otherwise, it must be specified as many times as option `--tag`")
 parser.add_argument("--child-frame-format", dest="child_frame_fmt", default="tag36_11_{:0>5d}",
         type=str, help="Name of child frame in tf tree that will be formatted using Python str.format")
