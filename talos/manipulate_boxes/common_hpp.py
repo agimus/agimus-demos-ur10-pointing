@@ -102,7 +102,7 @@ HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
 init_conf = json.load(open('../common/half_sitting.json', 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
-init_conf += [0.45891797741593393, -0.25, 0.832, -0.5, 0.5, 0.5, 0.5,# box
+init_conf += [0, -0.1, 0.8525, 0.5, -0.5, -0.5, -0.5,# box
               0, 0, 0, 0, 0, 0, 1] # table
 
 ## Reduce joint range for security

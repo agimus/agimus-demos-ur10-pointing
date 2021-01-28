@@ -10,7 +10,9 @@
     <arg name="plank_of_wood_id" value="$(arg plank_of_wood_id)" />
   </include>
 
-
+  <group ns="/d435/color">
+    <node pkg="image_proc" type="image_proc" name="image_proc"/>
+  </group>
   <!-- Setup vision -->
   <group ns="vision">
     <node pkg="agimus_vision" type="tracker_object"

@@ -6,13 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /CameraPub1
         - /CameraPub1/Status1
-        - /Camera1
-        - /Table1
-        - /Table1/Status1
-        - /Box1
         - /Box1/Status1
+        - /tag_11_001001/Links1/tag36_11_001001
       Splitter Ratio: 0.5
     Tree Height: 444
   - Class: rviz/Selection
@@ -33,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Camera
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -74,9 +70,29 @@ Visualization Manager:
         Box: true
         Camera: true
         Grid: true
+        Light: true
         Pyrene: true
         Table: true
         Value: true
+        tag_11_00100: true
+    - Class: rviz_lighting/Light
+      Diffuse Color: 255; 255; 255
+      Direction:
+        X: -1
+        Y: -1
+        Z: -1
+      Enabled: true
+      Falloff: 1
+      Light Type: Point
+      Name: Light
+      Outer Angle: 0.5
+      Position:
+        X: 0
+        Y: 0
+        Z: 0
+      Reference Frame: head_d435_camera_depth_frame
+      Specular Color: 255; 255; 255
+      Value: true
     - Class: rviz/Camera
       Enabled: true
       Image Rendering: background and overlay
@@ -91,9 +107,11 @@ Visualization Manager:
         Box: true
         CameraPub: true
         Grid: true
+        Light: true
         Pyrene: true
         Table: true
         Value: true
+        tag_11_00100: true
       Zoom Factor: 1
     - Alpha: 1
       Class: rviz/RobotModel
@@ -538,6 +556,173 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00100_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00101_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00102_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00103_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00104_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00105_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00106_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: tag_11_00100
+      Robot Description: grippers/tag36_11_00107_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -566,7 +751,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.6193575859069824
+      Distance: 1.3756681680679321
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -581,10 +766,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5953978300094604
+      Pitch: 0.4747962951660156
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.3953980505466461
+      Yaw: 0.07539764791727066
     Saved: ~
 Window Geometry:
   Camera:
