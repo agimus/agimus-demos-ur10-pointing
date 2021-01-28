@@ -1,6 +1,12 @@
 #include "tsp.hpp"
 
 #include <map>
+
+#ifdef TSP_DP_DEBUG
+#include <iostream>
+#include <iomanip>
+#endif
+
 namespace tsp {
 distance_matrix_t randomDistanceMatrix(int n) {
   distance_matrix_t d(n,n);
@@ -66,6 +72,11 @@ std::tuple<double, path_t> solve (const distance_matrix_t& d)
 }
 }
 namespace dynamic_programming {
+#ifdef TSP_DP_DEBUG
+# define TSP_DP_IN_DEBUG(x) x
+#else
+# define TSP_DP_IN_DEBUG(x)
+#endif
 
 typedef uint64_t city_set_t;
 typedef std::vector<path_t> cache_t;
@@ -79,7 +90,12 @@ struct DP {
   double costUpperBound = std::numeric_limits<double>::infinity();
 
   bool useCachedCosts = true;
-  std::map<uint64_t, double> cachedCosts;
+  typedef struct { double cost; int nvisits; } cache_type;
+  std::map<uint64_t, cache_type> cachedCosts;
+
+#ifdef TSP_DP_DEBUG
+  long int ncalls = 0, nroots = 0, nupdates = 0;
+#endif
 
   DP(const distance_matrix_t& _d)
     : d(_d), neighbors(neighborMatrix(d)),
@@ -98,19 +114,20 @@ struct DP {
 
 double DP::dist (int i, city_set_t N, int nN, int depth, double costToCome)
 {
+  TSP_DP_IN_DEBUG(++ncalls;)
   if (nN == 0) {
+    TSP_DP_IN_DEBUG(++nroots;)
     assert(depth < pathCache.size());
     pathCache[depth][0] = i;
     return d(0, i);
   }
   // Make the key
   uint64_t key = N | (uint64_t(i) << 32);
-  decltype(cachedCosts.emplace(key, 0.)) cachedCost;
-  if (useCachedCosts) {
-    cachedCost = cachedCosts.emplace(key, 0.);
-    if (!cachedCost.second)//no inserted
-      return cachedCost.first->second;
-  }
+  decltype(cachedCosts.emplace(key, cache_type())) cachedCost;
+  cachedCost = cachedCosts.emplace(key, cache_type{ 0., 0 });
+  cachedCost.first->second.nvisits++;
+  if (useCachedCosts && !cachedCost.second)//no inserted
+    return cachedCost.first->second.cost;
 
   // Store the costs in the form (nj, dist(nj, N))
   city_set_t NN;
@@ -135,14 +152,15 @@ double DP::dist (int i, city_set_t N, int nN, int depth, double costToCome)
           pathCache[depth][nN]= i;
         }
 
-        if (costToCome + cost < costUpperBound)
+        if (costToCome + cost < costUpperBound) {
           costUpperBound = costToCome + cost;
+          TSP_DP_IN_DEBUG(nupdates++;)
+        }
       }
     }
     if (++k == nN) break;
   }
-  if (useCachedCosts)
-    cachedCost.first->second = minCost;
+  cachedCost.first->second.cost = minCost;
   return minCost;
 }
 
@@ -172,6 +190,17 @@ std::tuple<double, path_t> solveWithBound (const distance_matrix_t& d,
   }
   */
   double cost = dp.dist(0, N, n-1, 0, 0);
+#ifdef TSP_DP_DEBUG
+  std::cout << n << ' ' << dp.nupdates << '/' << dp.nroots << '/' << dp.ncalls << std::endl;
+  long int total = 0;
+  for (auto pair : dp.cachedCosts) {
+    int finalcity = pair.first >> 32;
+    uint32_t N (pair.first);
+    std::cout << std::setfill(' ') << std::setw(5) << N << ' ' << std::setfill('0') << std::setw(8) << std::hex << finalcity << std::dec << ' ' << pair.second.nvisits << '\n';
+    total += pair.second.nvisits;
+  }
+  std::cout << visited.size() << '/' << total << " .....\n";
+#endif
   return std::make_tuple(cost, dp.pathCache[0]);
 }
 
