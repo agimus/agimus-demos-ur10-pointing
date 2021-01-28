@@ -1,8 +1,17 @@
 #include "tsp.hpp"
 
 namespace tsp {
-ordered_neighbors_t neighborMatrix(const distance_matrix_t& d)
-{
+distance_matrix_t randomDistanceMatrix(int n) {
+  distance_matrix_t d(n,n);
+  d.setRandom();
+  d.array() += 1;
+  d.diagonal().setZero();
+  d.triangularView<Eigen::StrictlyUpper>() =
+    d.triangularView<Eigen::StrictlyLower>().transpose();
+  return d;
+}
+
+ordered_neighbors_t neighborMatrix(const distance_matrix_t& d) {
   auto n (d.rows());
   ordered_neighbors_t neighbors (n-1, n);
   for (int i = 0; i < n; ++i) {
@@ -13,6 +22,13 @@ ordered_neighbors_t neighborMatrix(const distance_matrix_t& d)
         [&d,&i](auto u, auto v) { assert(i!=u && i!=v); return d(u,i) < d(v,i); });
   }
   return neighbors;
+}
+
+double evaluateCost(const distance_matrix_t& d, const path_t& path) {
+  double cost = d(0, path.front()) + d(path.back(),0);
+  for (int k = 0; k < path.size()-1; ++k)
+    cost += d(path[k], path[k+1]);
+  return cost;
 }
 
 namespace heuristic_nearest {
@@ -81,11 +97,11 @@ double dist (const distance_matrix_t& d,
   double minCost = std::numeric_limits<double>::infinity();
   int k = 0;
   assert(d.cols() == neighbors.rows()+1);
-  for (int in = 0; in < neighbors.rows(); ++in) { // Loop on the neighbors by order of d(k, i)
+  for (int in = 0; in < neighbors.rows(); ++in) { // Loop on the neighbors by increasing order of d(k, i)
     int j = neighbors(in, i);
     if (!(N & (1 << j))) continue;
     assert(j != i);
-    if (costToCome + d(j,i) + (nN-1) * dmin < costUpperBound) {
+    if (costToCome + d(j,i) + nN * dmin < costUpperBound) {
       NN = N & ~(1 << j);
       double cost = dist(d, neighbors, dmin, j, NN, nN-1, pathCache, depth+1, costToCome + d(j,i), costUpperBound) + d(j,i);
       if (cost < minCost) {

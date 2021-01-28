@@ -5,18 +5,9 @@
 
 namespace py = pybind11;
 
-tsp::distance_matrix_t randomDistanceMatrix(int N)
-{
-  tsp::distance_matrix_t d (N, N);
-  d.setRandom();
-  d.array() += 1;
-  d.diagonal().setZero();
-  return d;
-}
-
 PYBIND11_PLUGIN(pytsp) {
     py::module m("pytsp", "Algorithms to solve TSP.");
-    m.def("random_distance_matrix", &randomDistanceMatrix);
+    m.def("random_distance_matrix", &tsp::randomDistanceMatrix);
     m.def("neighbor_matrix", &tsp::neighborMatrix);
 
     {

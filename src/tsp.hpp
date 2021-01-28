@@ -8,8 +8,10 @@ typedef Eigen::MatrixXd distance_matrix_t;
 typedef std::vector<int> path_t;
 typedef Eigen::Matrix<uint8_t, Eigen::Dynamic, Eigen::Dynamic> ordered_neighbors_t;
 
+distance_matrix_t randomDistanceMatrix(int N);
 /// Compute nearest neighbor from i
 ordered_neighbors_t neighborMatrix(const distance_matrix_t& d);
+double evaluateCost(const distance_matrix_t& d, const path_t& path);
 
 namespace heuristic_nearest {
 std::tuple<double, path_t> solve (const distance_matrix_t& d);
