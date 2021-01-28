@@ -1,5 +1,6 @@
 #include "tsp.hpp"
 
+#include <map>
 namespace tsp {
 distance_matrix_t randomDistanceMatrix(int n) {
   distance_matrix_t d(n,n);
@@ -69,27 +70,46 @@ namespace dynamic_programming {
 typedef uint64_t city_set_t;
 typedef std::vector<path_t> cache_t;
 
-// Step 1: get minimum distance
-// Compute the distance to go from city 0, visiting all cities in N and finishing at i \notin N
-// \param dmin the minimal distance between two different cities.
-// \param i final city.
-// \param N an integer with one bit per city, indicating whether it is in the set.
-// \param nN the number of cities in the set (for optimization only, redundant with N).
-// \param depth should be d.rows() - nN (-1?)
-// \param costToCome
-double dist (const distance_matrix_t& d,
-    const ordered_neighbors_t& neighbors,
-    const double& dmin,
-    int i, city_set_t N, int nN,
-    cache_t& pathCache,
-    int depth,
-    double costToCome,
-    double& costUpperBound)
+struct DP {
+  const distance_matrix_t& d;
+  const ordered_neighbors_t neighbors;
+  double dmin;
+
+  cache_t pathCache;
+  double costUpperBound = std::numeric_limits<double>::infinity();
+
+  bool useCachedCosts = true;
+  std::map<uint64_t, double> cachedCosts;
+
+  DP(const distance_matrix_t& _d)
+    : d(_d), neighbors(neighborMatrix(d)),
+    dmin(neighbors.row(0).minCoeff()), pathCache (d.cols(), path_t(d.cols()-1))
+  {}
+
+  // Compute the distance to go from city 0, visiting all cities in N and finishing at i \notin N
+  // \param dmin the minimal distance between two different cities.
+  // \param i final city.
+  // \param N an integer with one bit per city, indicating whether it is in the set.
+  // \param nN the number of cities in the set (for optimization only, redundant with N).
+  // \param depth should be d.rows() - nN (-1?)
+  // \param costToCome
+  double dist (int i, city_set_t N, int nN, int depth, double costToCome);
+};
+
+double DP::dist (int i, city_set_t N, int nN, int depth, double costToCome)
 {
   if (nN == 0) {
     assert(depth < pathCache.size());
     pathCache[depth][0] = i;
     return d(0, i);
+  }
+  // Make the key
+  uint64_t key = N | (uint64_t(i) << 32);
+  decltype(cachedCosts.emplace(key, 0.)) cachedCost;
+  if (useCachedCosts) {
+    cachedCost = cachedCosts.emplace(key, 0.);
+    if (!cachedCost.second)//no inserted
+      return cachedCost.first->second;
   }
 
   // Store the costs in the form (nj, dist(nj, N))
@@ -103,7 +123,7 @@ double dist (const distance_matrix_t& d,
     assert(j != i);
     if (costToCome + d(j,i) + nN * dmin < costUpperBound) {
       NN = N & ~(1 << j);
-      double cost = dist(d, neighbors, dmin, j, NN, nN-1, pathCache, depth+1, costToCome + d(j,i), costUpperBound) + d(j,i);
+      double cost = dist(j, NN, nN-1, depth+1, costToCome + d(j,i)) + d(j,i);
       if (cost < minCost) {
         minCost = cost;
         //bestSubpath.swap(bestPath);
@@ -121,6 +141,8 @@ double dist (const distance_matrix_t& d,
     }
     if (++k == nN) break;
   }
+  if (useCachedCosts)
+    cachedCost.first->second = minCost;
   return minCost;
 }
 
@@ -136,13 +158,11 @@ std::tuple<double, path_t> solveWithBound (const distance_matrix_t& d,
   constexpr city_set_t all (~city_set_t(0));
   city_set_t N = (all >> (64-n)) & (all << 1);
 
-  ordered_neighbors_t neighbors(neighborMatrix(d));
+  DP dp (d);
+  dp.costUpperBound = costUpperBound;
+  dp.useCachedCosts = true;
 
-  //path_t bestPath (n-1);
-  //double cost = dist(d, 0, N, n-1, bestPath);
-  //return std::make_tuple(cost, bestPath);
-  cache_t pathCache (n, path_t(n-1));
-  //cache_t pathCache (n, n-1);
+  /*
   double dmin = std::numeric_limits<double>::infinity();
   for (int i = 1; i < d.rows(); ++i) {
     dmin = std::min({
@@ -150,8 +170,9 @@ std::tuple<double, path_t> solveWithBound (const distance_matrix_t& d,
         d.row(i-1).tail(d.rows()-i).minCoeff(),
         dmin});
   }
-  double cost = dist(d, neighbors, dmin, 0, N, n-1, pathCache, 0, 0, costUpperBound);
-  return std::make_tuple(cost, pathCache[0]);
+  */
+  double cost = dp.dist(0, N, n-1, 0, 0);
+  return std::make_tuple(cost, dp.pathCache[0]);
 }
 
 std::tuple<double, path_t> solveWithHeuristic (const distance_matrix_t& d)
