@@ -207,6 +207,7 @@ graphValidation.validate(cgraph)
 if graphValidation.hasErrors():
     print(graphValidation.str())
     print("Graph has infeasibilities")
+    sys.exit(1)
 elif graphValidation.hasWarnings():
     print(graphValidation.str())
     print("Graph has only warnings")
