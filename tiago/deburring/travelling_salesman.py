@@ -494,13 +494,15 @@ class InStatePlanner:
                         print("Failed to connect", i, "to", j, ":", e)
                         paths[i][j] = None
                         distances[j,i] = distances[i,j] = 1e8
-        if sys.version_info[0] == 2:
-            from tsp import dynamic_programming as solve_tsp
-        elif sys.version_info[0] == 3:
-            if l <= 10:
-                from python_tsp.exact import solve_tsp_dynamic_programming as solve_tsp
-            else:
-                from python_tsp import simulated_annealing as solve_tsp
+        if l > 10:
+            print("Solving TSP ({}). d =".format(l))
+            print(distances.tolist())
+        if l > 15:
+            from agimus_demos.pytsp.approximative_kopt import solve_3opt as solve_tsp
+        else:
+            from agimus_demos.pytsp.dynamic_programming import solve_with_heuristic as solve_tsp
+            #if l > 19:
+            #    print("Exact TSP with {} nodes may take a while...".format(l))
         permutation, distance = solve_tsp(distances)
         # rotate permutation so that 0 is the first index.
         k = permutation.index(0)

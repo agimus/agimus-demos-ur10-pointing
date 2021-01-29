@@ -78,29 +78,39 @@ namespace dynamic_programming {
 # define TSP_DP_IN_DEBUG(x)
 #endif
 
-typedef uint64_t city_set_t;
+// At most 32 cities
+typedef uint8_t city_index_type;
+typedef uint32_t city_set_t;
 typedef std::vector<path_t> cache_t;
+
+constexpr city_set_t all_cities (~city_set_t(0));
 
 struct DP {
   const distance_matrix_t& d;
   const ordered_neighbors_t neighbors;
   double dmin;
 
-  cache_t pathCache;
   double costUpperBound = std::numeric_limits<double>::infinity();
 
-  bool useCachedCosts = true;
-  typedef struct { double cost; int nvisits; } cache_type;
+  bool useCachedCosts = true, allowPruning = false;
+  typedef struct { double cost; city_index_type prevCity, ineighbor; TSP_DP_IN_DEBUG(int nvisits;) } cache_type;
   std::map<uint64_t, cache_type> cachedCosts;
 
 #ifdef TSP_DP_DEBUG
-  long int ncalls = 0, nroots = 0, nupdates = 0;
+  long int ncalls = 0, nroots = 0, nupdates = 0, nprunes = 0;
 #endif
 
   DP(const distance_matrix_t& _d)
-    : d(_d), neighbors(neighborMatrix(d)),
-    dmin(neighbors.row(0).minCoeff()), pathCache (d.cols(), path_t(d.cols()-1))
-  {}
+    : d(_d), neighbors(neighborMatrix(d))
+  {
+    dmin = std::numeric_limits<double>::infinity();
+    for (int i = 1; i < d.rows(); ++i) {
+      dmin = std::min({
+          d.row(i).head(i).minCoeff(),
+          d.row(i-1).tail(d.rows()-i).minCoeff(),
+          dmin});
+    }
+  }
 
   // Compute the distance to go from city 0, visiting all cities in N and finishing at i \notin N
   // \param dmin the minimal distance between two different cities.
@@ -110,6 +120,27 @@ struct DP {
   // \param depth should be d.rows() - nN (-1?)
   // \param costToCome
   double dist (int i, city_set_t N, int nN, int depth, double costToCome);
+
+  static constexpr uint64_t make_key(city_set_t N, city_index_type i) { return uint64_t(N) | (uint64_t(i) << 32); }
+
+  path_t solution() const {
+    // All cities except 0
+    city_index_type n(d.cols());
+    city_set_t N = (all_cities >> (64-n)) & (all_cities << 1);
+
+    path_t sol (n-1);
+    city_index_type last = 0;
+    for (city_index_type k = 0; k < n-1; ++k) {
+      auto key (make_key(N, last));
+      decltype(cachedCosts.cbegin()) _cached = cachedCosts.find(key);
+      if (_cached == cachedCosts.end())
+        throw std::runtime_error("cached cost map does not contain a valid solution.");
+      last = _cached->second.prevCity;
+      sol[n-2-k] = (int)last;
+      N = N & ~(1 << last);
+    }
+    return sol;
+  }
 };
 
 double DP::dist (int i, city_set_t N, int nN, int depth, double costToCome)
@@ -117,99 +148,100 @@ double DP::dist (int i, city_set_t N, int nN, int depth, double costToCome)
   TSP_DP_IN_DEBUG(++ncalls;)
   if (nN == 0) {
     TSP_DP_IN_DEBUG(++nroots;)
-    assert(depth < pathCache.size());
-    pathCache[depth][0] = i;
+    if (costToCome + d(0,i) < costUpperBound) {
+      costUpperBound = costToCome + d(0,i);
+      TSP_DP_IN_DEBUG(nupdates++;)
+    }
     return d(0, i);
   }
+  //if (costToCome + (nN+1)*dmin > costUpperBound) // cannot do better
+    //return std::numeric_limits<double>::infinity();
   // Make the key
-  uint64_t key = N | (uint64_t(i) << 32);
+  uint64_t key = make_key(N, i);
   decltype(cachedCosts.emplace(key, cache_type())) cachedCost;
-  cachedCost = cachedCosts.emplace(key, cache_type{ 0., 0 });
-  cachedCost.first->second.nvisits++;
-  if (useCachedCosts && !cachedCost.second)//no inserted
-    return cachedCost.first->second.cost;
+  cachedCost = cachedCosts.emplace(key, cache_type{ std::numeric_limits<double>::infinity(), 0, 0 });
+  cache_type& cached = cachedCost.first->second;
+  TSP_DP_IN_DEBUG(cached.nvisits++;)
+  bool newCall = cachedCost.second;
+  if (useCachedCosts && cached.ineighbor == neighbors.rows()) // return calculated cost
+    return cached.cost;
 
   // Store the costs in the form (nj, dist(nj, N))
   city_set_t NN;
-  double minCost = std::numeric_limits<double>::infinity();
   int k = 0;
   assert(d.cols() == neighbors.rows()+1);
-  for (int in = 0; in < neighbors.rows(); ++in) { // Loop on the neighbors by increasing order of d(k, i)
-    int j = neighbors(in, i);
+  // Recompute upper bound because costUpperBound may be smaller
+  if (costToCome + cached.cost < costUpperBound)
+    costUpperBound = costToCome + cached.cost;
+  for (;cached.ineighbor < neighbors.rows(); ++cached.ineighbor) { // Loop on the neighbors by increasing order of d(k, i)
+    int j = neighbors(cached.ineighbor, i);
     if (!(N & (1 << j))) continue;
     assert(j != i);
-    if (costToCome + d(j,i) + nN * dmin < costUpperBound) {
-      NN = N & ~(1 << j);
-      double cost = dist(j, NN, nN-1, depth+1, costToCome + d(j,i)) + d(j,i);
-      if (cost < minCost) {
-        minCost = cost;
-        //bestSubpath.swap(bestPath);
-        //bestPath[nN]= i;
-        assert(depth+1 < pathCache.size());
-        pathCache[depth+1].swap(pathCache[depth]);
-        if (i > 0) { // i == 0 for the first call.
-          assert(nN < pathCache[depth].size());
-          pathCache[depth][nN]= i;
-        }
-
-        if (costToCome + cost < costUpperBound) {
-          costUpperBound = costToCome + cost;
-          TSP_DP_IN_DEBUG(nupdates++;)
-        }
-      }
+    // nN * dmin is the minimum cost to visit all cities in NN (nN-1 cities) plus
+    // a segment to reach j.
+    // So the test below stops recursion if it is not possible to generate a path
+    // with lower cost than costUpperBound.
+    if (allowPruning && nN * dmin + d(j,i) + costToCome >= costUpperBound) {
+      TSP_DP_IN_DEBUG(nprunes++;)
+      break;
     }
-    if (++k == nN) break;
+    NN = N & ~(1 << j);
+    double cost = dist(j, NN, nN-1, depth+1, costToCome + d(j,i)) + d(j,i);
+    if (cost < cached.cost) {
+      cached.cost = cost;
+      cached.prevCity = j;
+    }
+    if (++k == nN) {
+      cached.ineighbor = neighbors.rows();
+      break;
+    }
   }
-  cachedCost.first->second.cost = minCost;
-  return minCost;
+  return cached.cost;
 }
 
 std::tuple<double, path_t> solveWithBound (const distance_matrix_t& d,
-    double costUpperBound)
+    double costUpperBound,
+    bool allowPruning)
 {
   if (d.cols() != d.rows())
     throw std::invalid_argument("expect a square distance matrix");
   auto n = d.cols();
-  if (n > 64)
-    throw std::invalid_argument("at the moment, cannot solve instance with more that 64 cities.");
+  if (n >= 32)
+    throw std::invalid_argument("at the moment, cannot solve instance with more than 31 cities.");
 
-  constexpr city_set_t all (~city_set_t(0));
-  city_set_t N = (all >> (64-n)) & (all << 1);
+  city_set_t N = (all_cities >> (64-n)) & (all_cities << 1);
 
   DP dp (d);
   dp.costUpperBound = costUpperBound;
   dp.useCachedCosts = true;
+  dp.allowPruning = allowPruning;
 
-  /*
-  double dmin = std::numeric_limits<double>::infinity();
-  for (int i = 1; i < d.rows(); ++i) {
-    dmin = std::min({
-        d.row(i).head(i).minCoeff(),
-        d.row(i-1).tail(d.rows()-i).minCoeff(),
-        dmin});
-  }
-  */
   double cost = dp.dist(0, N, n-1, 0, 0);
 #ifdef TSP_DP_DEBUG
+  /*
   std::cout << n << ' ' << dp.nupdates << '/' << dp.nroots << '/' << dp.ncalls << std::endl;
   long int total = 0;
   for (auto pair : dp.cachedCosts) {
     int finalcity = pair.first >> 32;
     uint32_t N (pair.first);
-    std::cout << std::setfill(' ') << std::setw(5) << N << ' ' << std::setfill('0') << std::setw(8) << std::hex << finalcity << std::dec << ' ' << pair.second.nvisits << '\n';
+    std::cout << std::setfill(' ') << std::setw(6) << std::hex << N << ' '
+      << std::setw(5) << std::dec << finalcity << ' ' << pair.second.nvisits << '\n';
     total += pair.second.nvisits;
   }
-  std::cout << visited.size() << '/' << total << " .....\n";
+  std::cout << dp.cachedCosts.size() << '/' << total << " .....\n";
+  */
 #endif
-  return std::make_tuple(cost, dp.pathCache[0]);
+  return std::make_tuple(cost, dp.solution());
 }
 
-std::tuple<double, path_t> solveWithHeuristic (const distance_matrix_t& d)
+std::tuple<double, path_t> solveWithHeuristic (const distance_matrix_t& d,
+    bool allowPruning)
 {
   double costUpperBound;
   path_t path;
-  std::tie(costUpperBound, path) = heuristic_nearest::solve(d);
-  return solveWithBound(d, costUpperBound);
+  //std::tie(costUpperBound, path) = heuristic_nearest::solve(d);
+  std::tie(costUpperBound, path) = approximative_kopt::solve3opt(d);
+  return solveWithBound(d, 1.00001 * costUpperBound);
 }
 }
 namespace brute_force {
@@ -246,13 +278,20 @@ void swap2opt(path_t& path, int i, int k)
     std::swap(path[i+j], path[k-j]);
 }
 
-std::tuple<double, path_t> solve2opt (const distance_matrix_t& d)
+std::tuple<double, path_t> solve2opt (const distance_matrix_t& d,
+    path_t initialGuess)
 {
   auto n (d.rows());
   // initial best
   path_t bestPath (n-1), currentPath(n-1);
   double bestCost;
-  std::tie(bestCost, bestPath) = heuristic_nearest::solve(d);
+  if (initialGuess.size() == 0)
+    std::tie(bestCost, bestPath) = heuristic_nearest::solve(d);
+  else if (initialGuess.size() == n-1) {
+    bestPath = initialGuess;
+    bestCost = evaluateCost(d, bestPath);
+  } else
+    throw std::invalid_argument("invalid initial guess.");
 
   bool shorter;
   do {
@@ -299,7 +338,8 @@ bool swap3opt(const distance_matrix_t& d, path_t& path, int i, int j, int k)
 
   int minIndex;
   cases.minCoeff(&minIndex);
-  double cost = evaluateCost(d, path);
+  if (minIndex > 0 && cases[0] - cases[minIndex] < 1e-12)
+    minIndex = 0;
   switch(minIndex) {
     case 0: return false;
     case 1: swap2opt(path, j, k-1); return true;
@@ -350,12 +390,19 @@ bool swap3opt(const distance_matrix_t& d, path_t& path, int i, int j, int k)
 }
 
 /// Iterative improvement based on 3 exchange.
-std::tuple<double, path_t> solve3opt (const distance_matrix_t& d)
+std::tuple<double, path_t> solve3opt (const distance_matrix_t& d,
+    path_t initialGuess)
 {
   auto n (d.rows());
   path_t path;
   double cost;
-  std::tie(cost, path) = heuristic_nearest::solve(d);
+  if (initialGuess.size() == 0)
+    std::tie(cost, path) = heuristic_nearest::solve(d);
+  else if (initialGuess.size() == n-1) {
+    path = initialGuess;
+    cost = evaluateCost(d, path);
+  } else
+    throw std::invalid_argument("invalid initial guess.");
 
   bool improved;
   do {

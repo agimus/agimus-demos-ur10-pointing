@@ -17,8 +17,10 @@ PYBIND11_PLUGIN(pytsp) {
 
     {
       auto submodule = m.def_submodule("dynamic_programming");
-      submodule.def("solve", &tsp::dynamic_programming::solve);
-      submodule.def("solve_with_heuristic", &tsp::dynamic_programming::solveWithHeuristic);
+      submodule.def("solve", &tsp::dynamic_programming::solve,
+          py::arg("distance_matrix"), py::arg("allowPruning") = true);
+      submodule.def("solve_with_heuristic", &tsp::dynamic_programming::solveWithHeuristic,
+          py::arg("distance_matrix"), py::arg("allowPruning") = true);
     }
 
     {
@@ -28,7 +30,9 @@ PYBIND11_PLUGIN(pytsp) {
 
     {
       auto submodule = m.def_submodule("approximative_kopt");
-      submodule.def("solve_2opt", &tsp::approximative_kopt::solve2opt);
-      submodule.def("solve_3opt", &tsp::approximative_kopt::solve3opt);
+      submodule.def("solve_2opt", &tsp::approximative_kopt::solve2opt,
+          py::arg("distance_matrix"), py::arg("initial_guess") = tsp::path_t());
+      submodule.def("solve_3opt", &tsp::approximative_kopt::solve3opt,
+          py::arg("distance_matrix"), py::arg("initial_guess") = tsp::path_t());
     }
 }

@@ -15,6 +15,7 @@ namespace test {
 #define CHECK_EQ(a,b) _CHECK_COMPARISION(a, ==, b)
 #define CHECK_LE(a,b) _CHECK_COMPARISION(a, <=, b)
 #define CHECK_LT(a,b) _CHECK_COMPARISION(a, < , b)
+#define CHECK_DOUBLE_CLOSE(a,b,tol) CHECK(std::fabs(a-b)<tol, #a " (" << (a) << ") not close to " #b " (" << (b) << "). Difference " << ((a)-(b)) << " is above " << tol << "\n")
 
 std::ostream& operator<<(std::ostream& os, const tsp::path_t& p)
 {
@@ -133,25 +134,35 @@ void compare(const tsp::distance_matrix_t& d)
   typedef std::chrono::duration<double, std::micro> duration;
 
   auto measure = [&d](auto func, const char* header) {
+    int hwidth = 5;
+    double cost; tsp::path_t path;
     auto t1 (clock::now());
-    auto res = func(d);
+    std::tie(cost, path) = func(d);
     auto t2 (clock::now());
+    CHECK_DOUBLE_CLOSE(cost, tsp::evaluateCost(d, path), 1e-8);
 
-    print(std::get<1>(res));
-    std::cout << header << ": cost(" << std::get<0>(res) << ") duration(" << duration(t2-t1).count() << ")\n";
+    print(path);
+    std::cout << header;
+    for (int i = strlen(header); i < hwidth; ++i)
+      std::cout << ' ';
+    std::cout << ": cost(" << cost << ")\tduration(" << duration(t2-t1).count() << ")\n";
   };
 
   //std::cout << d << '\n';
   std::cout << "=================================\n";
-  measure(tsp::heuristic_nearest::solve, "HN ");
+  measure(tsp::heuristic_nearest::solve, "HN");
   //std::cout << "---------------------------------\n";
-  measure(tsp::approximative_kopt::solve2opt, "A2O");
+  measure([](const tsp::distance_matrix_t& d) { return tsp::approximative_kopt::solve2opt(d); }, "A2O");
   //std::cout << "---------------------------------\n";
-  measure(tsp::approximative_kopt::solve3opt, "A3O");
+  measure([](const tsp::distance_matrix_t& d) { return tsp::approximative_kopt::solve3opt(d); }, "A3O");
   //std::cout << "---------------------------------\n";
-  measure(tsp::dynamic_programming::solveWithHeuristic, "DPH");
+  measure([](const tsp::distance_matrix_t& d) { return tsp::dynamic_programming::solveWithHeuristic(d, true); }, "DP-HP");
   //std::cout << "---------------------------------\n";
-  measure(tsp::dynamic_programming::solve, "DP ");
+  measure([](const tsp::distance_matrix_t& d) { return tsp::dynamic_programming::solve(d, true); }, "DP-P");
+  //std::cout << "---------------------------------\n";
+  measure([](const tsp::distance_matrix_t& d) { return tsp::dynamic_programming::solveWithHeuristic(d, false); }, "DP-H");
+  //std::cout << "---------------------------------\n";
+  measure([](const tsp::distance_matrix_t& d) { return tsp::dynamic_programming::solve(d, false); }, "DP");
   //std::cout << "---------------------------------\n";
   if (d.rows() < 12)
     measure(tsp::brute_force::solve, "BF ");
@@ -181,12 +192,10 @@ void run_benchs()
   */
 
 #ifndef NDEBUG
-  int N = 9;
+  for (int n = 11; n < 13; ++n) {
 #else
-  int N = 20;
+  for (int n = 11; n < 20; ++n) {
 #endif
-
-  for (int n = 7; n < N; ++n) {
     d = tsp::randomDistanceMatrix(n);
     compare(d);
   }
