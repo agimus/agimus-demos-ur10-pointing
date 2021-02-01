@@ -4,7 +4,23 @@ from CORBA import Any, TC_long
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, createContext, newProblem, ProblemSolver, ConstraintGraph, Rule, Constraints, CorbaClient
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp_idl.hpp import Error as HppError
-import sys, argparse, numpy as np, time, tqdm
+import sys, argparse, numpy as np, time
+try:
+    import tqdm
+    def progressbar_iterable(iterable, *args, **kwargs):
+        return tqdm.tqdm(iterable, *args, **kwargs)
+    def progressbar_object(*args, **kwargs):
+        return tqdm.tqdm(*args, **kwargs)
+except ImportError:
+    def progressbar_iterable(iterable, *args, **kwargs):
+        return iterable
+    def progressbar_object(*args, **kwargs):
+        class faketqdm:
+            def set_description(*args, **kwargs):
+                pass
+            def update(*args, **kwargs):
+                pass
+        return faketqdm()
 
 # parse arguments
 defaultContext = "corbaserver"
@@ -314,7 +330,7 @@ class ClusterComputation:
         start = time.time()
         clusters = []
         remaining_handles = handles[:]
-        pbar = tqdm.tqdm(desc="Looking for clusters", total=len(remaining_handles))
+        pbar = progressbar_object(desc="Looking for clusters", total=len(remaining_handles))
         while remaining_handles:
             cluster = self.find_cluster(remaining_handles[0], remaining_handles, qrhs)
             if len(cluster) == 0: continue
@@ -587,7 +603,7 @@ solve_tsp_problems = False
 if solve_tsp_problems:
     clusters_path = []
     qhomes = [q0, ]
-    for cluster in tqdm.tqdm(clusters, "Find path for each cluster"):
+    for cluster in progressbar_iterable(clusters, "Find path for each cluster"):
         paths = clusters_comp.solveTSP(armPlanner, cluster)
 
         clusters_path.append(concatenate_paths(paths))

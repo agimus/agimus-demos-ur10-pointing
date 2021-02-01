@@ -1,4 +1,3 @@
-find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
 if(pybind11_FOUND)
   pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
@@ -14,7 +13,7 @@ if(pybind11_FOUND)
       ERROR_QUIET)
   endif()
 
-  message("Installing python module to ${PYTHON_SITELIB}")
+  message(STATUS "Installing python module to ${PYTHON_SITELIB}")
   install(TARGETS pytsp
     DESTINATION ${PYTHON_SITELIB}/agimus_demos)
   install(FILES __init__.py
