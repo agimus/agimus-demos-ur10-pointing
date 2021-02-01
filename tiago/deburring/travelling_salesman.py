@@ -60,6 +60,16 @@ class Cylinder:
     srdfFilename = srdf_cylinder
     rootJointType = "freeflyer"
 
+class Driller:
+    urdfFilename = "package://gerard_bauzil/urdf/driller_with_qr_drill.urdf"
+    srdfFilename = "package://gerard_bauzil/srdf/driller.srdf"
+    rootJointType = "freeflyer"
+
+class PartP72:
+    urdfFilename = "package://agimus_demos/urdf/P72.urdf"
+    srdfFilename = "package://agimus_demos/srdf/P72.srdf"
+    rootJointType = "freeflyer"
+
 ## Reduce joint range for security
 def shrinkJointRange (robot, ratio):
     for j in robot.jointNames:
@@ -120,10 +130,14 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", 1.0)
 ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setParameter("SteeringMethod/Carlike/turningRadius", 0.05)
 
-vf.loadObjectModel (Cylinder, "part")
+vf.loadRobotModel (Driller, "driller")
+robot.insertRobotSRDFModel("driller", "gerard_bauzil", "qr_drill", "")
+robot.setJointBounds('driller/root_joint', [-2, 2, -2, 2, 0, 2])
+vf.loadRobotModel (PartP72, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 
 vf.loadObstacleModel ("package://gerard_bauzil/urdf/gerard_bauzil.urdf", "room")
+vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
 
 shrinkJointRange(robot, 0.95)
 
@@ -139,9 +153,9 @@ q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.3
 q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
 
 q0[robot.rankInConfiguration['tiago/gripper_finger_joint']] = \
-        q0[robot.rankInConfiguration['tiago/gripper_right_finger_joint']] = 0.002
+        q0[robot.rankInConfiguration['tiago/gripper_right_finger_joint']] = 0.034
 
-q0[robot.rankInConfiguration['part/root_joint']:] = [0,0,0,0,0,0,1]
+q0[robot.rankInConfiguration['part/root_joint']:] = [0,-0.3,0.8,0,0,0,1]
 # 2}}}
 
 # {{{2 Constraint graph initialization
@@ -171,12 +185,13 @@ lock_arm = [ lockJoint(n, q0) for n in robot.jointNames
 lock_head = [ lockJoint(n, q0) for n in robot.jointNames
         if n.startswith("tiago/head")]
 
-ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", "tiago/gripper",
+part_gripper = "driller/drill_tip"
+ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", part_gripper,
         (0,0,0), (0,0,0), (True,True,True))
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/cylinder_fixed_joint",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/base_link",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -185,25 +200,34 @@ look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 from hpp.corbaserver.manipulation import ConstraintGraphFactory
 graph = ConstraintGraph(robot, 'graph')
 factory = ConstraintGraphFactory(graph)
-factory.setGrippers([ "tiago/gripper",])
+factory.setGrippers([ "tiago/gripper", "driller/drill_tip", ])
 
-handles = ps.getAvailable('handle')
-factory.setObjects([ "part", ], [ handles ], [ [ ], ])
+all_handles = ps.getAvailable('handle')
+part_handles = filter(lambda x: x.startswith("part/"), all_handles)
+factory.setObjects([ "driller", "part", ], [ [ "driller/handle", ], part_handles, ], [ [], [] ])
 
-factory.setRules([ Rule([ "tiago/gripper", ], [ ".*", ], True), ])
+factory.setRules([
+    # Forbid driller to grasp itself.
+    Rule([ "driller/drill_tip", ], [ "driller/handle", ], False),
+    # Tiago always hold the gripper.
+    Rule([ "tiago/gripper", ], [ "", ], False), Rule([ "tiago/gripper", ], [ "part/.*", ], False),
+    # Allow to associate drill_tip with part holes only.
+    Rule([ "tiago/gripper", "driller/drill_tip", ], [ "driller/handle", ".*", ], True), ])
 factory.generate()
 
 graph.addConstraints(graph=True, constraints=Constraints(numConstraints=ljs))
+free = "tiago/gripper grasps driller/handle"
+loop_free = 'Loop | 0-0'
 for n in graph.nodes.keys():
-    if n == "free": continue
+    if n == free: continue
     graph.addConstraints(node=n, constraints=Constraints(numConstraints=["look_at_gripper"]))
 for e in graph.edges.keys():
     graph.addConstraints(edge=e, constraints=Constraints(numConstraints=["tiago_base"]))
 
 graph.createNode('home', priority=1000)
 graph.createEdge('home', 'home', 'move_base')
-graph.createEdge('home', 'free', 'start_arm', isInNode="home")
-graph.createEdge('free', 'home', 'end_arm', isInNode="free")
+graph.createEdge('home',  free , 'start_arm', isInNode="home")
+graph.createEdge( free , 'home', 'end_arm', isInNode=free)
 
 graph.addConstraints(node="home", constraints=Constraints(numConstraints=lock_arm+lock_head))
 graph.addConstraints(edge="end_arm", constraints=Constraints(numConstraints=["tiago_base", "lock_part"]))
@@ -234,7 +258,7 @@ else:
 
 # {{{2 Functions for handling the TSP
 def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig=10):
-    edge = "tiago/gripper > " + handle
+    edge = part_gripper + " > " + handle
     ok = False
     from itertools import chain
     def project_and_validate(e, qrhs, q):
@@ -243,9 +267,9 @@ def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig
         return res, qres
     qpg, qg = None, None
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
-        res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
+        res, qpg = project_and_validate (edge+" | 0-0_01", qinit, qrand)
         if res:
-            ok, qg, err = graph.generateTargetConfig (edge+" | f_12", qpg, qpg)
+            ok, qg, err = graph.generateTargetConfig (edge+" | 0-0_12", qpg, qpg)
             if ok: break
     return ok, qpg, qg
 
@@ -264,25 +288,25 @@ class ClusterComputation:
         self._lock_part = lock_part
 
     def freeBaseConstraint(self, hi):
-        ni = "tiago/gripper > " + hi + " | f_pregrasp"
+        ni = part_gripper + " > " + hi + " | 0-0_pregrasp"
         cnode = wd(self._cgraph.get(graph.nodes[ni]))
         c = wd(cnode.configConstraint().getConfigProjector()).copy()
         c.add(self._lock_part, 0)
         return c
 
     def fixedBaseConstraint(self, hi):
-        ei = "tiago/gripper > " + hi + " | f_01"
+        ei = part_gripper + " > " + hi + " | 0-0_01"
         cedge = wd(self._cgraph.get(graph.edges[ei]))
         return wd(cedge.targetConstraint().getConfigProjector())
 
     def pregraspToGraspConstraint(self, hi):
-        ei = "tiago/gripper > " + hi + " | f_12"
+        ei = part_gripper + " > " + hi + " | 0-0_12"
         cedge = wd(self._cgraph.get(graph.edges[ei]))
         return wd(cedge.targetConstraint().getConfigProjector())
 
     def find_cluster(self, hi, handles, qrhs, fixed_base=False):
-        #ni = "tiago/gripper grasps " + hi
-        #ni = "tiago/gripper > " + hi + " | f_pregrasp"
+        #ni = part_gripper + " grasps " + hi
+        #ni = part_gripper + " > " + hi + " | 0-0_pregrasp"
         qrand = q0
         best_cluster = []
 
@@ -352,7 +376,7 @@ class ClusterComputation:
         #print(permutation, arm_paths)
         for hi, qphi, qhi in cluster:
             # Compute grasp config
-            ei = "tiago/gripper > " + hi + " | f_12"
+            ei = part_gripper + " > " + hi + " | 0-0_12"
             #res, qgrasp, err = graph.generateTargetConfig(ei, qhi, qhi)
             #if not res:
             #    print("Could not generate grasp config from pregrasp config (hi={}).".format(hi))
@@ -367,7 +391,7 @@ class ClusterComputation:
             cedge = wd(self._cgraph.get(graph.edges[ei]))
             p01 = cedge.getSteeringMethod().call(qphi, qhi)
             # from grasp to pregrasp
-            eir = "tiago/gripper < " + hi + " | 0-{}_21".format(handles.index(hi))
+            eir = part_gripper + " < " + hi + " | 0-0:1-{}_21".format(all_handles.index(hi))
             cedge = wd(self._cgraph.get(graph.edges[eir]))
             p10 = cedge.getSteeringMethod().call(qhi, qphi)
 
@@ -388,7 +412,7 @@ class ClusterComputation:
                 paths.append(grasp_paths[i-1][1])
                 # # Compute grasp config
                 # hi, qhi = cluster[i-1]
-                # ei = "tiago/gripper > " + hi + " | f_12"
+                # ei = part_gripper + " > " + hi + " | 0-0_12"
                 # res, qgrasp, err = graph.generateTargetConfig(ei, qhi, qhi)
                 # if not res:
                 #     throw 
@@ -399,7 +423,7 @@ class ClusterComputation:
                 # cedge = wd(self._cgraph.get(graph.edges[ei]))
                 # paths.append(cedge.getSteeringMethod().call(qhi, qgrasp))
                 # # from grasp to pregrasp
-                # eir = "tiago/gripper < " + hi + " | 0-{}_21".format(handles.index(hi))
+                # eir = part_gripper + " < " + hi + " | 0-{}_21".format(handles.index(hi))
                 # cedge = wd(self._cgraph.get(graph.edges[eir]))
                 # paths.append(cedge.getSteeringMethod().call(qgrasp, qhi))
         return paths
@@ -498,6 +522,8 @@ class InStatePlanner:
         l = len(configs)
         paths = [ [ None, ] * l for _ in range(l) ]
         distances = np.zeros((l,l))
+        if l > 10:
+            print("Computing distance matrix.")
         for i in range(l):
             for j in range(i+1,l):
                 if False:
@@ -553,7 +579,7 @@ def concatenate_paths(paths):
 
 # {{{3 Create InStatePlanner
 armPlanner = InStatePlanner ()
-armPlanner.setEdge("Loop | f")
+armPlanner.setEdge(loop_free)
 
 basePlanner = InStatePlanner ()
 basePlanner.plannerType = "kPRM*"
@@ -597,8 +623,8 @@ basePlanner.plannerType = "BiRRT*"
 
 # {{{3 Find handle clusters and solve TSP for each clusters.
 clusters_comp = ClusterComputation(armPlanner.cgraph, c_lock_part)
-clusters = clusters_comp.find_clusters(handles[:3], q0)
-#clusters = find_clusters(handles[:3], q0)
+clusters = clusters_comp.find_clusters(part_handles, q0)
+#clusters = find_clusters(part_handles[:3], q0)
 solve_tsp_problems = False
 if solve_tsp_problems:
     clusters_path = []
