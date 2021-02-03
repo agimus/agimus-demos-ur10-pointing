@@ -1,6 +1,10 @@
 <launch>
   <arg name="gazebo" default="false"/>
 
+  <node if="$(arg gazebo)" name="world_to_map" pkg="tf2_ros" type="static_transform_publisher"
+      args="0 0 0 0 0 0 1 world map"
+      />
+
   <!-- salle Gerard Bauzil -->
   <group ns="gerard_bauzil">
     <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/gerard_bauzil.urdf"/>

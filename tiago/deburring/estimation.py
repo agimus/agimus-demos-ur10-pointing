@@ -20,21 +20,41 @@ def init_ros_node():
         rospy.init_node("hpp")
     ros_initialized = True
 
-def get_current_config(robot, q0):
+def poseToSE3(m):
+    import pinocchio
+    return pinocchio.XYZQUATToSE3([ m.translation.x, m.translation.y, m.translation.z,
+            m.rotation.x, m.rotation.y, m.rotation.z, m.rotation.w ])
+
+def get_current_config(robot, q0, timeout=5.):
     init_ros_node()
 
     from rospy import wait_for_message
     from geometry_msgs.msg import PoseWithCovarianceStamped
     from sensor_msgs.msg import JointState
 
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+
     # Build initial position
     msg = wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
-    P = msg.pose.pose.position
-    Q = msg.pose.pose.orientation
+    #P = msg.pose.pose.position
+    #Q = msg.pose.pose.orientation
+    mMb = poseToSE3(msg.pose.pose)
+    try:
+        _wMm = tfBuffer.lookup_transform("world", msg.header.frame_id,
+                msg.header.stamp, rospy.Duration(timeout))
+        wMm = poseToSE3(_wMm.transform)
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+        print('could not get TF transform : ', e)
+        return
+    wMb = wMm * mMb
+
     # conversion from
     # cos(t) = 2 cos(t/2)**2 - 1
     # sin(t) = 2 cos(t/2) sin(t/2)
-    q0[0:4] = P.x, P.y, 2 * Q.w**2 - 1, 2 * Q.w * Q.z
+    P = wMb.translation
+    Q = pinocchio.Quaternion(wMb.rotation)
+    q0[0:4] = P[0], P[1], 2 * Q.w**2 - 1, 2 * Q.w * Q.z
     # Acquire robot state
     msg = wait_for_message("/joint_states", JointState)
     for ni, qi in zip(msg.name, msg.position):
