@@ -25,6 +25,7 @@
   </include>
 
   <include file="$(find tiago_gazebo)/launch/tiago_gazebo.launch" >
+    <arg name="world" value="load_plugin_gazebo_ros_link_attacher"/>
     <arg name="robot" value="steel"/>
     <arg name="arm" value="true"/>
     <arg name="end_effector" value="schunk-wsg"/>
