@@ -47,22 +47,31 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
     import pinocchio
+    from rospkg import RosPack
+    rospack = RosPack()
 
     if not hasattr(robot, "camera_frame"):
         robot.camera_frame = "xtion_optical_frame"
 
+    drillerModel = pinocchio.buildModelFromUrdf (rospack.get_path("gerard_bauzil") + "/urdf/driller_with_qr_drill.urdf")
+
     srdf = {}
     srdfTiago = parse_srdf("srdf/pal_hey5_gripper.srdf", packageName="tiago_data", prefix="tiago")
-    srdfPart = parse_srdf("srdf/cylinder.srdf", packageName="agimus_demos", prefix="part")
+    srdfDriller = parse_srdf("srdf/driller.srdf", packageName="gerard_bauzil", prefix="driller")
+    srdfQRDrill = parse_srdf("srdf/qr_drill.srdf", packageName="gerard_bauzil", prefix="driller")
+    srdfPart = parse_srdf("srdf/P72.srdf", packageName="agimus_demos", prefix="part")
 
-    grippers = "tiago/gripper",
-    objects = "part",
-    handlesPerObjects = sorted(srdfPart["handles"].keys()),
-    contactPerObjects = [],
+    attach_all_to_link(drillerModel, "base_link", srdfDriller)
+    attach_all_to_link(drillerModel, "base_link", srdfQRDrill)
+
+    grippers = "tiago/gripper", "driller/drill_tip"
+    objects = "driller", "part",
+    handlesPerObjects = [ "driller/handle" ], sorted(srdfPart["handles"].keys()),
+    contactPerObjects = [], []
 
     for w in ["grippers", "handles","contacts"]:
         srdf[w] = dict()
-        for d in [srdfTiago, srdfPart]:
+        for d in [srdfTiago, srdfDriller, srdfQRDrill, srdfPart]:
             srdf[w].update(d[w])
 
     supervisor = Supervisor(robot, hpTasks=hpTasks(robot))
@@ -75,20 +84,28 @@ def makeSupervisorWithFactory(robot):
     factory.setObjects(objects, handlesPerObjects, contactPerObjects)
 
     from hpp.corbaserver.manipulation import Rule
-    factory.setRules([ Rule([ "tiago/gripper", ], [ ".*", ], True), ])
+    factory.setRules([
+        # Forbid driller to grasp itself.
+        Rule([ "driller/drill_tip", ], [ "driller/handle", ], False),
+        # Tiago always hold the gripper.
+        Rule([ "tiago/gripper", ], [ "", ], False),
+        Rule([ "tiago/gripper", ], [ "part/.*", ], False),
+        # Allow to associate drill_tip with part holes only.
+        Rule([ "tiago/gripper", "driller/drill_tip", ], [ "driller/handle", ".*", ], True), ])
     factory.setupFrames(srdf["grippers"], srdf["handles"], robot)
-    for k in handlesPerObjects[0]:
+    factory.gripperFrames["driller/drill_tip" ].hasVisualTag = True
+    for k in handlesPerObjects[1]:
         factory.handleFrames[k].hasVisualTag = True
-    #factory.addAffordance(
-    #    Affordance("tiago/gripper", "driller/handle",
-    #        openControlType="position",
-    #        closeControlType="position",
-    #        refs={
-    #            "angle_open": (0.,0.,0.),
-    #            "angle_close": (5.3,5.72,8.0),  #"angle_close": (6.2,6.7,9.1),
-    #            },
-    #        )
-    #    )
+    factory.addAffordance(
+        Affordance("tiago/gripper", "driller/handle",
+            openControlType="position",
+            closeControlType="position",
+            refs={
+                "angle_open": (0.,0.,0.),
+                "angle_close": (5.3,5.72,8.0),  #"angle_close": (6.2,6.7,9.1),
+                },
+            )
+        )
     factory.generate()
 
     supervisor.makeInitialSot()

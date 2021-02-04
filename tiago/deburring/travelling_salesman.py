@@ -42,9 +42,8 @@ isSimulation = args.context == "simulation"
 #Robot.urdfFilename = "package://tiago_data/robots/tiago_steel_without_wheels.urdf"
 #Robot.srdfFilename = "package://tiago_data/srdf/tiago.srdf"
 from hpp.rostools import process_xacro, retrieve_resource
-Robot.urdfString = process_xacro("package://tiago_description/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=schunk-wsg", "ft_sensor:=schunk-ft")
-with open(retrieve_resource("package://tiago_data/srdf/tiago.srdf"), "r") as f:
-    Robot.srdfString = f.read()
+Robot.urdfString = process_xacro("package://tiago_description/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft")
+Robot.srdfString = ""
 
 if args.n_random_handles is None:
     srdf_cylinder = "package://agimus_demos/srdf/cylinder.srdf"
@@ -96,6 +95,13 @@ client.manipulation.problem.selectProblem (args.context)
 
 robot = Robot("robot", "tiago", rootJointType="planar", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
+
+qneutral = crobot.neutralConfiguration()
+qneutral[robot.rankInConfiguration['tiago/hand_thumb_abd_joint']] = 1.5707
+qneutral[robot.rankInConfiguration['tiago/hand_index_abd_joint']]  = 0.35
+qneutral[robot.rankInConfiguration['tiago/hand_middle_abd_joint']] = -0.1
+qneutral[robot.rankInConfiguration['tiago/hand_ring_abd_joint']]   = -0.2
+qneutral[robot.rankInConfiguration['tiago/hand_little_abd_joint']] = -0.35
 crobot.removeJoints(
         [   'tiago/caster_back_left_1_joint',
             'tiago/caster_back_left_2_joint',
@@ -109,13 +115,76 @@ crobot.removeJoints(
             'tiago/wheel_left_joint',
             'tiago/suspension_right_joint',
             'tiago/wheel_right_joint',
+
+            # Comment this 3 joints otherwise sot is not happy
+            #'tiago/hand_index_joint',
+            #'tiago/hand_mrl_joint',
+            #'tiago/hand_thumb_joint',
+
+            'tiago/hand_index_abd_joint',
+            'tiago/hand_index_virtual_1_joint',
+            'tiago/hand_index_flex_1_joint',
+            'tiago/hand_index_virtual_2_joint',
+            'tiago/hand_index_flex_2_joint',
+            'tiago/hand_index_virtual_3_joint',
+            'tiago/hand_index_flex_3_joint',
+            'tiago/hand_little_abd_joint',
+            'tiago/hand_little_virtual_1_joint',
+            'tiago/hand_little_flex_1_joint',
+            'tiago/hand_little_virtual_2_joint',
+            'tiago/hand_little_flex_2_joint',
+            'tiago/hand_little_virtual_3_joint',
+            'tiago/hand_little_flex_3_joint',
+            'tiago/hand_middle_abd_joint',
+            'tiago/hand_middle_virtual_1_joint',
+            'tiago/hand_middle_flex_1_joint',
+            'tiago/hand_middle_virtual_2_joint',
+            'tiago/hand_middle_flex_2_joint',
+            'tiago/hand_middle_virtual_3_joint',
+            'tiago/hand_middle_flex_3_joint',
+            'tiago/hand_ring_abd_joint',
+            'tiago/hand_ring_virtual_1_joint',
+            'tiago/hand_ring_flex_1_joint',
+            'tiago/hand_ring_virtual_2_joint',
+            'tiago/hand_ring_flex_2_joint',
+            'tiago/hand_ring_virtual_3_joint',
+            'tiago/hand_ring_flex_3_joint',
+            'tiago/hand_thumb_abd_joint',
+            'tiago/hand_thumb_virtual_1_joint',
+            'tiago/hand_thumb_flex_1_joint',
+            'tiago/hand_thumb_virtual_2_joint',
+            'tiago/hand_thumb_flex_2_joint',
             ],
-        crobot.neutralConfiguration())
+        qneutral)
 del crobot
-robot.insertRobotSRDFModel("tiago", "tiago_data", "schunk", "_gripper")
+robot.insertRobotSRDFModel("tiago", "package://tiago_data/srdf/tiago.srdf")
+robot.insertRobotSRDFModel("tiago", "package://tiago_data/srdf/pal_hey5_gripper.srdf")
 robot.setJointBounds('tiago/root_joint', [-2.5, 4, -2, 3])
 ps = ProblemSolver(robot)
 vf = ViewerFactory(ps)
+
+vf.loadRobotModel (Driller, "driller")
+robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
+srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
+srdf_disable_collisions = """<robot>""" + srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
+linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
+for la, lb, en in zip(linka, linkb, enabled):
+    if not en: continue
+    if not la.startswith("tiago/"): continue
+    if not lb.startswith("tiago/"): continue
+    if ( la.startswith("tiago/hand_") and la != "tiago/hand_safety_box_0" and lb.startswith("tiago/")) \
+        or ( lb.startswith("tiago/hand_") and lb != "tiago/hand_safety_box_0" and la.startswith("tiago/")):
+            srdf_disable_collisions += srdf_disable_collisions_fmt.format(la[:-la.rfind('_')], lb[:-lb.rfind('_')])
+srdf_disable_collisions += "</robot>"
+robot.client.manipulation.robot.insertRobotSRDFModelFromString("", srdf_disable_collisions)
+robot.setJointBounds('driller/root_joint', [-2, 2, -2, 2, 0, 2])
+vf.loadRobotModel (PartP72, "part")
+robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
+
+vf.loadObstacleModel ("package://gerard_bauzil/urdf/gerard_bauzil.urdf", "room")
+vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
+
+shrinkJointRange(robot, 0.95)
 
 ps.selectPathValidation("Graph-Dichotomy", 0)
 ps.selectPathProjector("Progressive", 0.2)
@@ -130,20 +199,10 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", 1.0)
 ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setParameter("SteeringMethod/Carlike/turningRadius", 0.05)
 
-vf.loadRobotModel (Driller, "driller")
-robot.insertRobotSRDFModel("driller", "gerard_bauzil", "qr_drill", "")
-robot.setJointBounds('driller/root_joint', [-2, 2, -2, 2, 0, 2])
-vf.loadRobotModel (PartP72, "part")
-robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
-
-vf.loadObstacleModel ("package://gerard_bauzil/urdf/gerard_bauzil.urdf", "room")
-vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
-
-shrinkJointRange(robot, 0.95)
-
 q0 = robot.getCurrentConfig()
 q0[:4] = [0, -0.9, 0, 1]
-q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.15
+#q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.15
+q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.34
 q0[robot.rankInConfiguration['tiago/arm_1_joint']] = 0.10
 q0[robot.rankInConfiguration['tiago/arm_2_joint']] = -1.47
 q0[robot.rankInConfiguration['tiago/arm_3_joint']] = -0.16
@@ -151,9 +210,6 @@ q0[robot.rankInConfiguration['tiago/arm_4_joint']] = 1.87
 q0[robot.rankInConfiguration['tiago/arm_5_joint']] = -1.57
 q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.3
 q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
-
-q0[robot.rankInConfiguration['tiago/gripper_finger_joint']] = \
-        q0[robot.rankInConfiguration['tiago/gripper_right_finger_joint']] = 0.034
 
 q0[robot.rankInConfiguration['part/root_joint']:] = [0,-0.3,0.8,0,0,0,1]
 # 2}}}
@@ -177,7 +233,7 @@ lockJoint("part/root_joint", q0, "lock_part", constantRhs=False)
 c_lock_part = ps.hppcorba.problem.getConstraint("lock_part")
 
 for n in robot.jointNames:
-    if n.startswith('tiago/gripper_'):
+    if n.startswith('tiago/gripper_') or n.startswith('tiago/hand_'):
         ljs.append(lockJoint(n, q0))
 
 lock_arm = [ lockJoint(n, q0) for n in robot.jointNames
@@ -231,8 +287,8 @@ graph.createEdge( free , 'home', 'end_arm', isInNode=free)
 
 graph.addConstraints(node="home", constraints=Constraints(numConstraints=lock_arm+lock_head))
 graph.addConstraints(edge="end_arm", constraints=Constraints(numConstraints=["tiago_base", "lock_part"]))
-graph.addConstraints(edge="move_base", constraints=Constraints(numConstraints=["lock_part"]))
-graph.addConstraints(edge="start_arm", constraints=Constraints(numConstraints=["lock_part"]))
+graph.addConstraints(edge="move_base", constraints=Constraints(numConstraints=['tiago/gripper grasps driller/handle', "lock_part"]))
+graph.addConstraints(edge="start_arm", constraints=Constraints(numConstraints=['tiago/gripper grasps driller/handle', "lock_part"]))
 
 cproblem = ps.hppcorba.problem.getProblem()
 
@@ -648,7 +704,7 @@ if solve_tsp_problems:
 def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     if qcurrent is None:
         import estimation 
-        qcurrent = estimation.get_current_config(robot, q0[:])
+        qcurrent = estimation.get_current_config(robot, graph, q0[:])
 
     # Tuck arm.
     res, qtuck, err = graph.generateTargetConfig('end_arm', qcurrent, qcurrent)
@@ -656,6 +712,8 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     tuckpath = armPlanner.computePath(qcurrent, qtuck, resetRoadmap=True)
     # Move mobile base.
     qhome = clusters[i_cluster][0][1][:4] + qtuck[4:]
+    res, qhome, err = graph.generateTargetConfig('move_base', qhome, qhome)
+    if not res: print("failed to move base")
     basepath = basePlanner.computePath(qtuck, qhome, resetRoadmap=not basePlannerUsePrecomputedRoadmap)
 
     # Move the head.
@@ -674,7 +732,7 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
 def compute_path_for_cluster(i_cluster, qcurrent = None):
     if qcurrent is None:
         import estimation 
-        qcurrent = estimation.get_current_robot_and_cylinder_config(robot, q0[:])
+        qcurrent = estimation.get_current_robot_and_cylinder_config(robot, graph, q0[:])
 
     cluster = clusters[i_cluster]
 

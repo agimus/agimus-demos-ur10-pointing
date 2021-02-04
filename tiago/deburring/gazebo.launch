@@ -28,7 +28,7 @@
     <arg name="world" value="load_plugin_gazebo_ros_link_attacher"/>
     <arg name="robot" value="steel"/>
     <arg name="arm" value="true"/>
-    <arg name="end_effector" value="schunk-wsg"/>
+    <arg name="end_effector" value="pal-hey5"/>
     <arg name="ft_sensor"  value="schunk-ft"/>
 
     <arg name="tuck_arm" value="false"/>
@@ -51,7 +51,7 @@
 
   <include file="$(find roscontrol_sot_tiago)/launch/controller.launch" >
     <arg name="use_mobile_base" value="false"/>
-    <arg name="end_effector" value="schunk-wsg"/>
+    <arg name="end_effector" value="pal-hey5"/>
     <arg name="simulation" value="true"/>
   </include>
 

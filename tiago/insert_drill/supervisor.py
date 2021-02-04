@@ -105,9 +105,11 @@ def makeSupervisorWithFactory(robot):
     from hpp.corbaserver.manipulation import Rule
     factory.setRules([
         # Tiago always hold the gripper.
-        Rule([ "tiago/gripper", ], [ "driller/handle", ], True), Rule([ "tiago/gripper", ], [ ".*", ], False),
+        Rule([ "tiago/gripper", ], [ "driller/handle", ], True),
+        Rule([ "tiago/gripper", ], [ ".*", ], False),
         # Allow to associate drill_tip with skin/hole only.
-        Rule([ "driller/drill_tip", ], [ "driller/handle", ], False), Rule([ "driller/drill_tip", ], [ ".*", ], True), ])
+        Rule([ "driller/drill_tip", ], [ "driller/handle", ], False),
+        Rule([ "driller/drill_tip", ], [ ".*", ], True), ])
     factory.setupFrames(srdf["grippers"], srdf["handles"], robot)
     factory.gripperFrames["driller/drill_tip" ].hasVisualTag = True
     factory.handleFrames["skin/hole"].hasVisualTag = True

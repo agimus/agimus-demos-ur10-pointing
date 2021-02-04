@@ -21,14 +21,18 @@ def init_ros_node():
     ros_initialized = True
 
 def poseToSE3(m):
-    import pinocchio
-    return pinocchio.XYZQUATToSE3([ m.translation.x, m.translation.y, m.translation.z,
+    import pinocchio, geometry_msgs.msg
+    if isinstance(m, geometry_msgs.msg.Transform):
+        return pinocchio.XYZQUATToSE3([ m.translation.x, m.translation.y, m.translation.z,
             m.rotation.x, m.rotation.y, m.rotation.z, m.rotation.w ])
+    elif isinstance(m, geometry_msgs.msg.Pose):
+        return pinocchio.XYZQUATToSE3([ m.position.x, m.position.y, m.position.z,
+            m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w ])
 
-def get_current_config(robot, q0, timeout=5.):
+def get_current_config(robot, graph, q0, timeout=5.):
     init_ros_node()
 
-    from rospy import wait_for_message
+    import tf2_ros, rospy, pinocchio
     from geometry_msgs.msg import PoseWithCovarianceStamped
     from sensor_msgs.msg import JointState
 
@@ -36,7 +40,7 @@ def get_current_config(robot, q0, timeout=5.):
     listener = tf2_ros.TransformListener(tfBuffer)
 
     # Build initial position
-    msg = wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+    msg = rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
     #P = msg.pose.pose.position
     #Q = msg.pose.pose.orientation
     mMb = poseToSE3(msg.pose.pose)
@@ -56,7 +60,7 @@ def get_current_config(robot, q0, timeout=5.):
     Q = pinocchio.Quaternion(wMb.rotation)
     q0[0:4] = P[0], P[1], 2 * Q.w**2 - 1, 2 * Q.w * Q.z
     # Acquire robot state
-    msg = wait_for_message("/joint_states", JointState)
+    msg = rospy.wait_for_message("/joint_states", JointState)
     for ni, qi in zip(msg.name, msg.position):
         jni = "tiago/"+ni
         if robot.getJointConfigSize(jni) != 1:
@@ -67,12 +71,17 @@ def get_current_config(robot, q0, timeout=5.):
             continue
         assert robot.getJointConfigSize(jni) == 1
         q0[rk] = qi
-    return q0
+
+    # put driller in hand
+    res, q0proj, err = graph.applyNodeConstraints("tiago/gripper grasps driller/handle", q0)
+    if not res:
+        print("Could not project onto state 'tiago/gripper grasps driller/handle'", err)
+    return q0proj
 
 def get_cylinder_pose(robot, q0, timeout=5.):
     # the cylinder should be placed wrt to the robot, as this is what the sensor tells us.
     # Get pose of object wrt to the camera using TF
-    import tf2_ros, rospy, geometry_msgs.msg
+    import tf2_ros, rospy
     init_ros_node()
 
     tfBuffer = tf2_ros.Buffer()
@@ -99,6 +108,6 @@ def get_cylinder_pose(robot, q0, timeout=5.):
     qres[rk:rk+7] = SE3ToXYZQUAT (wMc * cMo)
     return qres
 
-def get_current_robot_and_cylinder_config(robot, q0, timeout=5.):
-    qrob = get_current_config(robot, q0)
+def get_current_robot_and_cylinder_config(robot, graph, q0, timeout=5.):
+    qrob = get_current_config(robot, graph, q0)
     return get_cylinder_pose(robot, qrob, timeout=timeout)
