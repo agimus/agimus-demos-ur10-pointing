@@ -19,7 +19,7 @@
     <param name="tf_prefix" value="driller"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
     <node if="$(arg gazebo)" name="spawn" pkg="gazebo_ros" type="spawn_model"
-      args="-file $(find gerard_bauzil)/urdf/driller_with_qr_drill.urdf -urdf -model driller
+      args="-file $(find agimus_demos)/urdf/driller_with_qr_drill.urdf -urdf -model driller
       -x -0.8308234 -y -0.60728794 -z 0.66926598 -R 1.55520314 -P -0.20965903 -Y 1.51499833 " />
   </group>
 
