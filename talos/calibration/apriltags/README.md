@@ -24,6 +24,24 @@ visible from the camera.
   * File measurements-pyrene-20200212-2.csv contains measurements obtained on
     Pyrene with 94 configurations. Joint state is read from the robot encoders.
 
+  * File measurements-pyrene-20200819-1.csv contains data acquired on Pyrene
+    following the calibration procedure.
+  * File measurements-pyrene-20200819-1-filtered.csv contains the above data
+    after removing an outlier.
+
+  * Files measurements-pyrene-20200828-1.csv and measurements-pyrene-20200828-2.csv
+    have been obtained on Pyrene on configurations reached during the demo
+    "Pyrene manipulate a box". The joints angles measured are corrected by the
+    previous calibration data (20200819).
+
+  * Files
+     - measurements-pyrene-20200901-1.csv,
+     - measurements-pyrene-20200901-2.csv,
+     - measurements-pyrene-20200901-3.csv correspond to  calibration data
+    acquired on Pyrene. The joint angles measured are corrected by calibration
+    data computed on 2020/08/19. The first and third files contain the same
+    first configurations.
+
 ### Python scripts
 
 Motion planning, motion generation and calibration computation are controlled

@@ -675,7 +675,7 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
 def createGazeConstraint (ps):
     ps.createPositionConstraint(
         "gaze",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_frame",
         "box/root_joint",
         (0, 0, 0),
         (0, 0, 0),

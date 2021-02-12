@@ -10,15 +10,17 @@
     <arg name="plank_of_wood_id" value="$(arg plank_of_wood_id)" />
   </include>
 
-
+  <group ns="/d435/color">
+    <node pkg="image_proc" type="image_proc" name="image_proc"/>
+  </group>
   <!-- Setup vision -->
   <group ns="vision">
     <node pkg="agimus_vision" type="tracker_object"
         output="$(arg output)"
         name="tracker"
         >
-        <param name="imageTopic"      value="/rgbd/rgb/high_res/image_rect" />
-        <param name="cameraInfoTopic" value="/rgbd/rgb/high_res/camera_info" />
+        <param name="imageTopic"      value="/d435/color/image_rect" />
+        <param name="cameraInfoTopic" value="/d435/color/camera_info" />
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
@@ -29,8 +31,8 @@
     <!-- Table -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="table_tags" args="
         --child-frame-format 'table/tag36_11_{:0>5d}'
-        --measurement-parent-frame rgbd_rgb_optical_frame
-        --group-frame table/table_link
+        --measurement-parent-frame head_d435_camera_color_optical_frame
+        --group-frame table/base_link
         --no-description
         --size 0.060
         --tag 10
@@ -42,7 +44,7 @@
     <!-- Plank of wood 1 -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="box_tags" args="
         --child-frame-format 'box/tag36_11_{:0>5d}'
-        --measurement-parent-frame rgbd_rgb_optical_frame
+        --measurement-parent-frame head_d435_camera_color_optical_frame
         --group-frame box/base_link
         --no-description
         --size 0.060
@@ -58,7 +60,7 @@
         />
 
     <node pkg="agimus_demos" type="group_of_tags.py" name="right_hand_tags" args="
-        --measurement-parent-frame rgbd_rgb_optical_frame
+        --measurement-parent-frame head_d435_camera_color_optical_frame
         --group-frame gripper_right_base_link
         --size 0.02
         --tag 104 -tq -0.05576495023223535  0.05627208178559162 0.006570662331490895 -0.637126509274665   -0.2746006193753955  0.2840690266666782  0.6617923383560552
@@ -68,7 +70,7 @@
         "
         />
     <node pkg="agimus_demos" type="group_of_tags.py" name="left_hand_tags" args="
-        --measurement-parent-frame rgbd_rgb_optical_frame
+        --measurement-parent-frame head_d435_camera_color_optical_frame
         --group-frame gripper_left_base_link
         --size 0.02
         --tag 100 -tq -0.05706139560979502  0.06947014000023057 0.003213276121914632  -0.6461166251398941 -0.25680513983974834  0.27177886139039276 0.6653725853768417

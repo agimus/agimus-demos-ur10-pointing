@@ -103,7 +103,7 @@ import os
 init_conf = json.load(open(os.path.join(os.path.dirname(__file__), '..', 'common', 'half_sitting.json'), 'r'))
 #init_conf[0:7] = [0.6, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
 init_conf[0:7] = [0.1, -0.65, 1.0192720229567027, 0, 0, sqrt(2) / 2, sqrt(2) / 2]  # root_joint
-init_conf += [0.45891797741593393, -0.25, 0.832, -0.5, 0.5, 0.5, 0.5,# box
+init_conf += [0, -0.1, 0.8525, 0.5, -0.5, -0.5, -0.5,# box
               0, 0, 0, 0, 0, 0, 1] # table
 
 ## Reduce joint range for security
@@ -712,7 +712,7 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
 def createGazeConstraint (ps):
     ps.createPositionConstraint(
         "look_at_box",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "box/root_joint",
         (0, 0, 0),
         (0, 0, 0),
@@ -724,7 +724,7 @@ def createGazeConstraint (ps):
 def createGazeConstraints (ps):
     ps.createPositionConstraint(
         "look_left_hand",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "talos/arm_left_7_joint",
         (0, 0, 0),
         (0, 0, -0.18),
@@ -732,7 +732,7 @@ def createGazeConstraints (ps):
     )
     ps.createPositionConstraint(
         "look_right_hand",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "talos/arm_right_7_joint",
         (0, 0, 0),
         (0, 0, -0.18),
@@ -744,7 +744,7 @@ def createGazeConstraints (ps):
 def createGazeCost (ps):
     ps.createPositionConstraint(
         "gaze_cost",
-        "talos/rgbd_optical_joint",
+        "talos/head_d435_camera_color_optical_joint",
         "box/root_joint",
         (0, 0, 0.4),
         (0, 0, 0),

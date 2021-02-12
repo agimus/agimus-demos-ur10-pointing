@@ -1,5 +1,6 @@
 <launch>
   <arg name="output" default="log"/>
+  <arg name="machine" default=""/>
 
   <!-- Setup vision -->
   <group ns="vision">

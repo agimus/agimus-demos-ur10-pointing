@@ -37,6 +37,7 @@ def flipBox (solver, pathId = None):
         toTuple()
     ps.resetGoalConfigs ()
     ps.setInitialConfig (q1)
+    solver.q_init = q1
     ps.addGoalConfig (q2)
     ps.setMaxIterPathPlanning (1000)
     return solver.solve ()

@@ -15,7 +15,7 @@
          value="0.1 -0.65 1.0192720229567027 0 0 0.7071067811865476 0.7071067811865476"/>
   <group ns="vision">
     <node name="publish_constants" pkg="agimus_demos" type="publish_constants.py" required="true"
-      args="$(find agimus_demos)/talos/common/camera_info.yaml /rgbd/rgb/high_res/camera_info rgbd_rgb_optical_frame" />
+      args="$(find agimus_demos)/talos/common/camera_info.yaml /d435/color/camera_info head_d435_camera_color_optical_frame" />
     <!-- rviz with camera simulation -->
     <node name="rviz" pkg="rviz" type="rviz"
           launch-prefix="$(find agimus)/scripts/ros_synchro --tf-lookup odom,rgbd_rgb_optical_frame -- "
