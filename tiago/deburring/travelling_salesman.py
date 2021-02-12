@@ -20,6 +20,8 @@ except ImportError:
                 pass
             def update(*args, **kwargs):
                 pass
+            def write(s):
+                print(s)
         return faketqdm()
 
 # parse arguments
@@ -65,7 +67,7 @@ class Driller:
     rootJointType = "freeflyer"
 
 class PartP72:
-    urdfFilename = "package://agimus_demos/urdf/P72.urdf"
+    urdfFilename = "package://agimus_demos/urdf/P72-with-table.urdf"
     srdfFilename = "package://agimus_demos/srdf/P72.srdf"
     rootJointType = "freeflyer"
 
@@ -96,14 +98,23 @@ client.manipulation.problem.selectProblem (args.context)
 robot = Robot("robot", "tiago", rootJointType="planar", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 
+from tiago_fov import TiagoFOV, TiagoFOVGuiCallback
+from hpp import Transform
+tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
+        fov = np.radians((49.5, 60)),
+        geoms = [ "arm_3_link_0" ])
+tagss = [ ['driller/tag36_11_00230',], ['part/tag36_11_00100', 'part/tag36_11_00101',]]
+tag_sizess = [ [ 0.064, ], [ 0.0414, 0.0414,] ]
+tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, sum(tagss, []), sum(tag_sizess, []))
+
 qneutral = crobot.neutralConfiguration()
 qneutral[robot.rankInConfiguration['tiago/hand_thumb_abd_joint']] = 1.5707
 qneutral[robot.rankInConfiguration['tiago/hand_index_abd_joint']]  = 0.35
 qneutral[robot.rankInConfiguration['tiago/hand_middle_abd_joint']] = -0.1
 qneutral[robot.rankInConfiguration['tiago/hand_ring_abd_joint']]   = -0.2
 qneutral[robot.rankInConfiguration['tiago/hand_little_abd_joint']] = -0.35
-crobot.removeJoints(
-        [   'tiago/caster_back_left_1_joint',
+removedJoints = [
+            'tiago/caster_back_left_1_joint',
             'tiago/caster_back_left_2_joint',
             'tiago/caster_back_right_1_joint',
             'tiago/caster_back_right_2_joint',
@@ -154,35 +165,52 @@ crobot.removeJoints(
             'tiago/hand_thumb_flex_1_joint',
             'tiago/hand_thumb_virtual_2_joint',
             'tiago/hand_thumb_flex_2_joint',
-            ],
-        qneutral)
+            ]
+crobot.removeJoints(removedJoints, qneutral)
+tiago_fov.reduceModel(removedJoints, qneutral, len_prefix=len("tiago/"))
 del crobot
 robot.insertRobotSRDFModel("tiago", "package://tiago_data/srdf/tiago.srdf")
 robot.insertRobotSRDFModel("tiago", "package://tiago_data/srdf/pal_hey5_gripper.srdf")
-robot.setJointBounds('tiago/root_joint', [-2.5, 4, -2, 3])
+robot.setJointBounds('tiago/root_joint', [-10, 10, -10, 10])
 ps = ProblemSolver(robot)
 vf = ViewerFactory(ps)
 
 vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
-srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
-srdf_disable_collisions = """<robot>""" + srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
-linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
-for la, lb, en in zip(linka, linkb, enabled):
-    if not en: continue
-    if not la.startswith("tiago/"): continue
-    if not lb.startswith("tiago/"): continue
-    if ( la.startswith("tiago/hand_") and la != "tiago/hand_safety_box_0" and lb.startswith("tiago/")) \
-        or ( lb.startswith("tiago/hand_") and lb != "tiago/hand_safety_box_0" and la.startswith("tiago/")):
-            srdf_disable_collisions += srdf_disable_collisions_fmt.format(la[:-la.rfind('_')], lb[:-lb.rfind('_')])
-srdf_disable_collisions += "</robot>"
-robot.client.manipulation.robot.insertRobotSRDFModelFromString("", srdf_disable_collisions)
-robot.setJointBounds('driller/root_joint', [-2, 2, -2, 2, 0, 2])
+robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 
+srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
+# Disable collision between tiago/hand_safety_box_0 and driller
+srdf_disable_collisions = """<robot>"""
+srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
+# Disable collision between tiago/hand (except hand_safety_box_0) and all other tiago links
+linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
+for la, lb, en in zip(linka, linkb, enabled):
+    if not en: continue
+    caster_vs_other = ('caster' in la or 'caster' in lb)
+    hand_vs_other = False
+    for l in [la, lb]:
+        if l.startswith("tiago/hand_") and l != "tiago/hand_safety_box_0":
+            hand_vs_other = True
+            break
+    if caster_vs_other or hand_vs_other:
+        srdf_disable_collisions += srdf_disable_collisions_fmt.format(la[:la.rfind('_')], lb[:lb.rfind('_')])
+# Disable collision between caster wheels and anything else
+# TODO
+srdf_disable_collisions += "</robot>"
+robot.client.manipulation.robot.insertRobotSRDFModelFromString("", srdf_disable_collisions)
+
 vf.loadObstacleModel ("package://gerard_bauzil/urdf/gerard_bauzil.urdf", "room")
-vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
+#vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
+vf.guiRequest.append( (tiago_fov.loadInGui, {'self':None}))
+vf.addCallback(tiago_fov_gui)
+
+try:
+    v = vf.createViewer()
+except:
+    print("Did not find viewer")
 
 shrinkJointRange(robot, 0.95)
 
@@ -211,7 +239,7 @@ q0[robot.rankInConfiguration['tiago/arm_5_joint']] = -1.57
 q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.3
 q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
 
-q0[robot.rankInConfiguration['part/root_joint']:] = [0,-0.3,0.8,0,0,0,1]
+q0[robot.rankInConfiguration['part/root_joint']:] = [0,0.3,0.8,0,0,1,0]
 # 2}}}
 
 # {{{2 Constraint graph initialization
@@ -247,7 +275,7 @@ ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", 
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/base_link",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_100",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -319,8 +347,7 @@ def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig
     from itertools import chain
     def project_and_validate(e, qrhs, q):
         res, qres, err = graph.generateTargetConfig (e, qrhs, q)
-        if res: res, msg = robot.isConfigValid(qres)
-        return res, qres
+        return res and not tiago_fov.clogged(qres, robot, tagss, tag_sizess) and robot.configIsValid(qres), qres
     qpg, qg = None, None
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
         res, qpg = project_and_validate (edge+" | 0-0_01", qinit, qrand)
@@ -333,9 +360,8 @@ def generate_valid_config(constraint, qguesses = [], NrandomConfig=10):
     from itertools import chain
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
         res, qres = constraint.apply (qrand)
-        if res:
-            ok, msg = robot.isConfigValid(qres)
-            if ok: return True, qres
+        if res and not tiago_fov.clogged(qres, robot, tagss, tag_sizess) and robot.configIsValid(qres):
+            return True, qres
     return False, None
 
 class ClusterComputation:
@@ -375,6 +401,7 @@ class ClusterComputation:
 
         step = [ False, ] * 4
         for k in range(4):
+            # Compute config where Tiago is collision
             if k == 0:
                 res, qphi = generate_valid_config(cpi, qguesses=[q0,], NrandomConfig = 0)
             else:
@@ -421,11 +448,10 @@ class ClusterComputation:
             pbar.update(len(cluster))
         return clusters
 
-    def solveTSP(self, armPlanner, cluster, qhome = None):
+    def solveTSP(self, armPlanner, cluster, qhome = None, pb_kwargs = {}):
         # Create home position
         if qhome is None:
             res, qhome, err = graph.generateTargetConfig('end_arm', cluster[0][1], cluster[0][1])
-        #configs = [ qhome, ] + [ c for _,c in cluster ]
 
         configs = [ qhome ]
         grasp_paths = []
@@ -433,17 +459,6 @@ class ClusterComputation:
         for hi, qphi, qhi in cluster:
             # Compute grasp config
             ei = part_gripper + " > " + hi + " | 0-0_12"
-            #res, qgrasp, err = graph.generateTargetConfig(ei, qhi, qhi)
-            #if not res:
-            #    print("Could not generate grasp config from pregrasp config (hi={}).".format(hi))
-            #    #grasp_paths.append((None, None))
-            #    continue
-             #alid, _ = robot.isConfigValid(qgrasp)
-             #f not valid:
-             #   print("Grasp config is in collision while pregrasp config is not (hi={}).".format(hi))
-             #   #grasp_paths.append((None, None))
-             #   continue
-            # from pregrasp to grasp
             cedge = wd(self._cgraph.get(graph.edges[ei]))
             p01 = cedge.getSteeringMethod().call(qphi, qhi)
             # from grasp to pregrasp
@@ -455,7 +470,8 @@ class ClusterComputation:
             configs.append(qphi)
 
         if len(configs) == 1: return []
-        permutation, arm_paths = armPlanner.solveTSP(configs, resetRoadmapEachTime=True)
+        permutation, arm_paths = armPlanner.solveTSP(configs, resetRoadmapEachTime=True,
+                pb_kwargs = pb_kwargs)
         paths = []
         #print(permutation, arm_paths)
         for i, p in zip(permutation[1:], arm_paths):
@@ -500,6 +516,10 @@ class InStatePlanner:
         # Set parameters
         for k, v in self.parameters.items():
             self.cproblem.setParameter(k, v)
+        # Set config validation
+        self.cproblem.clearConfigValidations()
+        for cfgval in [ "CollisionValidation", "JointBoundValidation"]:
+            self.cproblem.addConfigValidation(wd(ps.hppcorba.problem.createConfigValidation(cfgval, self.crobot)))
         # get reference to constraint graph
         self.cgraph = manipulationProblem.getConstraintGraph()
         # Add obstacles to new problem
@@ -510,6 +530,7 @@ class InStatePlanner:
         # Get constraint of edge
         edgeLoopFree = wd(self.cgraph.get(graph.edges[edge]))
         self.cconstraints = wd(edgeLoopFree.pathConstraint())
+        self.cproblem.setPathValidation(edgeLoopFree.getPathValidation())
         self.cproblem.setConstraints(self.cconstraints)
         self.cproblem.setSteeringMethod(wd(edgeLoopFree.getSteeringMethod()))
         self.cproblem.filterCollisionPairs()
@@ -573,42 +594,30 @@ class InStatePlanner:
                 print(e)
         return path
 
-    def solveTSP(self, configs, resetRoadmapEachTime):
+    def solveTSP(self, configs, resetRoadmapEachTime, pb_kwargs={}):
         # Compute matrix of paths
         l = len(configs)
         paths = [ [ None, ] * l for _ in range(l) ]
         distances = np.zeros((l,l))
-        if l > 10:
-            print("Computing distance matrix.")
-        for i in range(l):
-            for j in range(i+1,l):
-                if False:
-                    path = paths[i][j] = self.computePath(configs[i],configs[j],resetRoadmap=resetRoadmapEachTime)
-                    distances[j,i] = distances[i,j] = path.length()
-                else:
-                    try:
-                        path = paths[i][j] = self.computePath(configs[i],configs[j],resetRoadmap=resetRoadmapEachTime)
-                        distances[j,i] = distances[i,j] = path.length()
-                    except Exception as e:
-                        print("Failed to connect", i, "to", j, ":", e)
-                        paths[i][j] = None
-                        distances[j,i] = distances[i,j] = 1e8
-        if l > 10:
-            print("Solving TSP ({}). d =".format(l))
-            print(distances.tolist())
+        from itertools import combinations
+        pbar = progressbar_object(desc="Computing distance matrix", total=l*(l-1)/2, **pb_kwargs)
+        for i, j in combinations(range(l), 2):
+            try:
+                path = paths[i][j] = self.computePath(configs[i],configs[j],resetRoadmap=resetRoadmapEachTime)
+                distances[j,i] = distances[i,j] = path.length()
+            except Exception as e:
+                pbar.write("Failed to connect {} to {}: {}".format(i, j,e))
+                paths[i][j] = None
+                distances[j,i] = distances[i,j] = 1e8
+            pbar.update()
         if l > 15:
             from agimus_demos.pytsp.approximative_kopt import solve_3opt as solve_tsp
         else:
             from agimus_demos.pytsp.dynamic_programming import solve_with_heuristic as solve_tsp
-            #if l > 19:
-            #    print("Exact TSP with {} nodes may take a while...".format(l))
-        permutation, distance = solve_tsp(distances)
+        distance, permutation = solve_tsp(distances)
         # rotate permutation so that 0 is the first index.
-        k = permutation.index(0)
-        permutation = permutation[k:] + permutation[:k]
-        #print (distance)
         solution = []
-        permutation.append(0)
+        permutation = [0,] + permutation + [0,]
         assert permutation[0] == 0, str(permutation[0]) + " should be 0"
         for i,j in zip(permutation,permutation[1:]):
             p = paths[i][j] if i < j else wd(paths[j][i].reverse())
@@ -633,9 +642,29 @@ def concatenate_paths(paths):
 
 # {{{2 Problem resolution
 
+# {{{3 Finalize FOV filter
+res, q, err = graph.applyNodeConstraints(free, q0)
+assert res
+robot.setCurrentConfig(q)
+oMh, oMd = robot.hppcorba.robot.getJointsPosition(q, ["tiago/hand_tool_link", "driller/base_link"])
+tiago_fov.addDriller("package://gerard_bauzil/meshes/driller/BD_drill_2.stl",
+        "hand_tool_link",
+        (Transform(oMh).inverse() * Transform(oMd)).toTuple())
+# 3}}}
+
 # {{{3 Create InStatePlanner
 armPlanner = InStatePlanner ()
 armPlanner.setEdge(loop_free)
+# Set collision margin between mobile base and the rest because the collision model is not correct.
+bodies = ("tiago/torso_fixed_link_0", "tiago/base_link_0")
+cfgVal = wd(armPlanner.cproblem.getConfigValidations())
+pathVal = wd(armPlanner.cproblem.getPathValidation())
+for _, la, lb, _, _ in zip(*robot.distancesToCollision()):
+    if la in bodies or lb in bodies:
+        cfgVal.setSecurityMarginBetweenBodies(la, lb, 0.07)
+        pathVal.setSecurityMarginBetweenBodies(la, lb, 0.07)
+del cfgVal
+del pathVal
 
 basePlanner = InStatePlanner ()
 basePlanner.plannerType = "kPRM*"
@@ -644,12 +673,12 @@ basePlanner.setEdge("move_base")
 basePlanner.setReedsAndSheppSteeringMethod()
 
 import security_margins
-sm = security_margins.SecurityMargins(robot.jointNames)
+smBase = security_margins.SecurityMargins(robot.jointNames)
 margin = 0.1
-for i in [ 0, sm.jid("part/root_joint") ]:
-    sm.margins[i,:] = margin
-    sm.margins[:,i] = margin
-basePlanner.cproblem.setSecurityMargins(sm.margins.tolist())
+for i in [ 0, smBase.jid("part/root_joint") ]:
+    smBase.margins[i,:] = margin
+    smBase.margins[:,i] = margin
+basePlanner.cproblem.setSecurityMargins(smBase.margins.tolist())
 
 basePlanner.createEmptyRoadmap()
 # 3}}}
@@ -686,7 +715,7 @@ if solve_tsp_problems:
     clusters_path = []
     qhomes = [q0, ]
     for cluster in progressbar_iterable(clusters, "Find path for each cluster"):
-        paths = clusters_comp.solveTSP(armPlanner, cluster)
+        paths = clusters_comp.solveTSP(armPlanner, cluster, pb_kwargs={'position': 1})
 
         clusters_path.append(concatenate_paths(paths))
         if len(paths) > 0:
@@ -705,10 +734,12 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     if qcurrent is None:
         import estimation 
         qcurrent = estimation.get_current_config(robot, graph, q0[:])
+    if not robot.configIsValid(qcurrent): print("qcurrent invalid")
 
     # Tuck arm.
     res, qtuck, err = graph.generateTargetConfig('end_arm', qcurrent, qcurrent)
     if not res: print("failed to tuck arm")
+    if not robot.configIsValid(qtuck): print("qtuck invalid")
     tuckpath = armPlanner.computePath(qcurrent, qtuck, resetRoadmap=True)
     # Move mobile base.
     qhome = clusters[i_cluster][0][1][:4] + qtuck[4:]
