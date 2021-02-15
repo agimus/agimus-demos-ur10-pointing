@@ -15,6 +15,12 @@
         <mesh filename="package://rob4fam-models/meshes/P72.stl"  scale="0.01 0.01 0.01"/>
       </geometry>
     </collision>
+    <collision>
+      <origin xyz="0.05 -0.0422962331772 0.0814425373077" />
+      <geometry>
+        <box size="0.6 0.1 0.1"/>
+      </geometry>
+    </collision>
     <inertial>
       <mass value="2.2"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -200,65 +206,64 @@
 
 
 
-  <link name="tag36_11_00001_est">
+  <link name="tag36_11_00001">
     <visual>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00001.dae" scale="0.0495 0.0495 1."/>
       </geometry>
     </visual>
   </link>
-  <joint name="to_tag_00001_est" type="fixed">
+  <joint name="to_tag_00001" type="fixed">
     <parent link="base_link"/>
-    <child link="tag36_11_00001_est"/>
+    <child link="tag36_11_00001"/>
     <origin xyz="0.241666609451 -0.0260429212234 0.588386866336"  rpy="1.6403222463 -0.0364997670221 0.000742712642255"/>
   </joint>
-  <link name="tag36_11_00100_est">
+  <link name="tag36_11_00100">
     <visual>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00100.dae" scale="0.041 0.041 1."/>
       </geometry>
     </visual>
   </link>
-  <joint name="to_tag_00100_est" type="fixed">
+  <joint name="to_tag_00100" type="fixed">
     <parent link="base_link"/>
-    <child link="tag36_11_00100_est"/>
+    <child link="tag36_11_00100"/>
     <origin xyz="0.0197930637537 -0.0353870621892 0.437950207217"  rpy="1.65673314802 -0.0180374390265 -8.37022785993e-05"/>
   </joint>
-  <link name="tag36_11_00101_est">
+  <link name="tag36_11_00101">
     <visual>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00101.dae" scale="0.041 0.041 1."/>
       </geometry>
     </visual>
   </link>
-  <joint name="to_tag_00101_est" type="fixed">
+  <joint name="to_tag_00101" type="fixed">
     <parent link="base_link"/>
-    <child link="tag36_11_00101_est"/>
+    <child link="tag36_11_00101"/>
     <origin xyz="0.0202331246739 -0.0486944027218 0.701821859147"  rpy="1.60759573946 -0.0201753959062 -0.000665864566836"/>
   </joint>
-  <link name="tag36_11_00006_est">
+  <link name="tag36_11_00006">
     <visual>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00006.dae" scale="0.1615 0.1615 1."/>
       </geometry>
     </visual>
   </link>
-  <joint name="to_tag_00006_est" type="fixed">
+  <joint name="to_tag_00006" type="fixed">
     <parent link="base_link"/>
-    <child link="tag36_11_00006_est"/>
+    <child link="tag36_11_00006"/>
     <origin xyz="0.270320819622 -0.00724268033619 0.235261842895"  rpy="-3.10995636712 -1.47719252195 -1.60052477825"/>
   </joint>
-  <link name="tag36_11_00015_est">
+  <link name="tag36_11_00015">
     <visual>
       <geometry>
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00015.dae" scale="0.1615 0.1615 1."/>
       </geometry>
     </visual>
   </link>
-  <joint name="to_tag_00015_est" type="fixed">
+  <joint name="to_tag_00015" type="fixed">
     <parent link="base_link"/>
-    <child link="tag36_11_00015_est"/>
+    <child link="tag36_11_00015"/>
     <origin xyz="-0.156366112148 -0.0276786399491 0.490958637679"  rpy="1.65921132641 -0.0386653839413 -0.0285749262783"/>
   </joint>
-
 </robot>
