@@ -28,9 +28,12 @@
         --measurement-parent-frame xtion_optical_frame
         --group-frame part/base_link
         --no-description
-        --size 0.04
-        --tag 100
-        --tag 101
+        --size 0.0495
+        --tag 1
+        --size 0.1615
+        --tag 6
+        --size 0.1615
+        --tag 15
         "
         output="$(arg output)"
         />

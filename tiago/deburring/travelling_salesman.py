@@ -103,8 +103,8 @@ from hpp import Transform
 tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         fov = np.radians((49.5, 60)),
         geoms = [ "arm_3_link_0" ])
-tagss = [ ['driller/tag36_11_00230',], ['part/tag36_11_00100', 'part/tag36_11_00101',]]
-tag_sizess = [ [ 0.064, ], [ 0.0414, 0.0414,] ]
+tagss = [ ['driller/tag36_11_00230',], ['part/tag36_11_00006', 'part/tag36_11_00015',]]
+tag_sizess = [ [ 0.064, ], [ 0.1615, 0.1615,] ]
 tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, sum(tagss, []), sum(tag_sizess, []))
 
 qneutral = crobot.neutralConfiguration()
@@ -204,7 +204,9 @@ robot.client.manipulation.robot.insertRobotSRDFModelFromString("", srdf_disable_
 
 vf.loadObstacleModel ("package://gerard_bauzil/urdf/gerard_bauzil.urdf", "room")
 #vf.loadObstacleModel ("package://agimus_demos/urdf/P72-table.urdf", "table")
-vf.guiRequest.append( (tiago_fov.loadInGui, {'self':None}))
+# Display Tiago Field of view.
+#vf.guiRequest.append( (tiago_fov.loadInGui, {'self':None}))
+# Display visibility cones.
 vf.addCallback(tiago_fov_gui)
 
 try:
@@ -275,7 +277,7 @@ ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", 
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_100",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_100_base",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}

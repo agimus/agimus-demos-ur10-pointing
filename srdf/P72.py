@@ -1,6 +1,6 @@
 
 handle_fmt="""
-<handle name="handle_{i}" clearance="0.01">
+<handle name="handle_{i}" clearance="0.05">
     <position rpy="0 1.5707963267948966 0"/>
     <link name="hole_{j:02}_link" />
     <mask>1 1 1 0 1 1</mask>

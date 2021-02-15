@@ -23,101 +23,108 @@
   </link>
 
 <!-- Lower Tag -->
-  <link name="tag36_11_00100">
+  <link name="tag_100_base_link"/>
+
+  <joint name="to_tag_100_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag_100_base_link"/>
+    <origin xyz="0.02 -0.031 0.44"  rpy="1.6 0 0"/>
+  </joint>
+
+  <link name="tag36_11_00100_cao">
     <visual>
       <origin xyz="0 0 0.00000"/>
       <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00100.dae" scale="0.04 0.04 1."/>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00100.dae" scale="0.041 0.041 1."/>
       </geometry>
     </visual>
   </link>
-
-  <joint name="to_tag_100" type="fixed">
-    <parent link="base_link"/>
-    <child link="tag36_11_00100"/>
-    <origin xyz="0.02 -0.031 0.44"  rpy="1.6 0 0"/>
+  <joint name="to_tag_100_cao" type="fixed">
+    <parent link="tag_100_base_link"/>
+    <child link="tag36_11_00100_cao"/>
+    <origin xyz="0. 0. 0.004"  rpy="0 0 0"/>
   </joint>
 
   <link name="hole_01_link"/>
   <joint name="to_hole_01" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_01_link"/>
     <origin xyz="-0.045 -0.003 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_02_link"/>
   <joint name="to_hole_02" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_02_link"/>
     <origin xyz="-0.023 0.033 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_03_link"/>
   <joint name="to_hole_03" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_03_link"/>
     <origin xyz="0.022 0.033 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_04_link"/>
   <joint name="to_hole_04" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_04_link"/>
     <origin xyz="0.037 -0.003 0.0" rpy="0 0 0"/>
   </joint>
 
    <link name="hole_05_link"/>
   <joint name="to_hole_05" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_05_link"/>
     <origin xyz="0.022 -0.035 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_06_link"/>
   <joint name="to_hole_06" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_06_link"/>
     <origin xyz="-0.023 -0.035 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_07_link"/>
   <joint name="to_hole_07" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_07_link"/>
     <origin xyz="-0.045 -0.07 0.0" rpy="0 0 0"/>
   </joint>
 
    <link name="hole_08_link"/>
   <joint name="to_hole_08" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_08_link"/>
     <origin xyz="-0.023 -0.11 0.0" rpy="0 0 0"/>
   </joint>
 
    <link name="hole_09_link"/>
   <joint name="to_hole_09" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_09_link"/>
     <origin xyz="0.022 -0.11 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_10_link"/>
   <joint name="to_hole_10" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_10_link"/>
    <origin xyz="0.037 -0.07 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_11_link"/>
   <joint name="to_hole_11" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_11_link"/>
    <origin xyz="-0.035 0.095 0.005" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_12_link"/>
   <joint name="to_hole_12" type="fixed">
-    <parent link="tag36_11_00100"/>
+    <parent link="tag_100_base_link"/>
     <child link="hole_12_link"/>
    <origin xyz="0.05 0.095 0.005" rpy="0 0 0"/>
   </joint>
@@ -126,61 +133,132 @@
 
   <!-- Upper Tag -->
 
+  <link name="tag_101_base_link"/>
 
-  <link name="tag36_11_00101">
+  <joint name="to_tag_101_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag_101_base_link"/>
+    <origin xyz="0.02 -0.045 0.70"  rpy="1.6 0 0"/>
+  </joint>
+
+  <link name="tag36_11_00101_cao">
     <visual>
       <origin xyz="0 0 0.00000"/>
       <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00101.dae" scale="0.04 0.04 1."/>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00101.dae" scale="0.041 0.041 1."/>
       </geometry>
     </visual>
   </link>
 
-  <joint name="to_tag_101" type="fixed">
-    <parent link="base_link"/>
-    <child link="tag36_11_00101"/>
-    <origin xyz="0.02 -0.045 0.70"  rpy="1.6 0 0"/>
+  <joint name="to_tag_101_cao" type="fixed">
+    <parent link="tag_101_base_link"/>
+    <child link="tag36_11_00101_cao"/>
+    <origin xyz="0. 0. 0.004"  rpy="0 0 0"/>
   </joint>
 
   <link name="hole_13_link"/>
   <joint name="to_hole_13" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_13_link"/>
     <origin xyz="-0.04 -0.105 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_14_link"/>
   <joint name="to_hole_14" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_14_link"/>
     <origin xyz="-0.04 -0.055 0.0" rpy="0 0 0"/>
   </joint>
 
    <link name="hole_15_link"/>
   <joint name="to_hole_15" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_15_link"/>
     <origin xyz="-0.04 -0.01 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_16_link"/>
   <joint name="to_hole_16" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_16_link"/>
     <origin xyz="0.05 -0.01 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_17_link"/>
   <joint name="to_hole_17" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_17_link"/>
     <origin xyz="0.05 -0.055 0.0" rpy="0 0 0"/>
   </joint>
 
   <link name="hole_18_link"/>
   <joint name="to_hole_18" type="fixed">
-    <parent link="tag36_11_00101"/>
+    <parent link="tag_101_base_link"/>
     <child link="hole_18_link"/>
     <origin xyz="0.05 -0.105 0.0" rpy="0 0 0"/>
   </joint>
+
+
+
+  <link name="tag36_11_00001_est">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00001.dae" scale="0.0495 0.0495 1."/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="to_tag_00001_est" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag36_11_00001_est"/>
+    <origin xyz="0.241666609451 -0.0260429212234 0.588386866336"  rpy="1.6403222463 -0.0364997670221 0.000742712642255"/>
+  </joint>
+  <link name="tag36_11_00100_est">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00100.dae" scale="0.041 0.041 1."/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="to_tag_00100_est" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag36_11_00100_est"/>
+    <origin xyz="0.0197930637537 -0.0353870621892 0.437950207217"  rpy="1.65673314802 -0.0180374390265 -8.37022785993e-05"/>
+  </joint>
+  <link name="tag36_11_00101_est">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00101.dae" scale="0.041 0.041 1."/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="to_tag_00101_est" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag36_11_00101_est"/>
+    <origin xyz="0.0202331246739 -0.0486944027218 0.701821859147"  rpy="1.60759573946 -0.0201753959062 -0.000665864566836"/>
+  </joint>
+  <link name="tag36_11_00006_est">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00006.dae" scale="0.1615 0.1615 1."/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="to_tag_00006_est" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag36_11_00006_est"/>
+    <origin xyz="0.270320819622 -0.00724268033619 0.235261842895"  rpy="-3.10995636712 -1.47719252195 -1.60052477825"/>
+  </joint>
+  <link name="tag36_11_00015_est">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00015.dae" scale="0.1615 0.1615 1."/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="to_tag_00015_est" type="fixed">
+    <parent link="base_link"/>
+    <child link="tag36_11_00015_est"/>
+    <origin xyz="-0.156366112148 -0.0276786399491 0.490958637679"  rpy="1.65921132641 -0.0386653839413 -0.0285749262783"/>
+  </joint>
+
 </robot>
