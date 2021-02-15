@@ -4,6 +4,9 @@
   <node if="$(arg gazebo)" name="world_to_map" pkg="tf2_ros" type="static_transform_publisher"
     args="0 0 0 0 0 0 1 world map"
     />
+  <node unless="$(arg gazebo)" name="world_to_map" pkg="tf2_ros" type="static_transform_publisher"
+    args="7.60299 -0.777559 -0.290495 1.5028752132051033 0 0 map world"
+    />
 
   <!-- salle Gerard Bauzil -->
   <group ns="gerard_bauzil">

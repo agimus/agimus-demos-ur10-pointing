@@ -37,5 +37,17 @@
         "
         output="$(arg output)"
         />
+
+    <!-- Driller -->
+    <node pkg="agimus_demos" type="group_of_tags.py" name="driller_tags" args="
+        --child-frame-format 'driller/tag36_11_{:0>5d}'
+        --measurement-parent-frame xtion_optical_frame
+        --group-frame driller/base_link
+        --no-description
+        --size 0.064
+        --tag 230
+        "
+        output="$(arg output)"
+        />
   </group>
 </launch>

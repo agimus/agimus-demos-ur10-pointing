@@ -16,6 +16,7 @@ INSTALL_DEMO_LAUNCH_FILES(deburring
   estimation.launch
 
   gazebo.launch
+  tiago.launch
 
   SCRIPTS
   publish_initial_pose.py
@@ -31,4 +32,6 @@ if (pal_navigation_cfg_tiago_FOUND)
   endforeach()
   install(FILES common/teb/local_planner.yaml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/tiago/config/base/teb)
+  install(FILES common/pal/local_planner.yaml
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/tiago/config/base/pal)
 endif ()
