@@ -101,10 +101,14 @@ crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 from tiago_fov import TiagoFOV, TiagoFOVGuiCallback
 from hpp import Transform
 tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
-        fov = np.radians((49.5, 60)),
+        # Real field of view angles are (49.5, 60),
+        fov = np.radians((44.5, 55)),
         geoms = [ "arm_3_link_0" ])
 tagss = [ ['driller/tag36_11_00230',], ['part/tag36_11_00006', 'part/tag36_11_00015',]]
 tag_sizess = [ [ 0.064, ], [ 0.1615, 0.1615,] ]
+tag_size_margin = 0.01
+# Apply a margin on the tags
+tag_sizess = [ [ s+tag_size_margin for s in sizes ] for sizes in tag_sizess ]
 tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, sum(tagss, []), sum(tag_sizess, []))
 
 qneutral = crobot.neutralConfiguration()
@@ -354,7 +358,7 @@ def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
         res, qpg = project_and_validate (edge+" | 0-0_01", qinit, qrand)
         if res:
-            ok, qg, err = graph.generateTargetConfig (edge+" | 0-0_12", qpg, qpg)
+            ok, qg = project_and_validate(edge+" | 0-0_12", qpg, qpg)
             if ok: break
     return ok, qpg, qg
 
@@ -388,7 +392,13 @@ class ClusterComputation:
         cedge = wd(self._cgraph.get(graph.edges[ei]))
         return wd(cedge.targetConstraint().getConfigProjector())
 
-    def find_cluster(self, hi, handles, qrhs, fixed_base=False):
+    def find_cluster(self, hi, handles, qrhs, fixed_base=False, pbar=None,
+            N_find_first=20,
+            N_find_others=20):
+        if pbar is None:
+            write = print
+        else:
+            write = pbar.write
         #ni = part_gripper + " grasps " + hi
         #ni = part_gripper + " > " + hi + " | 0-0_pregrasp"
         qrand = q0
@@ -402,7 +412,7 @@ class ClusterComputation:
         ci = self.pregraspToGraspConstraint(hi)
 
         step = [ False, ] * 4
-        for k in range(4):
+        for k in range(N_find_first):
             # Compute config where Tiago is collision
             if k == 0:
                 res, qphi = generate_valid_config(cpi, qguesses=[q0,], NrandomConfig = 0)
@@ -425,23 +435,27 @@ class ClusterComputation:
                     continue
                 ok, qphj, qhj = generate_valid_config_for_handle(hj, qhi,
                         qguesses = [ qq for _, qq, qqq in cur_cluster ],
-                        NrandomConfig=10)
+                        NrandomConfig=N_find_others)
                 if ok:
                     cur_cluster.append((hj, qphj, qhj))
             if len(cur_cluster) > len(best_cluster):
                 best_cluster = cur_cluster
                 step[2] = True
-        if   not step[0]: print("not able to generate pregrasp config")
-        elif not step[1]: print("not able to generate grasp config")
+        if   not step[0]: write("not able to generate pregrasp config")
+        elif not step[1]: write("not able to generate grasp config")
         return best_cluster
 
-    def find_clusters(self, handles, qrhs):
+    def find_clusters(self, handles, qrhs,
+            N_find_first=20,
+            N_find_others=20):
+        from random import choice
         start = time.time()
         clusters = []
         remaining_handles = handles[:]
         pbar = progressbar_object(desc="Looking for clusters", total=len(remaining_handles))
         while remaining_handles:
-            cluster = self.find_cluster(remaining_handles[0], remaining_handles, qrhs)
+            cluster = self.find_cluster(choice(remaining_handles), remaining_handles, qrhs,
+                    pbar=pbar, N_find_first=N_find_first, N_find_others=N_find_others)
             if len(cluster) == 0: continue
             for hi, qpi, qi in cluster:
                 remaining_handles.remove(hi)
@@ -649,9 +663,9 @@ res, q, err = graph.applyNodeConstraints(free, q0)
 assert res
 robot.setCurrentConfig(q)
 oMh, oMd = robot.hppcorba.robot.getJointsPosition(q, ["tiago/hand_tool_link", "driller/base_link"])
-tiago_fov.addDriller("package://gerard_bauzil/meshes/driller/BD_drill_2.stl",
-        "hand_tool_link",
-        (Transform(oMh).inverse() * Transform(oMd)).toTuple())
+tiago_fov.appendUrdfModel(Driller.urdfFilename, "hand_tool_link",
+        (Transform(oMh).inverse() * Transform(oMd)).toTuple(),
+        prefix="driller/")
 # 3}}}
 
 # {{{3 Create InStatePlanner
@@ -710,7 +724,8 @@ basePlanner.plannerType = "BiRRT*"
 
 # {{{3 Find handle clusters and solve TSP for each clusters.
 clusters_comp = ClusterComputation(armPlanner.cgraph, c_lock_part)
-clusters = clusters_comp.find_clusters(part_handles, q0)
+clusters = clusters_comp.find_clusters(part_handles, q0,
+        N_find_first = 40, N_find_others = 40)
 #clusters = find_clusters(part_handles[:3], q0)
 solve_tsp_problems = False
 if solve_tsp_problems:

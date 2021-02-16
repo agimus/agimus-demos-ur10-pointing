@@ -54,6 +54,7 @@ def makeSupervisorWithFactory(robot):
         robot.camera_frame = "xtion_optical_frame"
 
     drillerModel = pinocchio.buildModelFromUrdf (rospack.get_path("gerard_bauzil") + "/urdf/driller_with_qr_drill.urdf")
+    partModel = pinocchio.buildModelFromUrdf (rospack.get_path("agimus_demos") + "/urdf/P72-with-table.urdf")
 
     srdf = {}
     srdfTiago = parse_srdf("srdf/pal_hey5_gripper.srdf", packageName="tiago_data", prefix="tiago")
@@ -63,6 +64,7 @@ def makeSupervisorWithFactory(robot):
 
     attach_all_to_link(drillerModel, "base_link", srdfDriller)
     attach_all_to_link(drillerModel, "base_link", srdfQRDrill)
+    attach_all_to_link(partModel, "base_link", srdfPart)
 
     grippers = "tiago/gripper", "driller/drill_tip"
     objects = "driller", "part",

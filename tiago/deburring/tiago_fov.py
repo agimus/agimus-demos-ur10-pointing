@@ -16,7 +16,7 @@ _tetahedron_tris = hppfcl.StdVec_Triangle()
 _tetahedron_tris.append(hppfcl.Triangle(0, 1, 2))
 _tetahedron_tris.append(hppfcl.Triangle(0, 2, 3))
 _tetahedron_tris.append(hppfcl.Triangle(0, 3, 4))
-_tetahedron_tris.append(hppfcl.Triangle(0, 4, 0))
+_tetahedron_tris.append(hppfcl.Triangle(0, 4, 1))
 
 class TiagoFOV:
     def __init__(self,
@@ -61,10 +61,10 @@ class TiagoFOV:
         go = pinocchio.GeometryObject("field_of_view", id_parent_frame, parent_frame.parent,
                 fov_fcl, parent_frame.placement)
 
-        self.gmodel.addGeometryObject(go, self.model)
+        self.gid_field_of_view = self.gmodel.addGeometryObject(go, self.model)
         for n in geoms:
             assert self.gmodel.existGeometryName(n)
-            self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gmodel.getGeometryId(n), self.gmodel.ngeoms-1))
+            self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gmodel.getGeometryId(n), self.gid_field_of_view))
 
         self.data = pinocchio.Data(self.model)
         self.gdata = pinocchio.GeometryData(self.gmodel)
@@ -87,13 +87,17 @@ class TiagoFOV:
         pts = hppfcl.StdVec_Vec3f()
         idc = self.model.getFrameId("xtion_rgb_optical_frame")
 
-        pts.append(self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2])
+        C = self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2]
+        pts.append(C)
         for pt in [
                 np.array(( size / 2,  size / 2, 0)),
                 np.array((-size / 2,  size / 2, 0)),
                 np.array((-size / 2, -size / 2, 0)),
                 np.array(( size / 2, -size / 2, 0)), ]:
-            pts.append(oMt * pt)
+            P = oMt * pt
+            u = (C-P)
+            u /= np.linalg.norm(u)
+            pts.append(P + 0.002 * u)
         return pts
 
     def tagVisible(self, oMt, size):
@@ -159,7 +163,37 @@ class TiagoFOV:
                 parent_frame.placement * fMm)
 
         self.gmodel.addGeometryObject(go, self.model)
-        self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gmodel.ngeoms-2, self.gmodel.ngeoms-1))
+        self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view, self.gmodel.ngeoms-1))
+        self.gdata = pinocchio.GeometryData(self.gmodel)
+
+    def appendUrdfModel(self, urdfFilename, frame_name, fMm, prefix = None):
+        if not isinstance(fMm, pinocchio.SE3):
+            fMm = pinocchio.XYZQUATToSE3(fMm)
+        id_parent_frame = self.model.getFrameId(frame_name)
+
+        model, gmodel = pinocchio.buildModelsFromUrdf(
+                hpp.rostools.retrieve_resource(urdfFilename),
+                geometry_types=pinocchio.GeometryType.COLLISION)
+
+        if prefix is not None:
+            for i in range(1, len(model.names)):
+                model.names[i] = prefix + model.names[i]
+            for f in model.frames:
+                f.name = prefix + f.name
+            for go in gmodel.geometryObjects:
+                go.name = prefix + go.name
+
+        igeom = self.gmodel.ngeoms
+
+        nmodel, ngmodel = pinocchio.appendModel(self.model, model, self.gmodel, gmodel, id_parent_frame, fMm)
+
+        self.gid_field_of_view = ngmodel.getGeometryId("field_of_view")
+        for go in gmodel.geometryObjects:
+            ngmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view,
+                ngmodel.getGeometryId(go.name)))
+
+        self.model, self.gmodel = nmodel, ngmodel
+        self.data = pinocchio.Data(self.model)
         self.gdata = pinocchio.GeometryData(self.gmodel)
 
     def loadInGui(self, v):
