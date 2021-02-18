@@ -275,8 +275,8 @@ lock_arm = [ lockJoint(n, q0) for n in robot.jointNames
 lock_head = [ lockJoint(n, q0) for n in robot.jointNames
         if n.startswith("tiago/head")]
 
-part_gripper = "driller/drill_tip"
-ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", part_gripper,
+tool_gripper = "driller/drill_tip"
+ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", tool_gripper,
         (0,0,0), (0,0,0), (True,True,True))
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
@@ -348,7 +348,7 @@ else:
 
 # {{{2 Functions for handling the TSP
 def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig=10):
-    edge = part_gripper + " > " + handle
+    edge = tool_gripper + " > " + handle
     ok = False
     from itertools import chain
     def project_and_validate(e, qrhs, q):
@@ -375,23 +375,58 @@ class ClusterComputation:
         self._cgraph = cgraph
         self._lock_part = lock_part
 
+    ## Return constraints of node where the tool is in front of handle
+    #  \param hi handle the tool should get in front of
+    #  \return solver with constraints of the pregrasp node and with
+    #          constraint of fixed part pose.
+    #  \note the returned solver contains the following constraints
+    #    \li driller in gripper,
+    #    \li tool handle in pregrasp in front of hi,
+    #    \li fixed position of object (parameterizable).
+    #    \li camera looks at gripper
     def freeBaseConstraint(self, hi):
-        ni = part_gripper + " > " + hi + " | 0-0_pregrasp"
+        ni = tool_gripper + " > " + hi + " | 0-0_pregrasp"
         cnode = wd(self._cgraph.get(graph.nodes[ni]))
         c = wd(cnode.configConstraint().getConfigProjector()).copy()
         c.add(self._lock_part, 0)
         return c
 
+    ## Return target constraints of node where the tool is in front of handle
+    #  \param hi handle the tool should get in front of
+    #  \return solver with target constraints of the edge leading to the goal
+    #          node.
+    #  \note the returned solver contains the following constraints
+    #    \li driller in gripper,
+    #    \li tool handle in pregrasp in front of hi,
+    #    \li fixed position of the base (parameterizable),
+    #    \li fixed position of object (parameterizable).
+    #    \li camera looks at gripper
     def fixedBaseConstraint(self, hi):
-        ei = part_gripper + " > " + hi + " | 0-0_01"
+        ei = tool_gripper + " > " + hi + " | 0-0_01"
         cedge = wd(self._cgraph.get(graph.edges[ei]))
         return wd(cedge.targetConstraint().getConfigProjector())
 
+    ## Return constraint of edge between pregrasp and grasp of tool gripper
+    #  \param hi handle the tool should reach
+    #  \return solver with target constraints of edge leading from pregrasp to
+    #          grasp.
+    #  \note the returned solver contains the following constraints
+    #    \li driller in gripper,
+    #    \li tool gripper at handle
+    #    \li complement of tool gripper at handle (parameterizable)
+    #    \li fixed position of the base (parameterizable),
+    #    \li fixed position of object (parameterizable).
+    #    \li camera looks at gripper
     def pregraspToGraspConstraint(self, hi):
-        ei = part_gripper + " > " + hi + " | 0-0_12"
+        ei = tool_gripper + " > " + hi + " | 0-0_12"
         cedge = wd(self._cgraph.get(graph.edges[ei]))
         return wd(cedge.targetConstraint().getConfigProjector())
 
+    ## Find a cluster of handles that contains one handle
+    # \param hi handle contained in the cluster,
+    # \param handles superset of the resulting cluster
+    # \param qrhs configuration of the robot
+    # \param fixed_based whether the base is fixed or can move in each cluster
     def find_cluster(self, hi, handles, qrhs, fixed_base=False, pbar=None,
             N_find_first=20,
             N_find_others=20):
@@ -413,7 +448,7 @@ class ClusterComputation:
 
         step = [ False, ] * 4
         for k in range(N_find_first):
-            # Compute config where Tiago is collision
+            # Compute config where Tiago is not in collision
             if k == 0:
                 res, qphi = generate_valid_config(cpi, qguesses=[q0,], NrandomConfig = 0)
             else:
@@ -445,6 +480,11 @@ class ClusterComputation:
         elif not step[1]: write("not able to generate grasp config")
         return best_cluster
 
+    ## Compute clusters of handles reachable by separate base positions
+    # \param handles list of handles to reach,
+    # \param qrhs initial configuration of the robot.
+    # \return list of clusters. Each cluster is a list of triples
+    #         (handle_name, pregrasp config, config)
     def find_clusters(self, handles, qrhs,
             N_find_first=20,
             N_find_others=20):
@@ -464,21 +504,34 @@ class ClusterComputation:
             pbar.update(len(cluster))
         return clusters
 
+    ## Solve traveling salesman problem between configurations of a cluster
+    # \param armPlanner motion planner for the arm only,
+    # \param cluster the set of configurations to order,
+    # \param qhome initial and final configuration. If not provided, the
+    #        configuration with the same base pose as the first config in the
+    #        cluster is computed.
+    #
+    # \li Build back and forth path of tool between pregrasp and grasp for each
+    #     handle,
+    # \li call InStatePlanner::solveTSP to compute the handle order, and
+    # \li build the resulting path by concatenation.
     def solveTSP(self, armPlanner, cluster, qhome = None, pb_kwargs = {}):
         # Create home position
         if qhome is None:
             res, qhome, err = graph.generateTargetConfig('end_arm', cluster[0][1], cluster[0][1])
 
         configs = [ qhome ]
+        # build back and forth path of tool between pregrasp and grasp for each
+        # handle
         grasp_paths = []
         #print(permutation, arm_paths)
         for hi, qphi, qhi in cluster:
             # Compute grasp config
-            ei = part_gripper + " > " + hi + " | 0-0_12"
+            ei = tool_gripper + " > " + hi + " | 0-0_12"
             cedge = wd(self._cgraph.get(graph.edges[ei]))
             p01 = cedge.getSteeringMethod().call(qphi, qhi)
             # from grasp to pregrasp
-            eir = part_gripper + " < " + hi + " | 0-0:1-{}_21".format(all_handles.index(hi))
+            eir = tool_gripper + " < " + hi + " | 0-0:1-{}_21".format(all_handles.index(hi))
             cedge = wd(self._cgraph.get(graph.edges[eir]))
             p10 = cedge.getSteeringMethod().call(qhi, qphi)
 
@@ -498,22 +551,6 @@ class ClusterComputation:
             if i > 0:
                 paths.append(grasp_paths[i-1][0])
                 paths.append(grasp_paths[i-1][1])
-                # # Compute grasp config
-                # hi, qhi = cluster[i-1]
-                # ei = part_gripper + " > " + hi + " | 0-0_12"
-                # res, qgrasp, err = graph.generateTargetConfig(ei, qhi, qhi)
-                # if not res:
-                #     throw 
-                # assert res, "Could not generate grasp config from pregrasp config."
-                # valid, _ = robot.isConfigValid(qgrasp)
-                # assert valid, "Grasp config is in collision while pregrasp config is not."
-                # # from pregrasp to grasp
-                # cedge = wd(self._cgraph.get(graph.edges[ei]))
-                # paths.append(cedge.getSteeringMethod().call(qhi, qgrasp))
-                # # from grasp to pregrasp
-                # eir = part_gripper + " < " + hi + " | 0-{}_21".format(handles.index(hi))
-                # cedge = wd(self._cgraph.get(graph.edges[eir]))
-                # paths.append(cedge.getSteeringMethod().call(qgrasp, qhi))
         return paths
 
 class InStatePlanner:
@@ -610,6 +647,13 @@ class InStatePlanner:
                 print(e)
         return path
 
+    ## Solve traveling salesman problem between configurations
+    # \param configs list of configurations.
+    #
+    # \li Compute matrix of paths between all configurations by calling method
+    #     computePath,
+    # \li compute matrix of distances as path lengths,
+    # \li call TSP solver in module agimus_demos.pytsp
     def solveTSP(self, configs, resetRoadmapEachTime, pb_kwargs={}):
         # Compute matrix of paths
         l = len(configs)
