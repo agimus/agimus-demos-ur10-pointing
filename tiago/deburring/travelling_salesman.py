@@ -104,12 +104,30 @@ tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         # Real field of view angles are (49.5, 60),
         fov = np.radians((44.5, 55)),
         geoms = [ "arm_3_link_0" ])
-tagss = [ ['driller/tag36_11_00230',], ['part/tag36_11_00006', 'part/tag36_11_00015',]]
-tag_sizess = [ [ 0.064, ], [ 0.1615, 0.1615,] ]
+class Tag:
+    def __init__(self, n, s):
+        self.name = n
+        self.size = s
+class Tags:
+    def __init__(self, tags, n_visibility_thr, size_margin):
+        self.tags = tags
+        self.n_visibility_thr = n_visibility_thr
+        self.size_margin = size_margin
+    @property
+    def names(self):
+        return [ t.name for t in self.tags ]
+    @property
+    def sizes(self):
+        return [ t.size for t in self.tags ]
 tag_size_margin = 0.01
-# Apply a margin on the tags
-tag_sizess = [ [ s+tag_size_margin for s in sizes ] for sizes in tag_sizess ]
-tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, sum(tagss, []), sum(tag_sizess, []))
+tagss = [
+        Tags([ Tag('driller/tag36_11_00230', 0.064), ], 1, tag_size_margin),
+        Tags([ Tag('part/tag36_11_00001', 0.0845),
+               Tag('part/tag36_11_00006', 0.1615),
+               Tag('part/tag36_11_00015', 0.0845) ],
+               2, tag_size_margin),
+               ]
+tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, sum([t.tags for t in tagss], []))
 
 qneutral = crobot.neutralConfiguration()
 qneutral[robot.rankInConfiguration['tiago/hand_thumb_abd_joint']] = 1.5707
@@ -295,7 +313,7 @@ import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
 
 # Create "Look at part" constraint
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_100_base",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00100",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -367,7 +385,7 @@ def generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig
     from itertools import chain
     def project_and_validate(e, qrhs, q):
         res, qres, err = graph.generateTargetConfig (e, qrhs, q)
-        return res and not tiago_fov.clogged(qres, robot, tagss, tag_sizess) and robot.configIsValid(qres), qres
+        return res and not tiago_fov.clogged(qres, robot, tagss) and robot.configIsValid(qres), qres
     qpg, qg = None, None
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
         res, qpg = project_and_validate (edge+" | 0-0_01", qinit, qrand)
@@ -380,7 +398,7 @@ def generate_valid_config(constraint, qguesses = [], NrandomConfig=10):
     from itertools import chain
     for qrand in chain(qguesses, ( robot.shootRandomConfig() for _ in range(NrandomConfig) )):
         res, qres = constraint.apply (qrand)
-        if res and not tiago_fov.clogged(qres, robot, tagss, tag_sizess) and robot.configIsValid(qres):
+        if res and not tiago_fov.clogged(qres, robot, tagss) and robot.configIsValid(qres):
             return True, qres
     return False, None
 
@@ -750,7 +768,6 @@ basePlanner.maxIterPathPlanning = 1000
 clusters_comp = ClusterComputation(armPlanner.cgraph, c_lock_part)
 clusters = clusters_comp.find_clusters(part_handles, q0,
         N_find_first = 40, N_find_others = 40)
-#clusters = find_clusters(part_handles[:3], q0)
 solve_tsp_problems = False
 if solve_tsp_problems:
     clusters_path = []

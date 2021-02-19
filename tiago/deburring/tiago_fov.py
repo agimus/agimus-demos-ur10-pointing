@@ -136,19 +136,19 @@ class TiagoFOV:
         """whether the camera is clogged by the selected robot bodies. It assumes that updateGeometryPlacements has been called """
         return pinocchio.computeCollisions(self.gmodel, self.gdata, True)
 
-    def clogged (self, q, robot, tagss, sizess, verbose=False):
+    def clogged (self, q, robot, tagss, verbose=False):
         def _print(*args):
             if verbose:
                 print(*args)
         # should see at least on tag per tagss
         self.updateGeometryPlacements(q[:-14])
-        for tags, sizes in zip(tagss, sizess):
+        for tags in tagss:
             nvisible = 0
-            for oMt, size in zip(robot.hppcorba.robot.getJointsPosition(q, tags), sizes):
-                if self.tagVisible(oMt, size):
+            for oMt, tag in zip(robot.hppcorba.robot.getJointsPosition(q, tags.names), tags.tags):
+                if self.tagVisible(oMt, tag.size + tags.size_margin):
                     nvisible+=1
-            if nvisible == 0:
-                _print("No tags visible among ", tags)
+            if nvisible < tags.n_visibility_thr:
+                _print("Not enough tags visible among ", tags)
                 return True
         return False
 
@@ -209,12 +209,12 @@ class TiagoFOV:
         gui.refresh()
 
 class TiagoFOVGuiCallback:
-    def __init__(self, robot, tiago_fov, tags, sizes):
+    def __init__(self, robot, tiago_fov, tags):
         self.robot = robot
         self.fov = tiago_fov
-        self.names = [ "fov_" + n for n in tags ]
-        self.tags = tags
-        self.sizes = sizes
+        self.names = [ "fov_" + t.name for t in tags ]
+        self.tags = [ t.name for t in tags ]
+        self.sizes = [ t.size for t in tags ]
         self.initialized = False
 
     def initialize(self, viewer):
