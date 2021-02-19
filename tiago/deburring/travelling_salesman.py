@@ -189,19 +189,29 @@ srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" rea
 # Disable collision between tiago/hand_safety_box_0 and driller
 srdf_disable_collisions = """<robot>"""
 srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
-# Disable collision between tiago/hand (except hand_safety_box_0) and all other tiago links
+
 linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
 for la, lb, en in zip(linka, linkb, enabled):
     if not en: continue
-    caster_vs_other = ('caster' in la or 'caster' in lb)
-    hand_vs_other = False
-    for l in [la, lb]:
-        if l.startswith("tiago/hand_") and l != "tiago/hand_safety_box_0":
-            hand_vs_other = True
-            break
-    if caster_vs_other or hand_vs_other:
+    disable = False
+    # Disable collision between caster wheels and anything else
+    if not disable:
+        disable = ('caster' in la or 'caster' in lb)
+    # Disable collision between tiago/hand (except hand_safety_box_0) and all other tiago links
+    if not disable:
+        hand_vs_other = False
+        for l in [la, lb]:
+            if l.startswith("tiago/hand_") and l != "tiago/hand_safety_box_0":
+                disable = True
+                break
+    # Disable collision between driller/* and tiago/arm_[1234567]_link
+    if not disable:
+        for l0, l1 in [ (la, lb), (lb, la) ]:
+            if l0.startswith("driller/") and l1.startswith("tiago/arm_") and l1.endswith("_link_0") and l1[10] in "1234567":
+                disable = True
+                break
+    if disable:
         srdf_disable_collisions += srdf_disable_collisions_fmt.format(la[:la.rfind('_')], lb[:lb.rfind('_')])
-# Disable collision between caster wheels and anything else
 # TODO
 srdf_disable_collisions += "</robot>"
 robot.client.manipulation.robot.insertRobotSRDFModelFromString("", srdf_disable_collisions)
@@ -275,12 +285,16 @@ lock_arm = [ lockJoint(n, q0) for n in robot.jointNames
 lock_head = [ lockJoint(n, q0) for n in robot.jointNames
         if n.startswith("tiago/head")]
 
+# Create "Look at gripper" constraints: for (X,Y,Z) the position of the gripper in the camera frame,
+# (X, Y) = 0 and Z >= 0
 part_gripper = "driller/drill_tip"
 ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", part_gripper,
         (0,0,0), (0,0,0), (True,True,True))
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
+
+# Create "Look at part" constraint
 ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_100_base",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
@@ -521,6 +535,7 @@ class InStatePlanner:
     plannerType = "BiRRT*"
     optimizerTypes = []
     maxIterPathPlanning = None
+    timeOutPathPlanning = None
     parameters = {'kPRM*/numberOfNodes': Any(TC_long,2000)}
 
     def __init__(self):
@@ -571,6 +586,8 @@ class InStatePlanner:
             self.roadmap))
         if self.maxIterPathPlanning:
             self.planner.maxIterations(self.maxIterPathPlanning)
+        if self.timeOutPathPlanning:
+            self.planner.timeOut(self.timeOutPathPlanning)
         path = wd(self.planner.solve())
         
     def createEmptyRoadmap(self):
@@ -591,8 +608,12 @@ class InStatePlanner:
             self.plannerType,
             self.cproblem,
             self.roadmap))
-        if self.plannerType == "BiRRT*":
-            self.planner.maxIterations(1000)
+        if self.maxIterPathPlanning:
+            self.planner.maxIterations(self.maxIterPathPlanning)
+        if self.timeOutPathPlanning:
+            self.planner.timeOut(self.timeOutPathPlanning)
+        if self.maxIterPathPlanning is None and self.timeOutPathPlanning is None:
+            self.planner.stopWhenProblemIsSolved(True)
         path = wd(self.planner.solve())
         for optType in self.optimizerTypes:
             optimizer = wd(ps.hppcorba.problem.createPathOptimizer(optType, self.cproblem))
@@ -671,6 +692,8 @@ tiago_fov.appendUrdfModel(Driller.urdfFilename, "hand_tool_link",
 # {{{3 Create InStatePlanner
 armPlanner = InStatePlanner ()
 armPlanner.setEdge(loop_free)
+armPlanner.maxIterPathPlanning = 300
+armPlanner.timeOutPathPlanning = 10.
 # Set collision margin between mobile base and the rest because the collision model is not correct.
 bodies = ("tiago/torso_fixed_link_0", "tiago/base_link_0")
 cfgVal = wd(armPlanner.cproblem.getConfigValidations())
@@ -719,7 +742,8 @@ if basePlannerUsePrecomputedRoadmap:
         print("Writing mobile base roadmap", roadmap_file)
         basePlanner.writeRoadmap(roadmap_file)
 
-basePlanner.plannerType = "BiRRT*"
+basePlanner.plannerType = "DiffusingPlanner"
+basePlanner.maxIterPathPlanning = 1000
 # 3}}}
 
 # {{{3 Find handle clusters and solve TSP for each clusters.

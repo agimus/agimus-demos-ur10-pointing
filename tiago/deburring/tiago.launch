@@ -12,6 +12,9 @@
   <!--param name="robot_initial_pose" value="3 0.9 0 0 0 1 0"/-->
   <param name="robot_initial_pose" value="-1 -1 0 0 0 0 1"/>
 
+  <param name="/agimus/move_base_method" value="full_path"/>
+  <param name="/hpp/host" value="10.68.0.129"/>
+
   <!-- SoT parameters -->
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/tiago/deburring/supervisor.py" />
