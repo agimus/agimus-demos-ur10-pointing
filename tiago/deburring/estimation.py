@@ -1,4 +1,5 @@
 #!/usr/bin/python2
+from __future__ import print_function
 
 # TODO in simulation
 # unpause gazebo physics
@@ -17,7 +18,7 @@ def init_ros_node():
     import rospy
     global ros_initialized
     if not ros_initialized:
-        rospy.init_node("hpp")
+        rospy.init_node("hpp", disable_signals=True)
     ros_initialized = True
 
 def poseToSE3(m):
@@ -58,7 +59,8 @@ def get_current_config(robot, graph, q0, timeout=5.):
     # sin(t) = 2 cos(t/2) sin(t/2)
     P = wMb.translation
     Q = pinocchio.Quaternion(wMb.rotation)
-    q0[0:4] = P[0], P[1], 2 * Q.w**2 - 1, 2 * Q.w * Q.z
+    q = q0[:]
+    q[0:4] = P[0], P[1], 2 * Q.w**2 - 1, 2 * Q.w * Q.z
     # Acquire robot state
     msg = rospy.wait_for_message("/joint_states", JointState)
     for ni, qi in zip(msg.name, msg.position):
@@ -70,10 +72,10 @@ def get_current_config(robot, graph, q0, timeout=5.):
         except KeyError:
             continue
         assert robot.getJointConfigSize(jni) == 1
-        q0[rk] = qi
+        q[rk] = qi
 
     # put driller in hand
-    res, q0proj, err = graph.applyNodeConstraints("tiago/gripper grasps driller/handle", q0)
+    res, q0proj, err = graph.applyNodeConstraints("tiago/gripper grasps driller/handle", q)
     if not res:
         print("Could not project onto state 'tiago/gripper grasps driller/handle'", err)
     return q0proj
@@ -87,7 +89,7 @@ def get_cylinder_pose(robot, q0, timeout=5.):
     tfBuffer = tf2_ros.Buffer()
     listener = tf2_ros.TransformListener(tfBuffer)
 
-    camera_frame = 'xtion_optical_frame'
+    camera_frame = 'xtion_rgb_optical_frame'
     object_frame = 'part/base_link_measured'
 
     from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
@@ -99,11 +101,39 @@ def get_cylinder_pose(robot, q0, timeout=5.):
         _cMo = _cMo.transform
     except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
         print('could not get TF transform : ', e)
-        return
+        raise RuntimeError(str(e))
     cMo = XYZQUATToSE3([ _cMo.translation.x, _cMo.translation.y, _cMo.translation.z,
             _cMo.rotation.x, _cMo.rotation.y, _cMo.rotation.z, _cMo.rotation.w ])
     rk = robot.rankInConfiguration['part/root_joint']
     assert robot.getJointConfigSize('part/root_joint') == 7
+    qres = q0[:]
+    qres[rk:rk+7] = SE3ToXYZQUAT (wMc * cMo)
+    return qres
+
+def get_driller_pose(q0, timeout=5.):
+    import tf2_ros, rospy
+    init_ros_node()
+
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+
+    camera_frame = 'xtion_rgb_optical_frame'
+    object_frame = 'driller/base_link_measured'
+
+    from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
+    wMc = XYZQUATToSE3(robot.hppcorba.robot.getJointsPosition(q0, ["tiago/"+camera_frame])[0])
+
+    try:
+        _cMo = tfBuffer.lookup_transform(camera_frame, object_frame,
+                rospy.Time(), rospy.Duration(timeout))
+        _cMo = _cMo.transform
+    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+        print('could not get TF transform : ', e)
+        raise RuntimeError(str(e))
+    cMo = XYZQUATToSE3([ _cMo.translation.x, _cMo.translation.y, _cMo.translation.z,
+            _cMo.rotation.x, _cMo.rotation.y, _cMo.rotation.z, _cMo.rotation.w ])
+    rk = robot.rankInConfiguration['driller/root_joint']
+    assert robot.getJointConfigSize('driller/root_joint') == 7
     qres = q0[:]
     qres[rk:rk+7] = SE3ToXYZQUAT (wMc * cMo)
     return qres

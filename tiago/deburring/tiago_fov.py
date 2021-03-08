@@ -79,7 +79,7 @@ class TiagoFOV:
         pinocchio.framesForwardKinematics(self.model, self.data, np.array(q))
         pinocchio.updateGeometryPlacements(self.model, self.data, self.gmodel, self.gdata)
 
-    def tagToTetahedronPts(self, oMt, size):
+    def tagToTetahedronPts(self, oMt, size, margin = 0.002):
         """ It assumes that updateGeometryPlacements has been called """
         if not isinstance(oMt, pinocchio.SE3):
             oMt = pinocchio.XYZQUATToSE3(oMt)
@@ -97,10 +97,10 @@ class TiagoFOV:
             P = oMt * pt
             u = (C-P)
             u /= np.linalg.norm(u)
-            pts.append(P + 0.002 * u)
+            pts.append(P + margin * u)
         return pts
 
-    def tagVisible(self, oMt, size):
+    def tagVisible(self, oMt, size, margin):
         """ It assumes that updateGeometryPlacements has been called """
         idc = self.model.getFrameId("xtion_rgb_optical_frame")
         camera = self.model.frames[idc]
@@ -114,7 +114,7 @@ class TiagoFOV:
         if cos_theta < self.cos_angle_thr:
             return False
 
-        pts = self.tagToTetahedronPts(oMt, size)
+        pts = self.tagToTetahedronPts(oMt, size, margin + 0.002)
 
         tetahedron = hppfcl.BVHModelOBBRSS()
         tetahedron.beginModel(4, 5)
@@ -126,6 +126,11 @@ class TiagoFOV:
         for go, oMg in zip(self.gmodel.geometryObjects, self.gdata.oMg):
             # Don't check for collision with the camera, except with the field_of_view
             if go.parentJoint == camera.parent and go.name != "field_of_view": continue
+            if go.name.startswith("hand_safety_box"): continue
+            if go.name == "field_of_view":
+                request.security_margin = 0.
+            else:
+                request.security_margin = margin
             result = hppfcl.CollisionResult()
             hppfcl.collide(go.geometry, hppfcl.Transform3f(oMg), tetahedron, Id, request, result)
             if result.isCollision():
@@ -145,7 +150,7 @@ class TiagoFOV:
         for tags in tagss:
             nvisible = 0
             for oMt, tag in zip(robot.hppcorba.robot.getJointsPosition(q, tags.names), tags.tags):
-                if self.tagVisible(oMt, tag.size + tags.size_margin):
+                if self.tagVisible(oMt, tag.size, tags.size_margin):
                     nvisible+=1
             if nvisible < tags.n_visibility_thr:
                 _print("Not enough tags visible among ", tags)
@@ -209,21 +214,34 @@ class TiagoFOV:
         gui.refresh()
 
 class TiagoFOVGuiCallback:
-    def __init__(self, robot, tiago_fov, tags):
+    def __init__(self, robot, tiago_fov, tagss):
         self.robot = robot
         self.fov = tiago_fov
-        self.names = [ "fov_" + t.name for t in tags ]
-        self.tags = [ t.name for t in tags ]
-        self.sizes = [ t.size for t in tags ]
+        self.namess = [ [ "fov_" + t.name for t in tags.tags ] for tags in tagss ]
+        self.tagss = tagss
         self.initialized = False
 
     def initialize(self, viewer):
         self.initialized = True
         gui = viewer.client.gui
-        for name, tag in zip(self.names, self.tags):
-            _add_fov_to_gui(gui, name, [ (0,0,0), ] * 6,
-                    color = [ 0.1, 0.9, 0.1, 0.2 ],
-                    group = "gepetto-gui")
+        for names in self.namess:
+            for name in names:
+                _add_fov_to_gui(gui, name, [ (0,0,0), ] * 6,
+                        color = [ 0.1, 0.9, 0.1, 0.2 ],
+                        group = "gepetto-gui")
+
+    def show(self, viewer):
+        if not self.initialized: self.initialize(viewer)
+        gui = viewer.client.gui
+        for names in self.namess:
+            for name in names:
+                gui.setVisibility(name, "ON")
+    def hide(self, viewer):
+        if not self.initialized: self.initialize(viewer)
+        gui = viewer.client.gui
+        for names in self.namess:
+            for name in names:
+                gui.setVisibility(name, "OFF")
 
     def __call__(self, viewer, q):
         if not self.initialized:
@@ -231,13 +249,15 @@ class TiagoFOVGuiCallback:
         gui = viewer.client.gui
 
         self.fov.updateGeometryPlacements(q[:-14])
-        for name, oMt, size in zip (self.names, self.robot.hppcorba.robot.getJointsPosition(q, self.tags), self.sizes):
-            pts = [ pt.tolist() for pt in self.fov.tagToTetahedronPts(oMt, size) ]
-            gui.setCurvePoints(name, pts + pts[1:2])
-            if self.fov.tagVisible(oMt, size):
-                gui.setColor(name, [ 0.1, 0.9, 0.1, 0.2 ])
-            else:
-                gui.setColor(name, [ 0.9, 0.1, 0.1, 0.2 ])
+        for names, tags in zip(self.namess, self.tagss):
+            oMts = self.robot.hppcorba.robot.getJointsPosition(q, [ t.name for t in tags.tags ])
+            for name, oMt, tag in zip (names, oMts, tags.tags):
+                pts = [ pt.tolist() for pt in self.fov.tagToTetahedronPts(oMt, tag.size) ]
+                gui.setCurvePoints(name, pts + pts[1:2])
+                if self.fov.tagVisible(oMt, tag.size, tags.size_margin):
+                    gui.setColor(name, [ 0.1, 0.9, 0.1, 0.2 ])
+                else:
+                    gui.setColor(name, [ 0.9, 0.1, 0.1, 0.2 ])
 
 if __name__ == "__main__":
     urdfString = hpp.rostools.process_xacro("package://tiago_description/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft")

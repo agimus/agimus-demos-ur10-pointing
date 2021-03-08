@@ -19,21 +19,25 @@
         <param name="broadcastTf"     value="true" />
         <param name="broadcastTfPostfix" value="_tf" />
         <param name="objectType" value="apriltag" />
-        <param name="cameraFrame" value="xtion_optical_frame" />
+        <param name="cameraFrame" value="xtion_rgb_optical_frame" />
     </node>
 
     <!-- Part -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="part_tags" args="
         --child-frame-format 'part/tag36_11_{:0>5d}'
-        --measurement-parent-frame xtion_optical_frame
+        --measurement-parent-frame xtion_rgb_optical_frame
         --group-frame part/base_link
         --no-description
-        --size 0.0495
+        --size 0.0845
         --tag 1
         --size 0.1615
         --tag 6
-        --size 0.1615
+        --size 0.0845
         --tag 15
+        --size 0.0415
+        --tag 100
+        --size 0.0415
+        --tag 101
         "
         output="$(arg output)"
         />
@@ -41,7 +45,7 @@
     <!-- Driller -->
     <node pkg="agimus_demos" type="group_of_tags.py" name="driller_tags" args="
         --child-frame-format 'driller/tag36_11_{:0>5d}'
-        --measurement-parent-frame xtion_optical_frame
+        --measurement-parent-frame xtion_rgb_optical_frame
         --group-frame driller/base_link
         --no-description
         --size 0.064
