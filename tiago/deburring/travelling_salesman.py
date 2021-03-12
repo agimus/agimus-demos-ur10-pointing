@@ -16,12 +16,14 @@ except ImportError:
         return iterable
     def progressbar_object(*args, **kwargs):
         class faketqdm:
-            def set_description(*args, **kwargs):
+            def set_description(self, *args, **kwargs):
                 pass
-            def update(*args, **kwargs):
+            def update(self, *args, **kwargs):
                 pass
-            def write(s):
+            def write(self, s):
                 print(s)
+            def close(self):
+                pass
         return faketqdm()
 
 # parse arguments
