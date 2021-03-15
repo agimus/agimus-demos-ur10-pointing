@@ -42,4 +42,6 @@ RUN catkin build rob4fam-models
 COPY config.sh /root/config.sh
 RUN echo -e "source ~/config.sh" >> ~/.bashrc
 
+RUN apt install -q -y ipython emacs pybind11-dev
+
 # vim: ft=dockerfile

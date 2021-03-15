@@ -1,0 +1,24 @@
+FROM memmos.laas.fr:5000/jmirabel/agimus-demos/tiago_deburring:4
+
+RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/packages/debian/pub bionic robotpkg > /etc/apt/sources.list.d/robotpkg.list
+RUN apt update
+
+# Configure catkin workspace
+RUN apt install -q -y robotpkg-py27-qt5-gepetto-viewer-corba robotpkg-py27-qt5-hpp-gui robotpkg-py27-qt5-hpp-plot oxygen-icon-theme
+# Takes forever
+#RUN /opt/openrobots/bin/osgconv install/share/rob4fam-models/meshes/P72.stl install/share/rob4fam-models/meshes/P72.stl.osgb
+#COPY P72.stl.osgb install/share/rob4fam-models/meshes
+
+# Allow to run a VNC server
+RUN apt install -qqy mesa-utils net-tools novnc terminator \
+    x11-apps tigervnc-standalone-server tigervnc-xorg-extension xfce4
+
+RUN mkdir ~/.vnc \
+ && echo -e "#!/bin/sh\nstartxfce4" > ~/.vnc/xstartup \
+ && chmod +x ~/.vnc/xstartup
+COPY passwd /root/.vnc/passwd
+COPY launch-gepetto-gui.sh /root/catkin_ws/install/bin/gepetto-gui
+
+ENTRYPOINT vncserver --localhost no -fg :3
+
+# vim: ft=dockerfile
