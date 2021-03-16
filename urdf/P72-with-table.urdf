@@ -1,0 +1,384 @@
+<robot name="p72">
+  <link name="base_link">  
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rob4fam-models/meshes/P72.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+       <material name="Red">
+         <color rgba="1. 0.1 0.1 1.0"/>
+       </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://rob4fam-models/meshes/P72.stl"  scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.05 -0.0422962331772 0.0814425373077" />
+      <geometry>
+        <box size="0.6 0.15 0.15"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.2"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.1"  ixy="0"  ixz="0" iyy="0.1" iyz="0" izz="0.1" />
+    </inertial>
+  </link>
+
+  <!-- Table -->
+  <joint name="to_table" type="fixed">
+    <parent link="base_link"/>
+    <child link="table_link"/>
+    <origin xyz="0.0 0.35 -0.8"/>
+  </joint>
+
+  <link name="table_link">
+    <visual>
+      <origin xyz="0 0 .725"/>
+      <geometry>
+        <box size="0.8 0.8 .01"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz=".39 .39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-.39 .39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz="-.39 -.39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin xyz=".39 -.39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 .725"/>
+      <geometry>
+        <box size="0.84 .84 .01"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz=".39 .39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-.39 .39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="-.39 -.39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz=".39 -.39 .36"/>
+      <geometry>
+        <box size=".02 .02 .72"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.2"/>
+      <origin xyz="0 0 0.65" rpy="0 0 0"/>
+      <inertia ixx="0.1"  ixy="0"  ixz="0" iyy="0.1" iyz="0" izz="0.1" />
+    </inertial>
+  </link>
+
+      <link name="tag36_11_00015">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00015.dae" scale="0.0845 0.0845 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00015" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00015"/>
+        <origin xyz="-0.132714992453 -0.0338492746834 0.546713277339" rpy="1.63558443485 -0.0100636021863 -0.0123677826844"/>
+      </joint>
+      <link name="tag36_11_00006">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00006.dae" scale="0.1615 0.1615 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00006" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00006"/>
+        <origin xyz="0.289039801823 -0.0185894364178 0.235356143456" rpy="-2.88571492705 -1.5038280042 -1.83893893187"/>
+      </joint>
+      <link name="tag36_11_00001">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00001.dae" scale="0.0845 0.0845 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00001" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00001"/>
+        <origin xyz="0.160353229673 -0.0402800139396 0.592911176226" rpy="1.63558131631 -0.00225646482702 -0.0118612667906"/>
+      </joint>
+      <link name="tag36_11_00100">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00100.dae" scale="0.041 0.041 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00100" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00100"/>
+        <origin xyz="0.0208917170125 -0.0327790965142 0.440695684094" rpy="1.63559977055 0.0239548219158 -0.0101604937887"/>
+      </joint>
+      <link name="tag36_11_00101">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00101.dae" scale="0.041 0.041 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00101" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00101"/>
+        <origin xyz="0.0295741667779 -0.0501954344754 0.707566863227" rpy="1.6355812991 -0.00213025081185 -0.0118530770043"/>
+      </joint>
+
+      <link name="hole_01_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_01" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_01_link"/>
+        <origin xyz="-0.0231859078401 -0.0282814474512 0.441118345594" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_02_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_02" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_02_link"/>
+        <origin xyz="-0.000463757557886 -0.0305306738819 0.471682850952" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_03_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_03" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_03_link"/>
+        <origin xyz="0.0461839113985 -0.0310339220481 0.471016257947" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_04_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_04" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_04_link"/>
+        <origin xyz="0.0685148465977 -0.0290956950629 0.437109953868" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_05_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_05" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_05_link"/>
+        <origin xyz="0.0445673657398 -0.0269147516117 0.407819156194" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_06_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_06" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_06_link"/>
+        <origin xyz="-0.000455903779824 -0.0264076500538 0.408133038324" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_07_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_07" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_07_link"/>
+        <origin xyz="-0.0208802619903 -0.0238630597283 0.37260115984" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_08_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_08" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_08_link"/>
+        <origin xyz="-0.00240257087843 -0.0215015648055 0.332866785156" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_09_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_09" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_09_link"/>
+        <origin xyz="0.0441438434551 -0.0220229148067 0.332497480315" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_10_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_10" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_10_link"/>
+        <origin xyz="0.0643483206286 -0.0247997737006 0.37164903109" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_11_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_11" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_11_link"/>
+        <origin xyz="-0.0183193680998 -0.0342875833339 0.532812497719" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_12_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_12" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_12_link"/>
+        <origin xyz="0.0691214440517 -0.035208122937 0.53121160951" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_13_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_13" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_13_link"/>
+        <origin xyz="-0.0173508237974 -0.0384699820474 0.597101150222" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_14_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_14" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_14_link"/>
+        <origin xyz="-0.0165201674869 -0.0417052933682 0.646817190801" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_15_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_15" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_15_link"/>
+        <origin xyz="-0.0157844883883 -0.0445989234655 0.691284029836" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_16_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_16" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_16_link"/>
+        <origin xyz="0.0717634019701 -0.0454885386124 0.689187166127" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_17_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_17" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_17_link"/>
+        <origin xyz="0.0710534490762 -0.0426129907748 0.644994384573" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+      <link name="hole_18_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_18" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_18_link"/>
+        <origin xyz="0.0699350800666 -0.039412993952 0.595874600682" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+      </joint>
+</robot>
