@@ -21,6 +21,8 @@ RUN apt install -q -y python3-vcstool python-catkin-tools git cmake vim g++ ros-
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev ros-melodic-polled-camera \
       ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm
 
+RUN apt install -q -y ipython emacs pybind11-dev
+
 RUN mkdir -p ~/catkin_ws/src
 WORKDIR /root/catkin_ws
 RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF
@@ -41,7 +43,5 @@ RUN catkin build rob4fam-models
 
 COPY config.sh /root/config.sh
 RUN echo -e "source ~/config.sh" >> ~/.bashrc
-
-RUN apt install -q -y ipython emacs pybind11-dev
 
 # vim: ft=dockerfile

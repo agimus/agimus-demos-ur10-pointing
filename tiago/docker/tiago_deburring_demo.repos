@@ -6,7 +6,7 @@ repositories:
   agimus-demos:
     type: git
     url: https://github.com/jmirabel/agimus-demos.git
-    version: b390b290c8765f951a46270505b373d60538d501
+    version: master
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc

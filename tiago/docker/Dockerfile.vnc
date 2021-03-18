@@ -5,12 +5,9 @@ RUN apt update
 
 # Configure catkin workspace
 RUN apt install -q -y robotpkg-py27-qt5-gepetto-viewer-corba robotpkg-py27-qt5-hpp-gui robotpkg-py27-qt5-hpp-plot oxygen-icon-theme
-# Takes forever
-#RUN /opt/openrobots/bin/osgconv install/share/rob4fam-models/meshes/P72.stl install/share/rob4fam-models/meshes/P72.stl.osgb
-#COPY P72.stl.osgb install/share/rob4fam-models/meshes
 
 # Allow to run a VNC server
-RUN apt install -qqy mesa-utils net-tools novnc terminator \
+RUN apt install -qqy mesa-utils net-tools novnc terminator firefox \
     x11-apps tigervnc-standalone-server tigervnc-xorg-extension xfce4
 
 RUN mkdir ~/.vnc \
