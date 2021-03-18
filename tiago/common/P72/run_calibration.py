@@ -305,7 +305,7 @@ class Stack(mno.VectorFunction):
             func.f_fx(X, f[r:r+d], fx[r:r+d,:])
             r += d
 
-datadir="/home/jmirabel/devel/tiago/catkin_ws/src/tiago_calibration/part2/"
+datadir="../../../../rob4fam-models/meshes/P72_calibration/"
 
 cam = av.makeTiagoCameraParameters()
 
@@ -313,7 +313,7 @@ pi0 = [1, 0, 0, 0]
 
 tag_defs = (
         (15, 0.0845), (6, 0.0845), (1, 0.0845),
-        # (100, 0.041), (101, 0.041),
+        (100, 0.041), (101, 0.041),
         (2, 0.053), (3, 0.053), (4, 0.053),
         )
 def idx(tag_id):
@@ -413,6 +413,13 @@ J = av.Image()
 # Set this to False to enable visualization
 initDisplay = True
 bMhs = []
+# plane of point
+plane_of_point = [ 0, ] * 28 + [ None ] * (40-28)
+def changePlaneFrame(api, bMa):
+    bpi = api.copy()
+    bpi[:3] = np.dot(bMa.rotation, api[:3])
+    bpi[3] = api[3] - np.dot(bMa.translation, bpi[:3])
+    return bpi
 for i in range(40):
     img = datadir + "hole/{:03}.png".format(i)
     tagCenters = []
@@ -428,13 +435,34 @@ for i in range(40):
     holeDetected = aprilTagHole.detect(J)
     if partDetected and holeDetected:
         cMb = vpToSE3(aprilTagPart.getPose())
+        print(cMb.translation, pinocchio.rpy.matrixToRpy(cMb.rotation))
 
         aprilTagPart.drawDebug(J)
         aprilTagHole.drawDebug(J)
-        cMb = vpToSE3(aprilTagPart.getPose())
-        print(cMb.translation, pinocchio.rpy.matrixToRpy(cMb.rotation))
-        cMh = vpToSE3(aprilTagHole.getPose())
-        bMhs.append(cMb.inverse() * cMh)
+        
+        plane_id = plane_of_point[i]
+        if plane_id is None:
+            cMh = vpToSE3(aprilTagHole.getPose())
+            bMhs.append(cMb.inverse() * cMh)
+        else:
+            Pi_b = variables.plane(X, plane_id)
+            Pi_c = changePlaneFrame(Pi_b, cMb)
+
+            # Check that plane normal points inward
+            if Pi_b[1] < 0:
+                bRh = pinocchio.Quaternion(np.array([1,0,0]), -Pi_b[:3])
+            else:
+                bRh = pinocchio.Quaternion(np.array([1,0,0]), Pi_b[:3])
+
+            ps = [ np.array(v+[1,]) for v in aprilTagHole.getPoints(cam, 230) ]
+            # Project p onto plane pi, then compute centroid.
+            # find t such that t * pi[:3]^T * p + pi[3] = 0
+            ts = [ -Pi_c[3] / np.dot(Pi_c[:3], p) for p in ps ]
+            cPs = [ t * p for t, p in zip(ts, ps) ]
+            cC = np.mean(cPs, axis=0)
+            bC = cMb.inverse() * cC
+
+            bMhs.append(pinocchio.SE3(bRh, bC))
     else:
         print("Could not detect part or hole. Detected tags {}".format(detector.getTagsId()))
 

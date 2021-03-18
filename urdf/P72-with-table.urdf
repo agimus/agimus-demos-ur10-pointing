@@ -119,14 +119,14 @@
       <link name="tag36_11_00006">
         <visual>
           <geometry>
-            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00006.dae" scale="0.1615 0.1615 1."/>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00006.dae" scale="0.0845 0.0845 1."/>
           </geometry>
         </visual>
       </link>
       <joint name="to_tag_00006" type="fixed">
         <parent link="base_link"/>
         <child link="tag36_11_00006"/>
-        <origin xyz="0.289039801823 -0.0185894364178 0.235356143456" rpy="-2.88571492705 -1.5038280042 -1.83893893187"/>
+        <origin xyz="0.20594122137 -0.019883196378 0.270321366366" rpy="1.63559918028 -0.0219444636234 -0.0131355670517"/>
       </joint>
       <link name="tag36_11_00001">
         <visual>
@@ -138,7 +138,7 @@
       <joint name="to_tag_00001" type="fixed">
         <parent link="base_link"/>
         <child link="tag36_11_00001"/>
-        <origin xyz="0.160353229673 -0.0402800139396 0.592911176226" rpy="1.63558131631 -0.00225646482702 -0.0118612667906"/>
+        <origin xyz="0.160903806119 -0.0403379930677 0.593717015226" rpy="1.63558262861 0.003492408233 -0.0114843581192"/>
       </joint>
       <link name="tag36_11_00100">
         <visual>
@@ -150,7 +150,7 @@
       <joint name="to_tag_00100" type="fixed">
         <parent link="base_link"/>
         <child link="tag36_11_00100"/>
-        <origin xyz="0.0208917170125 -0.0327790965142 0.440695684094" rpy="1.63559977055 0.0239548219158 -0.0101604937887"/>
+        <origin xyz="0.019355154887 -0.0352760613687 0.441859304771" rpy="1.66566275142 -0.00873291430813 0.0154183638448"/>
       </joint>
       <link name="tag36_11_00101">
         <visual>
@@ -162,9 +162,57 @@
       <joint name="to_tag_00101" type="fixed">
         <parent link="base_link"/>
         <child link="tag36_11_00101"/>
-        <origin xyz="0.0295741667779 -0.0501954344754 0.707566863227" rpy="1.6355812991 -0.00213025081185 -0.0118530770043"/>
+        <origin xyz="0.0305993768382 -0.0495634897303 0.708105635544" rpy="1.60377606889 0.0126223907212 -0.00366126631718"/>
+      </joint>
+      <link name="tag36_11_00002">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00002.dae" scale="0.053 0.053 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00002" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00002"/>
+        <origin xyz="0.0252040551767 0.290936526509 0.367238386507" rpy="1.54992774545 0.00535593247616 -1.55808375768"/>
+      </joint>
+      <link name="tag36_11_00003">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00003.dae" scale="0.053 0.053 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00003" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00003"/>
+        <origin xyz="0.0283197929361 0.0413445222178 0.3631483889" rpy="1.54990976662 0.0425628936301 -1.55885953647"/>
+      </joint>
+      <link name="tag36_11_00004">
+        <visual>
+          <geometry>
+            <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00004.dae" scale="0.053 0.053 1."/>
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_tag_00004" type="fixed">
+        <parent link="base_link"/>
+        <child link="tag36_11_00004"/>
+        <origin xyz="0.0336553992455 0.0938285560341 0.651020939576" rpy="1.54988527951 0.0635826585718 -1.55930058089"/>
       </joint>
 
+      <link name="hole_00_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_00" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_00_link"/>
+        <origin xyz="-0.166815918156 -0.0427314643607 0.689768700188" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
       <link name="hole_01_link">
         <visual>
           <geometry>
@@ -175,7 +223,7 @@
       <joint name="to_hole_01" type="fixed">
         <parent link="base_link"/>
         <child link="hole_01_link"/>
-        <origin xyz="-0.0231859078401 -0.0282814474512 0.441118345594" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.128572904201 -0.0436470375775 0.696976386728" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_02_link">
         <visual>
@@ -187,7 +235,7 @@
       <joint name="to_hole_02" type="fixed">
         <parent link="base_link"/>
         <child link="hole_02_link"/>
-        <origin xyz="-0.000463757557886 -0.0305306738819 0.471682850952" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0905311522137 -0.0445775004336 0.704449896867" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_03_link">
         <visual>
@@ -199,7 +247,7 @@
       <joint name="to_hole_03" type="fixed">
         <parent link="base_link"/>
         <child link="hole_03_link"/>
-        <origin xyz="0.0461839113985 -0.0310339220481 0.471016257947" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0518540837269 -0.0455506243085 0.712466240932" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_04_link">
         <visual>
@@ -211,7 +259,7 @@
       <joint name="to_hole_04" type="fixed">
         <parent link="base_link"/>
         <child link="hole_04_link"/>
-        <origin xyz="0.0685148465977 -0.0290956950629 0.437109953868" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0156843072925 -0.0449168542623 0.696168518198" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_05_link">
         <visual>
@@ -223,7 +271,7 @@
       <joint name="to_hole_05" type="fixed">
         <parent link="base_link"/>
         <child link="hole_05_link"/>
-        <origin xyz="0.0445673657398 -0.0269147516117 0.407819156194" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.073132285793 -0.0457348312841 0.692742156209" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_06_link">
         <visual>
@@ -235,7 +283,7 @@
       <joint name="to_hole_06" type="fixed">
         <parent link="base_link"/>
         <child link="hole_06_link"/>
-        <origin xyz="-0.000455903779824 -0.0264076500538 0.408133038324" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.110771926127 -0.0467343114 0.701352005354" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_07_link">
         <visual>
@@ -247,7 +295,7 @@
       <joint name="to_hole_07" type="fixed">
         <parent link="base_link"/>
         <child link="hole_07_link"/>
-        <origin xyz="-0.0208802619903 -0.0238630597283 0.37260115984" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.148020448557 -0.0464511320252 0.690263117145" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_08_link">
         <visual>
@@ -259,7 +307,7 @@
       <joint name="to_hole_08" type="fixed">
         <parent link="base_link"/>
         <child link="hole_08_link"/>
-        <origin xyz="-0.00240257087843 -0.0215015648055 0.332866785156" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.184546250628 -0.0461781422546 0.679461748475" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_09_link">
         <visual>
@@ -271,7 +319,7 @@
       <joint name="to_hole_09" type="fixed">
         <parent link="base_link"/>
         <child link="hole_09_link"/>
-        <origin xyz="0.0441438434551 -0.0220229148067 0.332497480315" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0175903946768 -0.0419381068152 0.650601846788" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_10_link">
         <visual>
@@ -283,7 +331,7 @@
       <joint name="to_hole_10" type="fixed">
         <parent link="base_link"/>
         <child link="hole_10_link"/>
-        <origin xyz="0.0643483206286 -0.0247997737006 0.37164903109" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0186770505831 -0.0386469190131 0.600071673734" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_11_link">
         <visual>
@@ -295,7 +343,7 @@
       <joint name="to_hole_11" type="fixed">
         <parent link="base_link"/>
         <child link="hole_11_link"/>
-        <origin xyz="-0.0183193680998 -0.0342875833339 0.532812497719" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0206500891437 -0.034355860106 0.534290725435" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_12_link">
         <visual>
@@ -307,7 +355,7 @@
       <joint name="to_hole_12" type="fixed">
         <parent link="base_link"/>
         <child link="hole_12_link"/>
-        <origin xyz="0.0691214440517 -0.035208122937 0.53121160951" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.0684187219756 -0.0352716130705 0.53232583042" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_13_link">
         <visual>
@@ -319,7 +367,7 @@
       <joint name="to_hole_13" type="fixed">
         <parent link="base_link"/>
         <child link="hole_13_link"/>
-        <origin xyz="-0.0173508237974 -0.0384699820474 0.597101150222" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.0699119300083 -0.0395033625965 0.597279278123" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_14_link">
         <visual>
@@ -331,7 +379,7 @@
       <joint name="to_hole_14" type="fixed">
         <parent link="base_link"/>
         <child link="hole_14_link"/>
-        <origin xyz="-0.0165201674869 -0.0417052933682 0.646817190801" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.0711921466145 -0.0426783998721 0.645984306425" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_15_link">
         <visual>
@@ -343,7 +391,7 @@
       <joint name="to_hole_15" type="fixed">
         <parent link="base_link"/>
         <child link="hole_15_link"/>
-        <origin xyz="-0.0157844883883 -0.0445989234655 0.691284029836" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.00204170458296 -0.0305479779874 0.471504242059" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_16_link">
         <visual>
@@ -355,7 +403,7 @@
       <joint name="to_hole_16" type="fixed">
         <parent link="base_link"/>
         <child link="hole_16_link"/>
-        <origin xyz="0.0717634019701 -0.0454885386124 0.689187166127" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.0207547067117 -0.0282556146689 0.440287891815" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_17_link">
         <visual>
@@ -367,7 +415,7 @@
       <joint name="to_hole_17" type="fixed">
         <parent link="base_link"/>
         <child link="hole_17_link"/>
-        <origin xyz="0.0710534490762 -0.0426129907748 0.644994384573" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="-0.000420678146768 -0.0263864734588 0.407808425541" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
       <link name="hole_18_link">
         <visual>
@@ -379,6 +427,235 @@
       <joint name="to_hole_18" type="fixed">
         <parent link="base_link"/>
         <child link="hole_18_link"/>
-        <origin xyz="0.0699350800666 -0.039412993952 0.595874600682" rpy="-0.06403080615 -0.0647848229269 1.55908144855"/>
+        <origin xyz="0.0454341550422 -0.0268354392926 0.406450269354" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
       </joint>
+      <link name="hole_19_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_19" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_19_link"/>
+        <origin xyz="0.0676823414569 -0.0291717367669 0.438442735487" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_20_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_20" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_20_link"/>
+        <origin xyz="0.0466270535706 -0.0309939122152 0.470328534663" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_21_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_21" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_21_link"/>
+        <origin xyz="-0.0211758097543 -0.0238817962681 0.372951226012" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_22_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_22" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_22_link"/>
+        <origin xyz="-0.00265232492397 -0.0214048675679 0.331430916265" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_23_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_23" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_23_link"/>
+        <origin xyz="0.0445434344292 -0.021991831719 0.331957625953" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_24_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_24" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_24_link"/>
+        <origin xyz="0.0651477595884 -0.0247764180189 0.37115622644" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_25_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_25" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_25_link"/>
+        <origin xyz="-0.064504007426 -0.0159695547558 0.258823459798" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_26_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_26" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_26_link"/>
+        <origin xyz="-0.0984845919704 -0.0121441264254 0.205997349468" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_27_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_27" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_27_link"/>
+        <origin xyz="0.102726204679 -0.0174611899519 0.251624383672" rpy="-0.0640321358084 -0.0647859936191 1.55908414531"/>
+      </joint>
+      <link name="hole_28_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_28" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_28_link"/>
+        <origin xyz="0.104743399249 0.0130284323996 0.241182377786" rpy="-1.70979382248 -0.76557361026 -3.04842222337"/>
+      </joint>
+      <link name="hole_29_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_29" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_29_link"/>
+        <origin xyz="0.0479809773644 0.278664639966 0.455172061897" rpy="-1.43338884326 0.276368114583 1.58182234414"/>
+      </joint>
+      <link name="hole_30_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_30" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_30_link"/>
+        <origin xyz="-0.0114167174748 0.281745848087 0.498838668863" rpy="-1.8917737621 0.250659632952 1.50033157495"/>
+      </joint>
+      <link name="hole_31_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_31" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_31_link"/>
+        <origin xyz="-0.0312547275123 0.284154076218 0.539726344304" rpy="-2.21546992664 0.534043741073 1.20554044441"/>
+      </joint>
+      <link name="hole_32_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_32" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_32_link"/>
+        <origin xyz="-0.0488979605901 0.287087954303 0.581292765755" rpy="-2.25648458741 0.360820672617 1.29857569528"/>
+      </joint>
+      <link name="hole_33_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_33" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_33_link"/>
+        <origin xyz="-0.0645676676101 0.288844357991 0.625612000194" rpy="-3.12218734873 -1.20487785721 3.04938840946"/>
+      </joint>
+      <link name="hole_34_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_34" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_34_link"/>
+        <origin xyz="-0.086235960475 0.291866090557 0.665538827329" rpy="3.07565034697 -1.24476911814 3.09128169578"/>
+      </joint>
+      <link name="hole_35_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_35" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_35_link"/>
+        <origin xyz="-0.0181148648809 0.292225548538 0.238329406869" rpy="-1.90145827427 -1.49236800609 0.374570802956"/>
+      </joint>
+      <link name="hole_36_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_36" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_36_link"/>
+        <origin xyz="-0.0577110509484 0.289545685621 0.180503344604" rpy="-2.31264009349 -1.54712996346 0.765146825955"/>
+      </joint>
+      <link name="hole_37_link">
+        <visual>
+          <geometry>
+            <sphere radius="0.005" />
+          </geometry>
+        </visual>
+      </link>
+      <joint name="to_hole_37" type="fixed">
+        <parent link="base_link"/>
+        <child link="hole_37_link"/>
+        <origin xyz="-0.0652507273193 0.279317534307 0.0871087391981" rpy="2.64379590214 -1.4845807824 2.08337128465"/>
+      </joint>
+
 </robot>
