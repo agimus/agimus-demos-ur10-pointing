@@ -25,7 +25,7 @@ docker run -it --rm --name hpp --cap-add NET_ADMIN --net=host gitlab.laas.fr:456
 
 5. in terminal 3
  ```
-   ssh pal@10.68.0.1
+   ssh pal@tiago-wired
    stop-controllers
 ``` 
 and check that all relevant controllers have been successfully stopped.
@@ -37,7 +37,7 @@ and check that all relevant controllers have been successfully stopped.
 
 7. in terminal 4
 ```
-  ssh pal@10.68.0.1
+  ssh pal@tiago-wired
   roslaunch agimus_demos tiago_deburring_estimation.launch
 ```
 
