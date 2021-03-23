@@ -25,8 +25,13 @@ RUN mkdir -p ~/catkin_ws/src
 WORKDIR /root/catkin_ws
 RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF
 
-COPY ./tiago_deburring_demo.repos src/tiago_deburring_demo.repos
-RUN cd src && vcs-import --recursive --input tiago_deburring_demo.repos
+COPY ./pal_tiago.repos src/pal_tiago.repos
+RUN cd src && vcs-import --recursive --input pal_tiago.repos
+
+RUN catkin build
+
+COPY ./gepetto_tiago.repos src/gepetto_tiago.repos
+RUN cd src && vcs-import --recursive --input gepetto_tiago.repos
 
 COPY ./patches src/patches
 COPY ./patches/apply.sh src/apply_patches.sh
