@@ -506,8 +506,8 @@ Visualization Manager:
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
       Name: RobotModel
-      Robot Description: skin/robot_description
-      TF Prefix: skin
+      Robot Description: part/robot_description
+      TF Prefix: part
       Update Interval: 0
       Value: false
       Visual Enabled: true
@@ -523,7 +523,7 @@ Visualization Manager:
         Link Tree Style: Links in Alphabetic Order
       Name: RobotModel
       Robot Description: driller/robot_description
-      TF Prefix: sim_driller
+      TF Prefix: driller
       Update Interval: 0
       Value: false
       Visual Enabled: true
