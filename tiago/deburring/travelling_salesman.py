@@ -308,6 +308,31 @@ def lockJoint(jname, q, cname=None, constantRhs=True):
     ps.setConstantRightHandSide(cname, constantRhs)
     return cname
 
+# Add an alignment constraint between pregrasp and grasp for each
+# part handle
+# \param ps ProblemSolver instance,
+# \param handle name of the handle: should be "part/handle_i" where i is an
+#        integer,
+# \param graph constraint graph
+def addAlignmentConstrainttoEdge(ps, handle, graph):
+    #recover id of handle
+    handleId = all_handles.index(handle)
+    J1, gripperPose = ps.robot.getGripperPositionInJoint(tool_gripper)
+    J2, handlePose = ps.robot.getHandlePositionInJoint(handle)
+    T1 = Transform(gripperPose)
+    T2 = Transform(handlePose)
+    constraintName = handle + '/alignment'
+    ps.client.basic.problem.createTransformationConstraint2\
+        (constraintName, J1, J2, T1.toTuple(), T2.toTuple(),
+         [False, True, True, False, False, False])
+    # Set constraint
+    edgeName = tool_gripper + ' > ' + handle + ' | 0-0_12'
+    graph.addConstraints(edge = edgeName, constraints = \
+                         Constraints(numConstraints=[constraintName]))
+    edgeName = tool_gripper + ' < ' + handle + ' | 0-0:1-{}_21'.format(handleId)
+    graph.addConstraints(edge = edgeName, constraints = \
+                         Constraints(numConstraints=[constraintName]))
+
 ljs = list()
 ps.createLockedJoint("tiago_base", "tiago/root_joint", [0,0,1,0])
 
@@ -365,6 +390,9 @@ for n in graph.nodes.keys():
     graph.addConstraints(node=n, constraints=Constraints(numConstraints=["look_at_gripper"]))
 for e in graph.edges.keys():
     graph.addConstraints(edge=e, constraints=Constraints(numConstraints=["tiago_base"]))
+#Add alignment constraints
+for handle in part_handles:
+    addAlignmentConstrainttoEdge(ps, handle, graph)
 
 graph.createNode('home', priority=1000)
 graph.createEdge('home', 'home', 'move_base')
