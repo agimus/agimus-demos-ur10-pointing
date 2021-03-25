@@ -1,32 +1,33 @@
 repositories:
   agimus:
     type: git
-    url: https://github.com/jmirabel/agimus.git
-    version: f7d760296cbd67176787db6b8c547a94f76414a5
+    url: https://github.com/agimus/agimus.git
+    version: master
   agimus-demos:
     type: git
-    url: https://github.com/jmirabel/agimus-demos.git
-    version: b390b290c8765f951a46270505b373d60538d501
+    url: https://github.com/agimus/agimus-demos.git
+    version: devel
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc
-    version: c05bf8211f9ab12b8f0fe46d5ebe80565c125dd9
+    version: master
   agimus-hpp:
     type: git
     url: https://github.com/agimus/agimus-hpp
-    version: bea68ef7a3f6a66362a8e588984ee93735131a9b
+    version: devel
   agimus-sot:
     type: git
-    url: https://github.com/jmirabel/agimus-sot.git
-    version: f704d5d9f5206bb7581c8eafbf66ba98cba1c93f
+    url: https://github.com/agimus/agimus-sot.git
+    version: devel
   agimus_sot_msgs:
     type: git
     url: https://github.com/agimus/agimus_sot_msgs
-    version: de306c57b3fe4f863df817130eb63fa2f187c4f3
+    version: master
   agimus_vision:
     type: git
-    url: https://github.com/jmirabel/agimus-vision.git
-    version: bc8faf01de4e6dfc57ca7f2f8c0a1234387b0e94
+    url: https://github.com/origin/agimus-vision.git
+    version: devel
+
   dynamic-graph:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph
@@ -37,7 +38,7 @@ repositories:
     version: 54e8fbd03332dabe26a7a57443c7ddaeb93fbce1
   dynamic_graph_bridge:
     type: git
-    url: https://github.com/jmirabel/dynamic_graph_bridge.git
+    url: https://github.com/stack-of-tasks/dynamic_graph_bridge.git
     version: 7d991eb38b3e74757ec418fbe62f4621f9f8be17
   dynamic_graph_bridge_msgs:
     type: git
