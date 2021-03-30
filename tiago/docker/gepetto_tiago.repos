@@ -25,7 +25,7 @@ repositories:
     version: master
   agimus_vision:
     type: git
-    url: https://github.com/origin/agimus-vision.git
+    url: https://github.com/agimus/agimus-vision.git
     version: devel
 
   dynamic-graph:
