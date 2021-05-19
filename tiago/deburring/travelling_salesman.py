@@ -411,6 +411,9 @@ cgraph = cproblem.getConstraintGraph()
 graph.initialize()
 # 3}}}
 
+res, q0, err = graph.generateTargetConfig('start_arm', q0, q0)
+assert (res)
+
 # {{{3 Constraint graph validation
 graphValidation = ps.client.manipulation.problem.createGraphValidation()
 graphValidation.validate(cgraph)
