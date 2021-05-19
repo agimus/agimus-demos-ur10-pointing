@@ -4,7 +4,6 @@
     doc="set to true to start automatically the computer vision and state estimation nodes." />
 
   <include file="$(find agimus_demos)/launch/tiago_deburring_world_setup.launch">
-    <arg name="gazebo" value="false"/>
   </include>
 
   <!-- Initialization of robot root_joint pose as a ROS param
