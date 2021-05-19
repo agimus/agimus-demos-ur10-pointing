@@ -15,7 +15,7 @@ INSTALL_DEMO_LAUNCH_FILES(deburring
   world_setup.launch
   estimation.launch
 
-  gazebo.launch
+  simulation.launch
   tiago.launch
 
   SCRIPTS
