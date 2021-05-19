@@ -36,7 +36,8 @@
       /-->
 
     <node if="$(arg gazebo)" name="spawn_part" pkg="gazebo_ros" type="spawn_model"
-      args="-file $(find agimus_demos)/urdf/P72.urdf -urdf -model part" />
+	  args="-file $(find agimus_demos)/urdf/P72-with-table.urdf -urdf -model part
+		-x 2 -y 0 -z 0.8" />
   </group>
 </launch>
 
