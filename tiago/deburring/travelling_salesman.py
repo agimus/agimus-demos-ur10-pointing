@@ -282,7 +282,7 @@ ps.setParameter("ManipulationPlanner/extendStep", 0.7)
 ps.setParameter("SteeringMethod/Carlike/turningRadius", 0.05)
 
 q0 = robot.getCurrentConfig()
-q0[:4] = [0, -0.9, 0, 1]
+q0[:4] = [-3., 2., 0, -1]
 #q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.15
 q0[robot.rankInConfiguration['tiago/torso_lift_joint']] = 0.34
 q0[robot.rankInConfiguration['tiago/arm_1_joint']] = 0.10
