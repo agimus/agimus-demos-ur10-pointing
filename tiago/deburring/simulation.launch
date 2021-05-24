@@ -80,33 +80,20 @@
 
   <!-- salle Gerard Bauzil -->
   <group ns="gerard_bauzil">
-    <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/gerard_bauzil.urdf"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
     <node name="spawn_room" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gerard_bauzil)/urdf/gerard_bauzil.urdf -urdf -model gerard_bauzil -X -0 -Y 0. -Z -0.3 -R 0.0 -P 0.0 -Y 0" />
   </group>
 
   <!-- Driller -->
   <group ns="driller">
-    <param name="robot_description" textfile="$(find gerard_bauzil)/urdf/driller_with_qr_drill.urdf"/>
-    <param name="tf_prefix" value="driller"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
     <node name="spawn" pkg="gazebo_ros" type="spawn_model"
 	  args="-file $(find agimus_demos)/urdf/driller_with_qr_drill.urdf -urdf -model driller
 		-x -0.8308234 -y -0.60728794 -z 0.66926598 -R 1.55520314 -P -0.20965903 -Y 1.51499833 " />
   </group>
   <!-- P72 -->
   <group ns="part">
-    <param name="robot_description" textfile="$(find agimus_demos)/urdf/P72-with-table.urdf"/>
-    <param name="tf_prefix" value="part"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
-
     <node name="spawn_part" pkg="gazebo_ros" type="spawn_model"
 	  args="-file $(find agimus_demos)/urdf/P72-with-table.urdf -urdf -model part
 		-x 0.2 -y 0.4 -z 0.8 -Y 3.14" />
   </group>
-  <!-- set map and world frame equal -->
-  <node name="to_tf_2" pkg="tf2_ros" type="static_transform_publisher"
-	args="0 0 0 0 0 0 1 world map"/>
-
 </launch>
