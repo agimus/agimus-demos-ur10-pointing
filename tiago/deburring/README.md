@@ -15,6 +15,10 @@
 ```
 docker run -it --rm --name hpp --cap-add NET_ADMIN --net=host gitlab.laas.fr:4567/rob4fam/docker/tiago_deburring:4_vnc_robot
 ```
+  Make sure that file `/etc/hosts` contains the following line:
+```
+10.68.0.1       tiago-48c
+```
 
 3. in terminal 1 launch `hppcorbaserver`
 4. in terminal 2
