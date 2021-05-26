@@ -2,7 +2,7 @@
   <!-- World setup -->
   <arg name="estimation" default="false"
     doc="set to true to start automatically the computer vision and state estimation nodes." />
-  <arg name="simulation" value="true"
+  <arg name="simulation" default="false"
        doc="whether the demo is run in Gazebo"/>
 
   <include file="$(find agimus_demos)/launch/tiago_deburring_world_setup.launch">
