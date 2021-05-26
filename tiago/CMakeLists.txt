@@ -16,7 +16,7 @@ INSTALL_DEMO_LAUNCH_FILES(deburring
   estimation.launch
 
   simulation.launch
-  tiago.launch
+  demo.launch
 
   SCRIPTS
   publish_initial_pose.py

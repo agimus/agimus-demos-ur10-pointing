@@ -36,7 +36,7 @@ and check that all relevant controllers have been successfully stopped.
 
 6. in terminal 3 (on tiago)
 ```
-  roslaunch agimus_demos tiago_deburring_tiago.launch estimation:=false
+  roslaunch agimus_demos tiago_deburring_demo.launch estimation:=false
 ```
 
 7. in terminal 4
