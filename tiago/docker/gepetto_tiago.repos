@@ -5,8 +5,8 @@ repositories:
     version: master
   agimus-demos:
     type: git
-    url: https://github.com/agimus/agimus-demos.git
-    version: devel
+    url: https://github.com/agimus/agimus-demos
+    version: master
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc
@@ -14,44 +14,43 @@ repositories:
   agimus-hpp:
     type: git
     url: https://github.com/agimus/agimus-hpp
-    version: devel
+    version: master
   agimus-sot:
     type: git
     url: https://github.com/agimus/agimus-sot.git
-    version: devel
+    version: master
+  agimus-vision:
+    type: git
+    url: https://github.com/agimus/agimus-vision
+    version: master
   agimus_sot_msgs:
     type: git
     url: https://github.com/agimus/agimus_sot_msgs
     version: master
-  agimus_vision:
-    type: git
-    url: https://github.com/agimus/agimus-vision.git
-    version: devel
-
   dynamic-graph:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph
-    version: 74557fd55538ea697ea1da7c8a823e97711b23fa
+    version: master
   dynamic-graph-python:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph-python
-    version: 54e8fbd03332dabe26a7a57443c7ddaeb93fbce1
+    version: master
   dynamic_graph_bridge:
     type: git
-    url: https://github.com/stack-of-tasks/dynamic_graph_bridge.git
-    version: 7d991eb38b3e74757ec418fbe62f4621f9f8be17
+    url: https://github.com/stack-of-tasks/dynamic_graph_bridge
+    version: devel
   dynamic_graph_bridge_msgs:
     type: git
     url: https://github.com/stack-of-tasks/dynamic_graph_bridge_msgs
-    version: dc9ac5ed2be69ee96c9b0a1b832ca488e9cf20d9
+    version: master
   example-robot-data:
     type: git
     url: https://github.com/gepetto/example-robot-data
-    version: 90b74386b7cf55fa847f41edfffde5db50658e4c
+    version: master
   gepetto-viewer-corba:
     type: git
     url: https://github.com/Gepetto/gepetto-viewer-corba.git
-    version: 6ffbc13ad4ecc2be7e556c5ef6ddaa2db957dd3d
+    version: devel
   gerard-bauzil:
     type: git
     url: https://gitlab.laas.fr/gepetto/gerard-bauzil.git
@@ -59,84 +58,96 @@ repositories:
   hpp-constraints:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-constraints
-    version: d402fe84ab422bc9ee2ebe58cdbfb85069bbed7a
+    version: devel
   hpp-corbaserver:
     type: git
-    url: https://github.com/humanoid-path-planner/hpp-corbaserver.git
+    url: https://github.com/humanoid-path-planner/hpp-corbaserver
     version: devel
   hpp-core:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-core
-    version: 01876e31b0eef871ba084a81f6dadc8f23fc307f
+    version: devel
   hpp-environments:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-environments
-    version: 0e4160b798d9c8c480f085490f38a6768a1b9679
-  hpp-fcl:
-    type: git
-    url: https://github.com/humanoid-path-planner/hpp-fcl
-    version: 991b91950a1a017868d0a8254ee0ef640a51b8b7
+    version: devel
   hpp-gepetto-viewer:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-gepetto-viewer
-    version: d73daf56541945b5e0eef034416a937c58fc4fbc
+    version: devel
   hpp-manipulation:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-manipulation
-    version: c294a5db128ce3ea20ab702e8da85ab7a5254d64
+    version: devel
   hpp-manipulation-corba:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-manipulation-corba
-    version: c4de796ff9e0d342ff172a82f67c10288beaa208
+    version: devel
   hpp-manipulation-urdf:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-manipulation-urdf
-    version: 1d57b97b7d9da76e515ef29ce5fd2dcd6191aa19
+    version: devel
+  hpp-fcl:
+    type: git
+    url: https://github.com/humanoid-path-planner/hpp-fcl
+    version: devel
   hpp-pinocchio:
     type: git
-    url: https://github.com/humanoid-path-planner/hpp-pinocchio.git
+    url: https://github.com/humanoid-path-planner/hpp-pinocchio
     version: devel
   hpp-statistics:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-statistics
-    version: 955c2da8278ca806bdce2e99f3b313f822d48bfb
+    version: devel
   hpp-template-corba:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-template-corba
-    version: 9405240687b7fcd2a93e83cc78dbe4c344cd22b3
+    version: devel
+  hpp-tools:
+    type: git
+    url: https://github.com/humanoid-path-planner/hpp-tools
+    version: master
   hpp-util:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-util
-    version: 742dede3ba68cf9b0919198088c233c6706aa7eb
-  pinocchio:
+    version: devel
+  hpp_tutorial:
     type: git
-    url: https://github.com/stack-of-tasks/pinocchio.git
+    url: https://github.com/humanoid-path-planner/hpp_tutorial
     version: devel
   roscontrol_sot:
     type: git
-    url: https://github.com/stack-of-tasks/roscontrol_sot.git
-    version: 94bc5c7ad1e0c99fc357d07e63414bc4681e1a83
+    url: https://github.com/stack-of-tasks/roscontrol_sot
+    version: devel
   sot-core:
     type: git
     url: https://github.com/stack-of-tasks/sot-core
-    version: 358877f1ed14abeee53c86254840fc66598757a5
+    version: master
+  pinocchio:
+    type: git
+    url: https://github.com/stack-of-tasks/pinocchio
+    version: v2.6.0
   sot-dynamic-pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/sot-dynamic-pinocchio
-    version: 2842aa7de179275401f47115139c6133ff27f334
+    version: devel
+  sot-gepetto-viewer:
+    type: git
+    url: https://github.com/stack-of-tasks/sot-gepetto-viewer
+    version: master
   sot-tiago:
     type: git
     url: https://github.com/stack-of-tasks/sot-tiago
-    version: cd7e56938c6c42d6a07a897d4e6d24f89b13d0a2
+    version: devel
   sot-tools:
     type: git
     url: https://github.com/stack-of-tasks/sot-tools
-    version: e529611574d12fc2239bd0cfcd83749243de8bc6
+    version: master
   tiago_data:
     type: git
     url: https://github.com/stack-of-tasks/tiago_data
-    version: 7186c247f8a1ecb12178d1db2ccb504480c813e1
+    version: devel
   tiago_metapkg_ros_control_sot:
     type: git
     url: https://github.com/stack-of-tasks/tiago_metapkg_ros_control_sot
-    version: 3866e379acd6f1243e8a2b0109f5faae73f22e4b
+    version: master

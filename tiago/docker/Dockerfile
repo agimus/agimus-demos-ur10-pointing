@@ -1,9 +1,7 @@
 FROM memmos.laas.fr:5000/gepetto/buildfarm/ros:18.04
 
-RUN apt update && apt upgrade -yq
-
 # Configure catkin workspace
-RUN apt install -q -y python3-vcstool python-catkin-tools git cmake vim g++ ros-melodic-catkin \
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool python-catkin-tools git cmake vim g++ ros-melodic-catkin \
       ros-melodic-amcl ros-melodic-backward-ros ros-melodic-catkin ros-melodic-cmake-modules ros-melodic-ddynamic-reconfigure-python \
       ros-melodic-depthimage-to-laserscan ros-melodic-driver-base ros-melodic-eband-local-planner ros-melodic-fake-localization \
       ros-melodic-global-planner ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-view ros-melodic-image-view2 \
@@ -19,13 +17,12 @@ RUN apt install -q -y python3-vcstool python-catkin-tools git cmake vim g++ ros-
       ros-melodic-tf-conversions python-omniorb libboost-dev liburdfdom-dev libassimp-dev libeigen3-dev libgraphviz-dev ros-melodic-xacro \
       libccd-dev ros-melodic-octomap ros-melodic-resource-retriever ros-melodic-srdfdom libltdl-dev python-omniorb python-matplotlib libxml2 \
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev ros-melodic-polled-camera \
-      ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm
-
-RUN apt install -q -y ipython emacs pybind11-dev
+      ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm \
+       ipython emacs pybind11-dev  doxygen
 
 RUN mkdir -p ~/catkin_ws/src
 WORKDIR /root/catkin_ws
-RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF
+RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=ON
 
 COPY ./pal_tiago.repos src/pal_tiago.repos
 RUN cd src && vcs-import --recursive --input pal_tiago.repos
@@ -47,6 +44,6 @@ RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4f
 RUN catkin build rob4fam-models
 
 COPY config.sh /root/config.sh
-RUN echo -e "source ~/config.sh" >> ~/.bashrc
+RUN echo "source ~/config.sh" >> ~/.bashrc
 
 # vim: ft=dockerfile
