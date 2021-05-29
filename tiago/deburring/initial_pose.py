@@ -11,13 +11,13 @@ p.header.seq = 1
 p.header.stamp.secs = int(rospy.get_time())
 p.header.stamp.nsecs = 0
 p.header.frame_id = 'map'
-p.pose.pose.position.x = -2.94
-p.pose.pose.position.y = 4.114
-p.pose.pose.position.z = 0.098
+p.pose.pose.position.x = 3.21
+p.pose.pose.position.y = -3.48
+p.pose.pose.position.z = -0.29
 p.pose.pose.orientation.x = 0
 p.pose.pose.orientation.y = 0
-p.pose.pose.orientation.z = -sqrt(2)/2
-p.pose.pose.orientation.w = sqrt(2)/2
+p.pose.pose.orientation.z = -0.0339540292764
+p.pose.pose.orientation.w = 0.999423395712
 p.pose.covariance = [.01, 0, 0, 0, 0, 0,
                      0, .01, 0, 0, 0, 0,
                      0, 0, .001, 0, 0, 0,

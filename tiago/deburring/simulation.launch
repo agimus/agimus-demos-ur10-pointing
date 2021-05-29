@@ -24,15 +24,12 @@
   <arg name="world"  default="empty_world"/>
   <arg name="tuck_arm"  default="true"/>
 
-  <arg name="lost" default="true"/>
-  <arg name="gzpose" default="-x 0.0  -y   0.0 -z  0.0   -R 0.0 -P 0.0 -Y  0.0" unless="$(arg lost)"/>
-  <arg name="gzpose" default="-x -3.0 -y 4.2 -z -0.0 -R 0.0 -P 0.0 -Y -1.57" if="$(arg lost)"/>
+  <arg name="gzpose" default="-x -3.0 -y 4.2 -z -0.0 -R 0.0 -P 0.0 -Y -1.57"/>
 
   <arg name="planner"        default="base"/>
   <arg name="global_planner" default="global_planner"/>
   <arg name="local_planner"  default="$(eval 'teb' if arg('public_sim') else 'pal')"/>
   <arg name="localization"   default="amcl"/>
-  <arg name="map"            default="$(env HOME)/.pal/tiago_maps/configurations/gerard-bauzil-simu"/>
 
   <arg name="gzclient" default="true"/>
   <arg name="recording" default="false"/>
@@ -66,7 +63,6 @@
     <arg name="planner"        value="$(arg planner)"/>
     <arg name="global_planner" value="$(arg global_planner)"/>
     <arg name="local_planner"  value="$(arg local_planner)"/>
-    <arg name="map"            value="$(arg map)"/>
     <arg name="public_sim"     value="$(arg public_sim)"/>
     <arg name="rgbd_sensors"   value="$(arg advanced_navigation)"/>
     <arg name="laser_model"    value="$(arg laser_model)"/>
@@ -96,4 +92,7 @@
 	  args="-file $(find agimus_demos)/urdf/P72-with-table.urdf -urdf -model part
 		-x 0.2 -y 0.4 -z 0.8 -Y 3.14" />
   </group>
+  <!-- map of Gerard Bauzil room -->
+  <node pkg="map_server" type="map_server" name="map_server"
+	args="$(find gerard_bauzil)/maps/2021-05/map.yaml"/>
 </launch>
