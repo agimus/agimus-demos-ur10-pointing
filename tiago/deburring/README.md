@@ -23,7 +23,7 @@ docker run -it --rm --name hpp --cap-add NET_ADMIN --net=host gitlab.laas.fr:456
 10.68.0.1       tiago-48c
 ```
 
-3. *simulation:* in another terminal
+3. *simulation:* in terminal 0
 ```bash
   roslaunch agimus_demos tiago_deburring_simulation.launch
 ```

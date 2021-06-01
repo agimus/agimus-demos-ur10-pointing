@@ -2,6 +2,9 @@ FROM gitlab.laas.fr:4567/rob4fam/docker/tiago_deburring:2
 
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/packages/debian/pub bionic robotpkg > /etc/apt/sources.list.d/robotpkg.list
 
+RUN curl http://robotpkg.openrobots.org/packages/debian/robotpkg.key | \
+    apt-key add -
+
 # Configure catkin workspace
 RUN apt update -qy && DEBIAN_FRONTEND=noninteractive apt install -qy \
     robotpkg-py27-qt5-gepetto-viewer-corba robotpkg-py27-qt5-hpp-gui \

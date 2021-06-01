@@ -1,4 +1,6 @@
-FROM memmos.laas.fr:5000/gepetto/buildfarm/ros:18.04
+FROM osrf/ros:melodic-desktop-bionic
+
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 
 # Configure catkin workspace
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool python-catkin-tools git cmake vim g++ ros-melodic-catkin \
@@ -18,7 +20,7 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool
       libccd-dev ros-melodic-octomap ros-melodic-resource-retriever ros-melodic-srdfdom libltdl-dev python-omniorb python-matplotlib libxml2 \
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev ros-melodic-polled-camera \
       ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm \
-       ipython emacs pybind11-dev  doxygen
+       ipython emacs pybind11-dev  doxygen openssh-client
 
 RUN mkdir -p ~/catkin_ws/src
 WORKDIR /root/catkin_ws
@@ -27,7 +29,7 @@ RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Relea
 COPY ./pal_tiago.repos src/pal_tiago.repos
 RUN cd src && vcs-import --recursive --input pal_tiago.repos
 
-RUN catkin build
+RUN . /opt/ros/melodic/setup.sh && catkin build
 
 COPY ./gepetto_tiago.repos src/gepetto_tiago.repos
 RUN cd src && vcs-import --recursive --input gepetto_tiago.repos
@@ -36,7 +38,7 @@ COPY ./patches src/patches
 COPY ./patches/apply.sh src/apply_patches.sh
 RUN cd src/ && bash apply_patches.sh
 
-RUN catkin build
+RUN . install/setup.sh && catkin build -j 1
 
 # Clone manually rob4fam-models
 COPY rob4fam-models src/rob4fam-models

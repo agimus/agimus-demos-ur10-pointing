@@ -54,7 +54,7 @@ repositories:
   gerard-bauzil:
     type: git
     url: https://gitlab.laas.fr/gepetto/gerard-bauzil.git
-    version: master
+    version: devel
   hpp-constraints:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-constraints
