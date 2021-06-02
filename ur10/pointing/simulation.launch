@@ -1,0 +1,36 @@
+<!--
+    This launch file simulates UR-10 robot using Gazebo with
+     - an RGBD sensor attached to the end effector,
+     - the P72 part lying on a table.
+
+    After launching this file, the simulated robot should be in the same state
+    as the real robot when turned on.
+
+-->
+<launch>
+  <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
+  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="true" doc="Starts gazebo gui" />
+  
+  <!-- startup simulated world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" default="worlds/empty.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- send robot urdf to param server -->
+  <include file="$(find agimus_demos)/launch/ur10_pointing_ur10_upload.launch">
+  </include>
+
+  <!--rosparam command="load" file="$(find agimus_demos)/ur10/config/pid.yaml"/-->
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.1 -J shoulder_lift_joint -1.57 -J elbow_joint 1.57" respawn="false" output="screen" />
+
+  <rosparam command="load" file="$(find ur_gazebo)/controller/arm_controller_ur10.yaml"/>
+  <include file="$(find ur_gazebo)/launch/controller_utils.launch"/>
+
+  <!-- Unsuccessful attempt to load a temporary controller until the SoT
+       is launched. -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+	respawn="false" output="screen" args="joint_group_position_controller"/>

@@ -43,6 +43,7 @@ ENDMACRO()
 
 ADD_SUBDIRECTORY(talos)
 ADD_SUBDIRECTORY(tiago)
+ADD_SUBDIRECTORY(ur10)
 add_subdirectory(src)
 add_subdirectory(tests)
 
