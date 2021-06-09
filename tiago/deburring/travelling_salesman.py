@@ -140,11 +140,11 @@ class Tags:
     def sizes(self):
         return [ t.size for t in self.tags ]
 tagss = [
-        Tags([ Tag('driller/tag36_11_00230', 0.064+0.01), ], 1, 0.005, 0),
+        Tags([ Tag('driller/tag36_11_00230', 0.064+0.01), ], 1, 0.005, 0.1),
         Tags([ Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.1615+0.01),
                Tag('part/tag36_11_00015', 0.0845+0.01) ],
-               2, 0.01, 0),
+               2, 0.01, 0.1),
                ]
 tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, tagss)
 
