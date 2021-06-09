@@ -79,7 +79,7 @@ class TiagoFOV:
         pinocchio.framesForwardKinematics(self.model, self.data, np.array(q))
         pinocchio.updateGeometryPlacements(self.model, self.data, self.gmodel, self.gdata)
 
-    def tagToTetahedronPts(self, oMt, size, margin = 0.002):
+    def tagToTetahedronPts(self, oMt, size, margin = 0.002, size_margin = 0):
         """ It assumes that updateGeometryPlacements has been called """
         if not isinstance(oMt, pinocchio.SE3):
             oMt = pinocchio.XYZQUATToSE3(oMt)
@@ -89,18 +89,19 @@ class TiagoFOV:
 
         C = self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2]
         pts.append(C)
+        increasedSize = (1 + size_margin)*size
         for pt in [
-                np.array(( size / 2,  size / 2, 0)),
-                np.array((-size / 2,  size / 2, 0)),
-                np.array((-size / 2, -size / 2, 0)),
-                np.array(( size / 2, -size / 2, 0)), ]:
+                np.array(( increasedSize / 2,  increasedSize / 2, 0)),
+                np.array((-increasedSize / 2,  increasedSize / 2, 0)),
+                np.array((-increasedSize / 2, -increasedSize / 2, 0)),
+                np.array(( increasedSize / 2, -increasedSize / 2, 0)), ]:
             P = oMt * pt
             u = (C-P)
             u /= np.linalg.norm(u)
             pts.append(P + margin * u)
         return pts
 
-    def tagVisible(self, oMt, size, margin):
+    def tagVisible(self, oMt, size, margin, size_margin):
         """ It assumes that updateGeometryPlacements has been called """
         idc = self.model.getFrameId("xtion_rgb_optical_frame")
         camera = self.model.frames[idc]
@@ -114,7 +115,7 @@ class TiagoFOV:
         if cos_theta < self.cos_angle_thr:
             return False
 
-        pts = self.tagToTetahedronPts(oMt, size, margin + 0.002)
+        pts = self.tagToTetahedronPts(oMt, size, margin + 0.002, size_margin)
 
         tetahedron = hppfcl.BVHModelOBBRSS()
         tetahedron.beginModel(4, 5)
@@ -150,7 +151,8 @@ class TiagoFOV:
         for tags in tagss:
             nvisible = 0
             for oMt, tag in zip(robot.hppcorba.robot.getJointsPosition(q, tags.names), tags.tags):
-                if self.tagVisible(oMt, tag.size, tags.size_margin):
+                if self.tagVisible(oMt, tag.size, tags.depth_margin,
+                                   tags.size_margin):
                     nvisible+=1
             if nvisible < tags.n_visibility_thr:
                 _print("Not enough tags visible among ", tags)
@@ -254,7 +256,8 @@ class TiagoFOVGuiCallback:
             for name, oMt, tag in zip (names, oMts, tags.tags):
                 pts = [ pt.tolist() for pt in self.fov.tagToTetahedronPts(oMt, tag.size) ]
                 gui.setCurvePoints(name, pts + pts[1:2])
-                if self.fov.tagVisible(oMt, tag.size, tags.size_margin):
+                if self.fov.tagVisible(oMt, tag.size, tags.depth_margin,
+                                       tags.size_margin):
                     gui.setColor(name, [ 0.1, 0.9, 0.1, 0.2 ])
                 else:
                     gui.setColor(name, [ 0.9, 0.1, 0.1, 0.2 ])

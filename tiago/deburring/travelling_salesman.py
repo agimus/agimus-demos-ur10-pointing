@@ -117,9 +117,21 @@ class Tag:
         self.name = n
         self.size = s
 class Tags:
-    def __init__(self, tags, n_visibility_thr, size_margin):
+    """
+    Set of tags with visibility specifications
+
+      - n_visibility_thr: minimal number of tags visible in the set to be
+        able to perform an accurate localization,
+      - depth_margin: increasing ratio of the pyramidal fields of view in the
+        depth direction. If C is the top of the pyramid and P a vertex, P is
+        moved away from C in such a way that the distance PC is multiplied by
+        1 + depth_margin.
+      - size_margin increasing ratio of the pyramid base.
+    """
+    def __init__(self, tags, n_visibility_thr, depth_margin, size_margin):
         self.tags = tags
         self.n_visibility_thr = n_visibility_thr
+        self.depth_margin = depth_margin
         self.size_margin = size_margin
     @property
     def names(self):
@@ -128,11 +140,11 @@ class Tags:
     def sizes(self):
         return [ t.size for t in self.tags ]
 tagss = [
-        Tags([ Tag('driller/tag36_11_00230', 0.064+0.01), ], 1, 0.005),
+        Tags([ Tag('driller/tag36_11_00230', 0.064+0.01), ], 1, 0.005, 0),
         Tags([ Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.1615+0.01),
                Tag('part/tag36_11_00015', 0.0845+0.01) ],
-               2, 0.01),
+               2, 0.01, 0),
                ]
 tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, tagss)
 
