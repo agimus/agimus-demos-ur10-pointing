@@ -1,0 +1,4 @@
+<launch>
+  <!-- start ros controller running the SoT -->
+  <include file="$(find sot_universal_robot)/launch/controller.launch"/>
+</launch>
