@@ -14,6 +14,7 @@
         >
         <param name="imageTopic"      value="/xtion/rgb/image_raw" />
         <param name="cameraInfoTopic" value="/xtion/rgb/camera_info" />
+        <param name="depthImageTopic" value="/xtion/depth/image_raw" />
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
@@ -48,7 +49,9 @@
         --measurement-parent-frame xtion_rgb_optical_frame
         --group-frame driller/base_link
         --no-description
-        --size 0.064
+        --size 0.04
+        --tag 23
+        --size 0.04
         --tag 230
         "
         output="$(arg output)"
