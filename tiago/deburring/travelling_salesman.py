@@ -1,6 +1,7 @@
 # {{{2 Imports and argument parsing
 from __future__ import print_function
 from CORBA import Any, TC_long, TC_float
+from hpp.corbaserver import shrinkJointRange
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, createContext, newProblem, ProblemSolver, ConstraintGraph, Rule, Constraints, CorbaClient
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp_idl.hpp import Error as HppError
@@ -79,19 +80,6 @@ class PartP72:
     srdfFilename = "package://agimus_demos/srdf/P72.srdf"
     rootJointType = "freeflyer"
 
-## Reduce joint range for security
-def shrinkJointRange (robot, ratio):
-    for j in robot.jointNames:
-        if j[:6] != "tiago/": continue
-        tj = j[6:]
-        if tj.startswith("torso") or tj.startswith("arm") or tj.startswith("head"):
-            bounds = robot.getJointBounds (j)
-            if len (bounds) == 2:
-                width = bounds [1] - bounds [0]
-                mean = .5 * (bounds [1] + bounds [0])
-                m = mean - .5 * ratio * width
-                M = mean + .5 * ratio * width
-                robot.setJointBounds (j, [m, M])
 
 print("context=" + args.context)
 loadServerPlugin (args.context, "manipulation-corba.so")
@@ -112,6 +100,15 @@ tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         # Real field of view angles are (49.5, 60),
         fov = np.radians((44.5, 55)),
         geoms = [ "arm_3_link_0" ])
+
+# Compute Tiago joints that are bounded to shrink their range when necessary
+tiagoBoundedJoints = list()
+for j in robot.jointNames:
+    if j[:6] != "tiago/": continue
+    tj = j[6:]
+    if tj.startswith("torso") or tj.startswith("arm") or tj.startswith("head"):
+        tiagoBoundedJoints.append(j)
+
 class Tag:
     def __init__(self, n, s):
         self.name = n
@@ -275,10 +272,10 @@ def setRobotJointBounds(which):
         robot.setJointBounds(jn, bound)
 
 joint_bounds["default"] = [ (jn, robot.getJointBounds(jn)) for jn in robot.jointNames ]
-shrinkJointRange(robot, 0.6)
+shrinkJointRange(robot, tiagoBoundedJoints, 0.6)
 joint_bounds["grasp-generation"] = [ (jn, robot.getJointBounds(jn)) for jn in robot.jointNames ]
 setRobotJointBounds("default")
-shrinkJointRange(robot, 0.95)
+shrinkJointRange(robot, tiagoBoundedJoints, 0.95)
 joint_bounds["planning"] = [ (jn, robot.getJointBounds(jn)) for jn in robot.jointNames ]
 
 ps.selectPathValidation("Graph-Discretized", 0.05)
