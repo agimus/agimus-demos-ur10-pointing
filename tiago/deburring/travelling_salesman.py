@@ -227,7 +227,8 @@ srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" rea
 # Disable collision between tiago/hand_safety_box_0 and driller
 srdf_disable_collisions = """<robot>"""
 srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
-
+srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_top")
+srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_back")
 linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
 for la, lb, en in zip(linka, linkb, enabled):
     if not en: continue
@@ -927,7 +928,7 @@ if solve_tsp_problems:
 
 # 2}}}
 
-# {{{2 Function for online resolution
+# {{{2 Function for online reso 
 def recompute_clusters(handles = None, qcurrent = None):
     if qcurrent is None:
         import estimation 
@@ -959,7 +960,9 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     outOfCollisionPath = None
     if not valid:
         if msg == 'Collision between object tiago/torso_fixed_column_link_0 and tiago/hand_safety_box_0' \
-            or msg == 'Collision between object tiago/torso_fixed_column_link_0 and driller/base_link_0':
+            or msg == 'Collision between object tiago/torso_fixed_column_link_0 and driller/base_link_0' \
+            or msg == 'Collision between object tiago/base_link_0 and driller/tag_support_link_top_0' \
+            or msg == 'Collision between object tiago/torso_fixed_column_link_0 and driller/tag_support_link_back_0':
             qcurrent2 = qcurrent[:]
             qcurrent2[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.
             res, qcurrent2, err = graph.applyNodeConstraints("tiago/gripper grasps driller/handle", qcurrent2)
