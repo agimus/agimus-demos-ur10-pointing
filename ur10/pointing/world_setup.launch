@@ -1,0 +1,9 @@
+<launch>
+  <!-- P72 -->
+  <group ns="part">
+    <param name="robot_description" textfile="$(find agimus_demos)/urdf/P72-with-table.urdf"/>
+    <param name="tf_prefix" value="part"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  </group>
+</launch>
+

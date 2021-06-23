@@ -3,6 +3,7 @@ INSTALL_DEMO_LAUNCH_FILES(pointing
   LAUNCHFILES
   simulation.launch
   ur10_upload.launch
+  world_setup.launch
   )
 
 INSTALL(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10)

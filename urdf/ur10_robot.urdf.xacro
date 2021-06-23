@@ -42,7 +42,7 @@
   <joint name="support_joint" type="fixed">
     <parent link="world" />
     <child link = "support_link" />
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${.5 * M_PI}" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
   <!-- arm -->
