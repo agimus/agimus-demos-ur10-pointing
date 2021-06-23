@@ -48,7 +48,9 @@
         --measurement-parent-frame xtion_rgb_optical_frame
         --group-frame driller/base_link
         --no-description
-        --size 0.064
+        --size 0.04
+        --tag 23
+        --size 0.04
         --tag 230
         "
         output="$(arg output)"

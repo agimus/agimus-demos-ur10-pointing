@@ -1,3 +1,4 @@
+set(CMAKE_CXX_STANDARD 14) 
 find_package(pybind11 CONFIG)
 if(pybind11_FOUND)
   pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
