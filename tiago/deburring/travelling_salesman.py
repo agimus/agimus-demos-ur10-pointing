@@ -140,7 +140,9 @@ class Tags:
     def sizes(self):
         return [ t.size for t in self.tags ]
 tagss = [
-        Tags([ Tag('driller/tag36_11_00230', 0.064+0.01), ], 1, 0.005, 0.1),
+        Tags([ Tag('driller/tag36_11_00230', 0.04+0.01), 
+               Tag('driller/tag36_11_00023', 0.04+0.01)], 
+               1, 0.005, 0.1),
         Tags([ Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.1615+0.01),
                Tag('part/tag36_11_00015', 0.0845+0.01) ],
@@ -306,7 +308,7 @@ q0[robot.rankInConfiguration['tiago/arm_5_joint']] = -1.57
 q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.3
 q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
 
-q0[robot.rankInConfiguration['part/root_joint']:] = [0,0.3,0.8,0,0,1,0]
+q0[robot.rankInConfiguration['part/root_joint']:] = [0,0.3,0.8,0,0,0,1]
 # 2}}}
 
 # {{{2 Constraint graph initialization
