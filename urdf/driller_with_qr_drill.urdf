@@ -144,5 +144,16 @@
     <parent link="base_link"/>
     <child link="support_link"/>
   </joint>
+
+   <gazebo>
+    <plugin filename="libgazebo_attachment.so" name="gazebo_driller_attach_to_hand">
+      <target_model_name>tiago</target_model_name>
+      <target_link_name>arm_7_link</target_link_name>
+      <local_link_name>base_link</local_link_name>
+      <pose>
+        0.03798813  0.00999522  0.21661272 0.76909173 -1.57077131 -1.57079575
+      </pose>
+    </plugin>
+  </gazebo>
 </robot>
 
