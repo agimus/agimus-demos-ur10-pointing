@@ -1,5 +1,17 @@
 <launch>
+  <arg name="script_file" doc="Full path to the script which initialize the supervisor"
+    default="$(find agimus_demos)/ur10/pointing/supervisor.py" />
+
   <include file="$(find agimus_demos)/launch/ur10_pointing_world_setup.launch"/>
   <!-- start ros controller running the SoT -->
   <include file="$(find sot_universal_robot)/launch/controller.launch"/>
+
+  <!--This starts sot supervisor in namespace agimus/sot-->
+  <include file="$(find agimus-sot)/launch/supervisor.launch" >
+    <arg name="script_file" value="$(arg script_file)"/>
+    <arg name="robot_prefix" value="tiago/"/>
+    <arg name="simulate_torque_feedback" value="false"/>
+    <arg name="required" value="false"/>
+  </include>
+
 </launch>
