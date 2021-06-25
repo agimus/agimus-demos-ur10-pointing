@@ -14,4 +14,6 @@
     <arg name="required" value="false"/>
   </include>
 
+  <rosparam command="load"
+	    file="$(find agimus_demos)/ur10/pointing/demo.yaml"/>
 </launch>

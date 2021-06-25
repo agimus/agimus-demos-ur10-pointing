@@ -8,6 +8,7 @@ INSTALL_DEMO_LAUNCH_FILES(pointing
 
 INSTALL(FILES
   pointing/supervisor.py
+  pointing/demo.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing
   )
 

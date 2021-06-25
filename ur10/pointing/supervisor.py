@@ -33,23 +33,36 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
     import pinocchio
-    from rospkg import RosPack
-    rospack = RosPack()
+    import rospy
 
     srdf = {}
-    srdfRobot = parse_srdf("srdf/ur10_robot.srdf", packageName="agimus_demos",
-                           prefix="ur10")
-    srdfPart = parse_srdf("srdf/P72.srdf", packageName="agimus_demos",
-                          prefix="part")
-    grippers = ("ur10/gripper",)
-    objects = ("part",)
-    handlesPerObjects = (sorted(srdfPart["handles"].keys()),)
-    contactPerObjects = ([],)
+    # retrieve objects from ros param
+    demoDict = rospy.get_param("/demo")
+    robotDict = demoDict["robots"]
+    objectDict = demoDict["objects"]
+    objects = list(objectDict.keys())
+    # parse robot and object srdf files
+    srdfDict = dict()
+    for r, data in robotDict.items():
+        srdfDict[r] = parse_srdf(srdf = data["srdf"]["file"],
+                                 packageName = data["srdf"]["package"],
+                                 prefix=r)
+    for o, data in objectDict.items():
+        srdfDict[o] = parse_srdf(srdf = data["srdf"]["file"],
+                                 packageName = data["srdf"]["package"],
+                                 prefix=o)
+
+    grippers = list(demoDict["grippers"])
+    handlesPerObjects = list()
+    contactPerObjects = list()
+    for o in objects:
+        handlesPerObjects.append(sorted(list(srdfDict[o]["handles"].keys())))
+        contactPerObjects.append(sorted(list(srdfDict[o]["contacts"].keys())))
 
     for w in ["grippers", "handles","contacts"]:
         srdf[w] = dict()
-        for d in [srdfRobot, srdfPart]:
-            srdf[w].update(d[w])
+        for k, data in srdfDict.items():
+            srdf[w].update(data[w])
 
     supervisor = Supervisor(robot)
     factory = Factory(supervisor)
