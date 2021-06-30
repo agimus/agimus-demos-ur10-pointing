@@ -39,6 +39,8 @@ def makeSupervisorWithFactory(robot):
     # retrieve objects from ros param
     demoDict = rospy.get_param("/demo")
     robotDict = demoDict["robots"]
+    if len(robotDict) != 1:
+        raise RuntimeError("One and only one robot is supported for now.")
     objectDict = demoDict["objects"]
     objects = list(objectDict.keys())
     # parse robot and object srdf files
@@ -64,7 +66,7 @@ def makeSupervisorWithFactory(robot):
         for k, data in srdfDict.items():
             srdf[w].update(data[w])
 
-    supervisor = Supervisor(robot)
+    supervisor = Supervisor(robot, prefix=robotDict.keys()[0])
     factory = Factory(supervisor)
     factory.parameters["period"] = 0.01  # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
