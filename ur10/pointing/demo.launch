@@ -7,6 +7,13 @@
   <!-- start ros controller running the SoT -->
   <include file="$(find sot_universal_robot)/launch/controller.launch"/>
 
+  <!--This starts the HPP interface in namespace agimus/hpp-->
+  <group ns="agimus/hpp">
+    <node name="hpp_node" pkg="agimus-hpp" type="hpp_node.py"
+      args="hpp-manipulation-server" respawn="true"
+      output="screen" />
+  </group>
+
   <!--This starts sot supervisor in namespace agimus/sot-->
   <include file="$(find agimus-sot)/launch/supervisor.launch" >
     <arg name="script_file" value="$(arg script_file)"/>
@@ -17,6 +24,9 @@
 
   <rosparam command="load"
 	    file="$(find agimus_demos)/ur10/pointing/demo.yaml"/>
+  <include file="$(find agimus)/launch/path_execution.launch">
+    <arg name="gui" value="false"/>
+  </include>
 
   <include if="$(arg estimation)" file="$(find agimus_demos)/launch/tiago_deburring_estimation.launch"/>
 </launch>
