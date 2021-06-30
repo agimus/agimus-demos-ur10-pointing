@@ -1,6 +1,7 @@
 # Install launch files in launch directory
 INSTALL_DEMO_LAUNCH_FILES(pointing
   LAUNCHFILES
+  estimation.launch
   simulation.launch
   ur10_upload.launch
   world_setup.launch
