@@ -1,5 +1,5 @@
-# Copyright 2020, 2021 CNRS - Airbus SAS
-# Author: Florent Lamiraux, Joseph Mirabel
+# Copyright 2021 CNRS - Airbus SAS
+# Author: Florent Lamiraux
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -24,30 +24,4 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set(CMAKE_CXX_STANDARD 14) 
-# Install python module
-if(NOT DEFINED PYTHON_SITELIB)
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" "-c"
-    #"import sys, os; print(os.sep.join(['lib', 'python' + sys.version[:3], 'dist-packages']))"
-    "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix='', plat_specific=False))"
-    OUTPUT_VARIABLE PYTHON_SITELIB
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET)
-endif()
-
-install(FILES
-  agimus_demos/__init__.py
-  agimus_demos/in_state_planner.py
-  DESTINATION ${PYTHON_SITELIB}/agimus_demos
-  )
-
-find_package(pybind11 CONFIG)
-if(pybind11_FOUND)
-  pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
-  target_link_libraries(pytsp PRIVATE Eigen3::Eigen)
-
-  message(STATUS "Installing python module to ${PYTHON_SITELIB}")
-  install(TARGETS pytsp
-    DESTINATION ${PYTHON_SITELIB}/agimus_demos)
-endif()
+from in_state_planner import InStatePlanner, wd
