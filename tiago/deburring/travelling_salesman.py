@@ -144,8 +144,9 @@ tagss = [
                Tag('driller/tag36_11_00023', 0.04+0.01)], 
                1, 0.005, 0.1),
         Tags([ Tag('part/tag36_11_00001', 0.0845+0.01),
-               Tag('part/tag36_11_00006', 0.1615+0.01),
-               Tag('part/tag36_11_00015', 0.0845+0.01) ],
+               Tag('part/tag36_11_00006', 0.0845+0.01),
+               Tag('part/tag36_11_00015', 0.0845+0.01),
+               Tag('part/tag36_11_00013', 0.0845+0.01) ],
                2, 0.01, 0.1),
                ]
 tiago_fov_gui = TiagoFOVGuiCallback(robot, tiago_fov, tagss)
@@ -223,7 +224,7 @@ vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
 robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
-robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
+robot.setJointBounds('part/root_joint', [-3, 3, -3, 3, -3, 3])
 
 srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
 # Disable collision between tiago/hand_safety_box_0 and driller
@@ -308,6 +309,7 @@ q0[robot.rankInConfiguration['tiago/arm_5_joint']] = -1.57
 q0[robot.rankInConfiguration['tiago/arm_6_joint']] = 1.3
 q0[robot.rankInConfiguration['tiago/arm_7_joint']] = 0.00
 
+#q0[robot.rankInConfiguration['part/root_joint']:] = [0.926, -0.024, 0.000,0,0,0,1]
 q0[robot.rankInConfiguration['part/root_joint']:] = [0,0.3,0.8,0,0,0,1]
 # 2}}}
 
