@@ -96,6 +96,9 @@ ps.addPathOptimizer("SimpleTimeParameterization")
 # ps.selectConfigurationShooter('Gaussian')
 # ps.setParameter('ConfigurationShooter/Gaussian/center', 12*[0.] + [1.])
 # ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.25)
+ps.setParameter('SimpleTimeParameterization/order', 2)
+ps.setParameter('SimpleTimeParameterization/maxAcceleration', .25)
+ps.setParameter('SimpleTimeParameterization/safety', 0.5)
 
 vf = ViewerFactory(ps)
 
