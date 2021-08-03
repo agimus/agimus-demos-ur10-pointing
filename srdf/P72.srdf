@@ -90,6 +90,7 @@
     <mask>1 1 1 0 1 1</mask>
 </handle>
 
+
 <handle name="handle_15" clearance="0.05">
     <position rpy="0 0 0"/>
     <link name="hole_16_link" />
@@ -107,4 +108,23 @@
     <link name="hole_18_link" />
     <mask>1 1 1 0 1 1</mask>
 </handle>
+
+<handle name="handle_18" clearance="0.05">
+    <position rpy="0 0 0"/>
+    <link name="hole_19_link" />
+    <mask>1 1 1 0 1 1</mask>
+</handle>
+
+<handle name="handle_19" clearance="0.05">
+    <position rpy="0 0 0"/>
+    <link name="hole_20_link" />
+    <mask>1 1 1 0 1 1</mask>
+</handle>
+
+<handle name="handle_20" clearance="0.05">
+    <position rpy="0 0 0"/>
+    <link name="hole_21_link" />
+    <mask>1 1 1 0 1 1</mask>
+</handle>
+
 </robot>

@@ -109,19 +109,95 @@
         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00023.dae" scale="0.04 0.04 1."/>
       </geometry>
     </visual>
-  
-
   </link>
+
   <link name="tag36_11_00230">
     <visual>
       <origin xyz="0 0 0.00001"/>
       <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.05 0.05 1."/>
-         <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.04 0.04 1."/> -->
+        <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.0845 0.0845 1."/> -->
+         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.04 0.04 1."/>
       </geometry>
     </visual>
-       
   </link>
+
+  <link name="tag36_11_00231">
+    <visual>
+      <origin xyz="0 0 0.00001"/>
+      <geometry>
+        <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.0845 0.0845 1."/> -->
+         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00231.dae" scale="0.04 0.04 1."/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="tag36_11_00232">
+    <visual>
+      <origin xyz="0 0 0.00001"/>
+      <geometry>
+        <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.0845 0.0845 1."/> -->
+         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00232.dae" scale="0.04 0.04 1."/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="tag_support_link_top_horizontal">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.1 0.1 0.9 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+  
+
+  <link name="tag_support_link_left">
+    <visual>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.1 0.1 0.9 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <joint name="tag_support_top_horizontal" type="fixed">
+    <parent link="tag_support_link_back"/>
+    <child link="tag_support_link_top_horizontal"/>
+    <!-- 74mm / 2 + 4mm -->
+    <origin rpy="1.57079632679 0.00 0" xyz="-0.00 0.042 -0.023"/>
+    <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
+  </joint>
+
+  <joint name="tag_support_left" type="fixed">
+    <parent link="tag_support_link_back"/>
+    <child link="tag_support_link_left"/>
+    <!-- 74mm / 2 + 4mm -->
+    <origin rpy="0 1.57079632679 0" xyz="-0.032 0.0 -0.023"/>
+    <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
+  </joint>
+  
   <joint name="tag_joint" type="fixed">
     <parent link="tag_support_link_top"/>
     <child link="tag36_11_00023"/>
@@ -130,8 +206,22 @@
   <joint name="tag_joint_back" type="fixed">
     <parent link="tag_support_link_back"/>
     <child link="tag36_11_00230"/>
-    <origin xyz="0 -0.005 0.002"/>
+    <origin xyz="0 0.0 0.0002"/>
   </joint>
+
+  <joint name="tag_joint_top_horizontal" type="fixed">
+    <parent link="tag_support_link_top_horizontal"/>
+    <child link="tag36_11_00232"/>
+    <origin rpy="0.0 3.14159265359 0.0" xyz="0 0.0 -0.002"/>
+  </joint>
+
+  <joint name="tag_joint_top_left" type="fixed">
+    <parent link="tag_support_link_left"/>
+    <child link="tag36_11_00231"/>
+    <origin rpy="0.0 3.14159265359 0.0" xyz="0 0.0 -0.002"/>
+  </joint>
+
+ 
   <!-- <xacro:qr_drill number="_00023" size="0.04" /> -->
   <!-- The drill penetrates in the driller of 74 - 46.5 = 27.5mm -->
   <joint name="drill_joint" type="fixed">
@@ -145,16 +235,5 @@
     <parent link="base_link"/>
     <child link="support_link"/>
   </joint>
-
-   <gazebo>
-    <plugin filename="libgazebo_attachment.so" name="gazebo_driller_attach_to_hand">
-      <target_model_name>tiago</target_model_name>
-      <target_link_name>arm_7_link</target_link_name>
-      <local_link_name>base_link</local_link_name>
-      <pose>
-        0.03798813  0.00999522  0.21661272 0.76909173 -1.57077131 -1.57079575
-      </pose>
-    </plugin>
-  </gazebo>
 </robot>
 

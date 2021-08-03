@@ -140,12 +140,20 @@ class Tags:
     def sizes(self):
         return [ t.size for t in self.tags ]
 tagss = [
-        Tags([ Tag('driller/tag36_11_00230', 0.04+0.01), 
-               Tag('driller/tag36_11_00023', 0.04+0.01)], 
+        Tags([ Tag('driller/tag36_11_00230', 0.0400+0.01),
+            #    Tag('driller/tag36_11_00231', 0.0400+0.01),
+               Tag('driller/tag36_11_00232', 0.0400+0.01),
+               Tag('driller/tag36_11_00023', 0.0400+0.01)
+               ], 
                1, 0.005, 0.1),
-        Tags([ Tag('part/tag36_11_00001', 0.0845+0.01),
+        Tags([ Tag('part/tag36_11_00100', 0.0600+0.01),
+               Tag('part/tag36_11_00101', 0.0600+0.01),
+               Tag('part/tag36_11_00102', 0.0600+0.01),
+               Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.0845+0.01),
+               Tag('part/tag36_11_00005', 0.0845+0.01),
                Tag('part/tag36_11_00015', 0.0845+0.01),
+               Tag('part/tag36_11_00014', 0.0845+0.01),
                Tag('part/tag36_11_00013', 0.0845+0.01) ],
                2, 0.01, 0.1),
                ]
@@ -224,7 +232,7 @@ vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
 robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
-robot.setJointBounds('part/root_joint', [-3, 3, -3, 3, -3, 3])
+robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 
 srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
 # Disable collision between tiago/hand_safety_box_0 and driller
@@ -232,6 +240,8 @@ srdf_disable_collisions = """<robot>"""
 srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/base_link")
 srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_top")
 srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_back")
+srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_left")
+srdf_disable_collisions += srdf_disable_collisions_fmt.format("tiago/hand_safety_box", "driller/tag_support_link_top_horizontal")
 linka, linkb, enabled = robot.hppcorba.robot.autocollisionPairs()
 for la, lb, en in zip(linka, linkb, enabled):
     if not en: continue
@@ -375,7 +385,7 @@ import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
 
 # Create "Look at part" constraint
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00100",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00001",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -538,7 +548,6 @@ class ClusterComputation:
         #ni = part_gripper + " > " + hi + " | 0-0_pregrasp"
         qrand = q0
         best_cluster = []
-
         if fixed_base:
             cpi = self.fixedBaseConstraint(hi)
         else:
@@ -1017,7 +1026,8 @@ def compute_path_for_cluster(i_cluster, qcurrent = None):
         qcurrent = estimation.get_current_robot_and_cylinder_config(robot, graph, q0[:])
 
     cluster = clusters[i_cluster]
-
+    print(i_cluster)
+    print(cluster)
     # Recompute a configuration for each handle
     new_cluster = []
     setRobotJointBounds("grasp-generation")
