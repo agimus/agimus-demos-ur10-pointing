@@ -17,13 +17,13 @@
         <param name="imageTopic"      value="/xtion/rgb/image_raw" />
         <param name="cameraInfoTopic" value="/xtion/rgb/camera_info" />
         <param name="depthImageTopic" value="/xtion/depth/image_raw" />
-        <param name="debugDisplay"    value="true" />
+        <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
         <param name="broadcastTfPostfix" value="_tf" />
         <param name="objectType" value="apriltag" />
         <param name="cameraFrame" value="xtion_rgb_optical_frame" />
-        <param name="depthScale"      value="0.0"/>  
+        <param name="depthScale"      value="0.1"/>  
     </node>
 
     <!-- Part -->
@@ -63,8 +63,6 @@
         --size 0.04
         --tag 230
         --size 0.04
-        --tag 231
-        --size 0.04
         --tag 232
         --size 0.04
         --tag 23
@@ -73,4 +71,6 @@
         />
    
   </group>
+
+
 </launch>
