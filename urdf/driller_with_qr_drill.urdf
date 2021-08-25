@@ -92,14 +92,14 @@
     <parent link="drill_link"/>
     <child link="tag_support_link_top"/>
     <!-- 74mm / 2 + 4mm -->
-    <origin rpy="3.141592653589793 0 -1.57079632679" xyz="-0.052 0.00 -0.100"/>
+    <origin rpy="3.141592653589793 0.0 -1.57079632679" xyz="-0.052 0.00 -0.105"/>
     <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
   </joint>
   <joint name="tag_support_joint_back" type="fixed">
     <parent link="drill_link"/>
     <child link="tag_support_link_back"/>
     <!-- 74mm / 2 + 4mm -->
-    <origin rpy="3.141592653589793 0 -1.57079632679" xyz="-0.0 0.00 -0.194"/>
+    <origin rpy="3.141592653589793 0 -1.57079632679" xyz="-0.0 0.00 -0.20"/>
     <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
   </joint>
   <link name="tag36_11_00023">
@@ -121,87 +121,12 @@
     </visual>
   </link>
 
-  <link name="tag36_11_00231">
-    <visual>
-      <origin xyz="0 0 0.00001"/>
-      <geometry>
-        <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.0845 0.0845 1."/> -->
-         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00231.dae" scale="0.04 0.04 1."/>
-      </geometry>
-    </visual>
-  </link>
 
-  <link name="tag36_11_00232">
-    <visual>
-      <origin xyz="0 0 0.00001"/>
-      <geometry>
-        <!-- <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00230.dae" scale="0.0845 0.0845 1."/> -->
-         <mesh filename="package://gerard_bauzil/meshes/apriltag_36h11/tag36_11_00232.dae" scale="0.04 0.04 1."/>
-      </geometry>
-    </visual>
-  </link>
-
-  <link name="tag_support_link_top_horizontal">
-    <visual>
-      <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
-      </geometry>
-      <material name="blue">
-        <color rgba="0.1 0.1 0.9 1"/>
-      </material>
-    </visual>
-    <collision>
-      <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.001"/>
-      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-    </inertial>
-  </link>
-  
-
-  <link name="tag_support_link_left">
-    <visual>
-      <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
-      </geometry>
-      <material name="blue">
-        <color rgba="0.1 0.1 0.9 1"/>
-      </material>
-    </visual>
-    <collision>
-      <geometry>
-        <mesh filename="package://gerard_bauzil/meshes/driller/qr_drill_back.stl"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.001"/>
-      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-    </inertial>
-  </link>
-
-  <joint name="tag_support_top_horizontal" type="fixed">
-    <parent link="tag_support_link_back"/>
-    <child link="tag_support_link_top_horizontal"/>
-    <!-- 74mm / 2 + 4mm -->
-    <origin rpy="1.57079632679 0.00 0" xyz="-0.00 0.042 -0.023"/>
-    <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
-  </joint>
-
-  <joint name="tag_support_left" type="fixed">
-    <parent link="tag_support_link_back"/>
-    <child link="tag_support_link_left"/>
-    <!-- 74mm / 2 + 4mm -->
-    <origin rpy="0 1.57079632679 0" xyz="-0.032 0.0 -0.023"/>
-    <!-- <origin xyz="0 0.049 0.041" rpy="0 3.141592653589793 0" /> -->
-  </joint>
   
   <joint name="tag_joint" type="fixed">
     <parent link="tag_support_link_top"/>
     <child link="tag36_11_00023"/>
-    <origin xyz="0 0.009 0.002"/>
+    <origin rpy="0 0 0" xyz="0 0.010 0.002"/>
   </joint>
   <joint name="tag_joint_back" type="fixed">
     <parent link="tag_support_link_back"/>
@@ -209,19 +134,6 @@
     <origin xyz="0 0.0 0.0002"/>
   </joint>
 
-  <joint name="tag_joint_top_horizontal" type="fixed">
-    <parent link="tag_support_link_top_horizontal"/>
-    <child link="tag36_11_00232"/>
-    <origin rpy="0.0 3.14159265359 0.0" xyz="0 0.0 -0.002"/>
-  </joint>
-
-  <joint name="tag_joint_top_left" type="fixed">
-    <parent link="tag_support_link_left"/>
-    <child link="tag36_11_00231"/>
-    <origin rpy="0.0 3.14159265359 0.0" xyz="0 0.0 -0.002"/>
-  </joint>
-
- 
   <!-- <xacro:qr_drill number="_00023" size="0.04" /> -->
   <!-- The drill penetrates in the driller of 74 - 46.5 = 27.5mm -->
   <joint name="drill_joint" type="fixed">

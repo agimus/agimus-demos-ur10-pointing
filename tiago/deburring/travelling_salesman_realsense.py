@@ -45,14 +45,14 @@ isSimulation = args.context == "simulation"
 
 #Robot.urdfFilename = "package://tiago_data/robots/tiago_steel_without_wheels.urdf"
 #Robot.srdfFilename = "package://tiago_data/srdf/tiago.srdf"
-try:
-    import rospy
-    Robot.urdfString = rospy.get_param('robot_description')
-    print("reading URDF from ROS param")
-except:
-    print("reading generic URDF")
-    from hpp.rostools import process_xacro, retrieve_resource
-    Robot.urdfString = process_xacro("package://tiago_description/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft")
+# try:
+import rospy
+    # Robot.urdfString = rospy.get_param('robot_description')
+    # print("reading URDF from ROS param")
+# except:
+print("reading generic URDF")
+from hpp.rostools import process_xacro, retrieve_resource
+Robot.urdfString = process_xacro("package://tiago_data/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft", "has_second_camera_model:=true")
 Robot.srdfString = ""
 
 if args.n_random_handles is None:
@@ -110,7 +110,7 @@ from tiago_fov import TiagoFOV, TiagoFOVGuiCallback
 from hpp import Transform
 tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         # Real field of view angles are (49.5, 60),
-        fov = np.radians((44.5, 55)),
+        fov = np.radians((60.5, 90)),
         geoms = [ "arm_3_link_0" ])
 class Tag:
     def __init__(self, n, s):
@@ -141,7 +141,6 @@ class Tags:
         return [ t.size for t in self.tags ]
 tagss = [
         Tags([ Tag('driller/tag36_11_00230', 0.0400+0.01),
-            #    Tag('driller/tag36_11_00231', 0.0400+0.01),
                Tag('driller/tag36_11_00023', 0.0400+0.01)
                ], 
                1, 0.005, 0.1),
@@ -377,14 +376,14 @@ lock_head = [ lockJoint(n, q0) for n in robot.jointNames
 # Create "Look at gripper" constraints: for (X,Y,Z) the position of the gripper in the camera frame,
 # (X, Y) = 0 and Z >= 0
 tool_gripper = "driller/drill_tip"
-ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", tool_gripper,
+ps.createPositionConstraint("look_at_gripper", "tiago/camera_color_optical_frame", tool_gripper,
         (0,0,0), (0,0,0), (True,True,True))
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
 
 # Create "Look at part" constraint
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00001",
+ps.createPositionConstraint("look_at_part", "tiago/camera_color_optical_frame", "part/to_tag_00001",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}

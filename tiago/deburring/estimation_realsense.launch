@@ -9,21 +9,27 @@
   <!-- Setup vision -->
   <group ns="vision">
     <node name="camera_to_xtion" pkg="tf2_ros" type="static_transform_publisher"
-    args="-0.016 -0.015 0.064 1.5707963 -1.5707963 0.0 xtion_rgb_optical_frame camera_link"/>
+    args="0.0506203 -0.00554366 0.0391785 -0.000637919 -0.019047 0.00860284 0.999781 xtion_link camera_link"/>
+    <!-- <node name="base_link_camera_to_camera_link" pkg="tf2_ros" type="static_transform_publisher"
+    args="-0.0106 -0.0175 -0.0125 0 0 0 camera_link realsense_base_link"/>  -->
     <node pkg="agimus_vision" type="tracker_object"
         output="$(arg output)"
         name="tracker"
         >
         <param name="imageTopic"      value="/camera/color/image_raw" />
         <param name="cameraInfoTopic" value="/camera/color/camera_info" />
+        <!-- <param name="depthImageTopic" value="/camera/depth/image_rect_raw" /> -->
         <param name="depthImageTopic" value="/camera/aligned_depth_to_color/image_raw" />
+        <param name="depthCameraInfoTopic" value="/camera/aligned_depth_to_color/camera_info" />
+        <!-- <param name="depthCameraInfoTopic" value="/camera/depth/camera_info" /> -->
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
         <param name="broadcastTfPostfix" value="_tf" />
         <param name="objectType" value="apriltag" />
-        <param name="cameraFrame" value="camera_color_optical_frame" />
-        <param name="depthScale"      value="0.1"/>  
+        <param name="cameraFrame" value="xtion_optical_frame" />
+        <param name="depthScale"      value="0.001"/>  
+
     </node>
 
     <!-- Part -->
@@ -47,9 +53,9 @@
         --size 0.06
         --tag 100
         --size 0.06
-        --tag 101
-        --size 0.06
         --tag 102
+        --size 0.06
+        --tag 101
         "
         output="$(arg output)"
         />
@@ -62,8 +68,6 @@
         --no-description
         --size 0.04
         --tag 230
-        --size 0.04
-        --tag 232
         --size 0.04
         --tag 23
         "

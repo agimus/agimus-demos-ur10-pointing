@@ -119,7 +119,7 @@ ps.optimizePath(apath_id)
 ```
 
 
-Instead of step 9, you can run the script
+Instead of step 9, you can run the script                                                                                                                     
 ```python
 python initial_pose.py
 ```

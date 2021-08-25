@@ -22,7 +22,8 @@ class TiagoFOV:
     def __init__(self,
             urdfString=None,
             urdfFilename=None,
-            fov = np.radians((49.5, 60)),
+            fov = np.radians((60., 90.)),
+            # fov = np.radians((49.5, 60)),
             geoms = [ "arm_3_link_0" ],
             ):
         if isinstance(fov, str):
