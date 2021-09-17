@@ -36,6 +36,7 @@ p.add_argument ('--context', type=str, metavar='context',
 p.add_argument ('--n-random-handles', type=int, default=None,
                 help="Generate a random model with N handles.")
 args = p.parse_args ()
+
 if args.context != defaultContext:
     createContext (args.context)
 isSimulation = args.context == "simulation"
@@ -141,12 +142,10 @@ class Tags:
         return [ t.size for t in self.tags ]
 tagss = [
         Tags([ Tag('driller/tag36_11_00230', 0.0400+0.01),
-            #    Tag('driller/tag36_11_00231', 0.0400+0.01),
                Tag('driller/tag36_11_00023', 0.0400+0.01)
                ], 
                1, 0.005, 0.1),
         Tags([ Tag('part/tag36_11_00100', 0.0600+0.01),
-               Tag('part/tag36_11_00101', 0.0600+0.01),
                Tag('part/tag36_11_00102', 0.0600+0.01),
                Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.0845+0.01),
@@ -231,7 +230,9 @@ vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
 robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
-robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
+
+#Modify from [-2,2] to [-5,5] to allow testing near the tables
+robot.setJointBounds('part/root_joint', [-5, 5, -5, 5, -2, 2])
 
 srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
 # Disable collision between tiago/hand_safety_box_0 and driller
@@ -384,7 +385,7 @@ import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
 
 # Create "Look at part" constraint
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00001",
+ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00015",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -397,6 +398,21 @@ factory.setGrippers([ "tiago/gripper", "driller/drill_tip", ])
 
 all_handles = ps.getAvailable('handle')
 part_handles = filter(lambda x: x.startswith("part/"), all_handles)
+test_handles = [    'part/handle_10',
+                    'part/handle_11',
+                    'part/handle_12',
+                    'part/handle_13',
+                    'part/handle_14',
+                    'part/handle_15',
+                    'part/handle_16',
+                    'part/handle_17',
+                    'part/handle_18',
+                    'part/handle_19',
+                    'part/handle_20',
+                    'part/handle_4',
+                    'part/handle_5',
+                    'part/handle_9']
+
 factory.setObjects([ "driller", "part", ], [ [ "driller/handle", ], part_handles, ], [ [], [] ])
 
 factory.setRules([
@@ -1025,7 +1041,7 @@ def compute_path_for_cluster(i_cluster, qcurrent = None):
         qcurrent = estimation.get_current_robot_and_cylinder_config(robot, graph, q0[:])
 
     cluster = clusters[i_cluster]
-    print(i_cluster)
+    print("Cluster:", i_cluster)
     print(cluster)
     # Recompute a configuration for each handle
     new_cluster = []
@@ -1048,4 +1064,20 @@ def compute_path_for_cluster(i_cluster, qcurrent = None):
     return new_cluster, path
 # 2}}}
 
+def gotoHandle(handle, q0, robot):
+    # generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig=10):
+    ok, qphi2, qhi2 = generate_valid_config_for_handle(handle, q0, [], NrandomConfig=15)
+    new_cluster =[]
+    if ok:
+            
+        new_cluster.append((handle, qphi2, qhi2))
+    else:
+        print("Could not reach handle", handle)
+        return None
+    
+    setRobotJointBounds("default")
+    
+    paths = clusters_comp.solveTSP(armPlanner, new_cluster, qhome=q0)
+    path = concatenate_paths(paths)
+    return path
 # vim: foldmethod=marker foldlevel=1

@@ -9,7 +9,7 @@
   <!-- Setup vision -->
   <group ns="vision">
     <node name="camera_to_xtion" pkg="tf2_ros" type="static_transform_publisher"
-    args="0.0506203 -0.00554366 0.0391785 -0.000637919 -0.019047 0.00860284 0.999781 xtion_link camera_link"/>
+    args="0.0506203 -0.00554366 0.0391785 -0.0009485 -0.0381059 0.0171909 xtion_link camera_link"/>
     <!-- <node name="base_link_camera_to_camera_link" pkg="tf2_ros" type="static_transform_publisher"
     args="-0.0106 -0.0175 -0.0125 0 0 0 camera_link realsense_base_link"/>  -->
     <node pkg="agimus_vision" type="tracker_object"
@@ -27,7 +27,7 @@
         <param name="broadcastTf"     value="true" />
         <param name="broadcastTfPostfix" value="_tf" />
         <param name="objectType" value="apriltag" />
-        <param name="cameraFrame" value="xtion_optical_frame" />
+        <param name="cameraFrame" value="camera_color_optical_frame" />
         <param name="depthScale"      value="0.001"/>  
 
     </node>
@@ -41,21 +41,21 @@
         --size 0.0845
         --tag 1
         --size 0.0845
-        --tag 6
+        --tag 5
         --size 0.0845
-        --tag 15
+        --tag 6
         --size 0.0845
         --tag 13
         --size 0.0845
         --tag 14
         --size 0.0845
-        --tag 5
+        --tag 15
         --size 0.06
         --tag 100
         --size 0.06
-        --tag 102
-        --size 0.06
         --tag 101
+        --size 0.06
+        --tag 102
         "
         output="$(arg output)"
         />

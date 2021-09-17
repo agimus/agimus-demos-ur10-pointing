@@ -25,6 +25,7 @@
         <param name="objectType" value="apriltag" />
         <param name="cameraFrame" value="xtion_rgb_optical_frame" />
         <param name="depthScale"      value="0.001"/>  
+        
     </node>
 
     <!-- Part -->
@@ -36,21 +37,21 @@
         --size 0.0845
         --tag 1
         --size 0.0845
-        --tag 6
+        --tag 5
         --size 0.0845
-        --tag 15
+        --tag 6
         --size 0.0845
         --tag 13
         --size 0.0845
         --tag 14
         --size 0.0845
-        --tag 5
+        --tag 15
         --size 0.06
         --tag 100
         --size 0.06
-        --tag 102
-        --size 0.06
         --tag 101
+        --size 0.06
+        --tag 102
         "
         output="$(arg output)"
         />

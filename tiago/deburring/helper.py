@@ -1,5 +1,42 @@
 import estimation
-import travalling_salesman
+
+def openHand(robot,graph, q0):
+    q_init = estimation.get_current_robot_and_cylinder_config(robot, graph, q0)
+   
+    joints = [ 'tiago/torso_lift_joint',
+    'tiago/arm_1_joint',
+    'tiago/arm_2_joint',
+    'tiago/arm_3_joint',
+    'tiago/arm_4_joint',
+    'tiago/arm_5_joint',
+    'tiago/arm_6_joint',
+    'tiago/arm_7_joint',
+    'tiago/head_1_joint',
+    'tiago/head_2_joint',
+    'tiago/hand_mrl_joint',
+    'tiago/hand_index_joint',
+    'tiago/hand_thumb_joint',]
+    qOpen = q_init[:]
+
+    for j in joints:
+        r = robot.rankInConfiguration[j]
+        qOpen[r] = q0[r]
+    qOpen[robot.rankInConfiguration['tiago/hand_mrl_joint']] = 0.00
+    qOpen[robot.rankInConfiguration['tiago/hand_index_joint']]  = 0.00
+    qOpen[robot.rankInConfiguration['tiago/hand_thumb_joint']] = 0.00
+    # qOpen[robot.rankInConfiguration['tiago/hand_ring_abd_joint']]   = 0.00
+    # qOpen[robot.rankInConfiguration['tiago/hand_little_abd_joint']] = 0.00
+    print(len(q_init))
+    print(len(qOpen))
+    res, q_goal, err = graph.applyNodeConstraints('tiago/gripper grasps driller/handle', qOpen)
+    try:
+        untuck_path = armPlanner.computePath(q_init,qOpen, resetRoadmap = True)
+        
+    except:
+        raise RuntimeError('Failed to plan a path between ' + str(q_init) +\
+            ' and ' + str(qOpen))
+    return untuck_path
+
 def goToArmConfiguration(robot,graph, q0):
     q_init = estimation.get_current_robot_and_cylinder_config(robot, graph, q0)
     joints = [ 'tiago/torso_lift_joint',
@@ -42,15 +79,15 @@ def gotoHandle(handle, q0, robot):
     return path
 
 
-for i in range(1000):    
-    res, qres, err = graph.generateTargetConfig (e, q_init, robot.shootRandomConfig())
-    if not res: continue                                                          
-    print("sucess in generating random config")
-    res, msg = robot.isConfigValid(qres)
-    if not res:
-        print (msg)
-        continue
-    if tiago_fov.clogged(qres, robot, tagss):
-        print('clogged')
-        continue
-    if res: break
+# for i in range(1000):    
+#     res, qres, err = graph.generateTargetConfig (e, q_init, robot.shootRandomConfig())
+#     if not res: continue                                                          
+#     print("sucess in generating random config")
+#     res, msg = robot.isConfigValid(qres)
+#     if not res:
+#         print (msg)
+#         continue
+#     if tiago_fov.clogged(qres, robot, tagss):
+#         print('clogged')
+#         continue
+#     if res: break

@@ -13,7 +13,6 @@
 <launch>
   <arg name="namespace" default="/"/>
   <arg name="public_sim"   default="true"/>
-
   <arg name="robot"  default="titanium"/>
   <arg name="arm"  default="$(eval {'iron': False}.get(arg('robot'), True))"/>
   <arg name="end_effector"  default="$(eval {'iron': 'false', 'steel': 'pal-gripper', 'titanium': 'pal-hey5'}.get(arg('robot'), 'pal-gripper'))"/>
@@ -58,7 +57,7 @@
       <arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>
   </include>
 
-  <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch">
+  <!-- <include file="/home/pal/DemoWorkspace/catkin_ws/install/share/tiago_2dnav_gazebo/launch/navigation.launch">
     <arg name="state"          value="localization"/>
     <arg name="planner"        value="$(arg planner)"/>
     <arg name="global_planner" value="$(arg global_planner)"/>
@@ -66,7 +65,7 @@
     <arg name="public_sim"     value="$(arg public_sim)"/>
     <arg name="rgbd_sensors"   value="$(arg advanced_navigation)"/>
     <arg name="laser_model"    value="$(arg laser_model)"/>
-  </include>
+  </include> -->
   <!-- pointcloud to laserscan-->
   <group if="$(arg public_sim)">
     <include file="$(find tiago_laser_sensors)/launch/rgbd_cloud_laser.launch">

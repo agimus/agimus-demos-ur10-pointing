@@ -52,6 +52,7 @@ def makeSupervisorWithFactory(robot):
 
     if not hasattr(robot, "camera_frame"):
         robot.camera_frame = "xtion_optical_frame"
+        
 
     drillerModel = pinocchio.buildModelFromUrdf (rospack.get_path("gerard_bauzil") + "/urdf/driller_with_qr_drill.urdf")
     partModel = pinocchio.buildModelFromUrdf (rospack.get_path("agimus_demos") + "/urdf/P72-with-table.urdf")

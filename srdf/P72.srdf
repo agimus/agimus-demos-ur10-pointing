@@ -1,52 +1,5 @@
 <robot name="p72">
 
-<handle name="handle_0" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_01_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_1" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_02_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_2" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_03_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_3" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_04_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_4" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_05_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_5" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_06_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_6" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_07_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_7" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_08_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
 <handle name="handle_8" clearance="0.05">
     <position rpy="0 0 0"/>
@@ -97,17 +50,6 @@
     <mask>1 1 1 0 1 1</mask>
 </handle>
 
-<handle name="handle_16" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_17_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_17" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_18_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
 <handle name="handle_18" clearance="0.05">
     <position rpy="0 0 0"/>
@@ -115,16 +57,5 @@
     <mask>1 1 1 0 1 1</mask>
 </handle>
 
-<handle name="handle_19" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_20_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_20" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_21_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
 </robot>

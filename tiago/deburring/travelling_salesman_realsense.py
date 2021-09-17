@@ -106,11 +106,11 @@ client.manipulation.problem.selectProblem (args.context)
 robot = Robot("robot", "tiago", rootJointType="planar", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 
-from tiago_fov import TiagoFOV, TiagoFOVGuiCallback
+from tiago_fov_realsense import TiagoFOV, TiagoFOVGuiCallback
 from hpp import Transform
 tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         # Real field of view angles are (49.5, 60),
-        fov = np.radians((60.5, 90)),
+        fov = np.radians((49.5, 60)),
         geoms = [ "arm_3_link_0" ])
 class Tag:
     def __init__(self, n, s):
@@ -230,7 +230,7 @@ vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
 robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
-robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
+robot.setJointBounds('part/root_joint', [-5, 5, -5, 5, -5, 5])
 
 srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
 # Disable collision between tiago/hand_safety_box_0 and driller
@@ -396,6 +396,20 @@ factory.setGrippers([ "tiago/gripper", "driller/drill_tip", ])
 
 all_handles = ps.getAvailable('handle')
 part_handles = filter(lambda x: x.startswith("part/"), all_handles)
+test_handles = [    'part/handle_10',
+                    'part/handle_11',
+                    'part/handle_12',
+                    'part/handle_13',
+                    'part/handle_14',
+                    'part/handle_15',
+                    'part/handle_16',
+                    'part/handle_17',
+                    'part/handle_18',
+                    'part/handle_19',
+                    'part/handle_20',
+                    'part/handle_4',
+                    'part/handle_5',
+                    'part/handle_9']
 factory.setObjects([ "driller", "part", ], [ [ "driller/handle", ], part_handles, ], [ [], [] ])
 
 factory.setRules([
@@ -942,10 +956,10 @@ if solve_tsp_problems:
 # {{{2 Function for online reso 
 def recompute_clusters(handles = None, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_config(robot, graph, q0)
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_config(robot, graph, q0)
         try:
-            qcurrent = estimation.get_cylinder_pose(robot, qcurrent, timeout=0.5)
+            qcurrent = estimation_realsense.get_cylinder_pose(robot, qcurrent, timeout=0.5)
         except RuntimeError:
             pass
     if handles is None:
@@ -959,10 +973,10 @@ def recompute_clusters(handles = None, qcurrent = None):
 
 def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_config(robot, graph, q0)
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_config(robot, graph, q0)
         try:
-            qcurrent = estimation.get_cylinder_pose(robot, qcurrent, timeout=0.5)
+            qcurrent = estimation_realsense.get_cylinder_pose(robot, qcurrent, timeout=0.5)
         except RuntimeError:
             pass
 
@@ -1020,8 +1034,8 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
 
 def compute_path_for_cluster(i_cluster, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_robot_and_cylinder_config(robot, graph, q0[:])
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_robot_and_cylinder_config(robot, graph, q0[:])
 
     cluster = clusters[i_cluster]
     print(i_cluster)
