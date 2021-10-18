@@ -87,7 +87,7 @@ def wd(o):
     return wrap_delete(o, client.basic._tools)
 client.manipulation.problem.selectProblem (args.context)
 
-robot = Robot("robot", "ur10", rootJointType="anchor", client=client)
+robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
 robot.opticalFrame = 'xtion_rgb_optical_frame'
 ps = ProblemSolver(robot)
 ps.loadPlugin("manipulation-spline-gradient-based.so")
@@ -121,7 +121,7 @@ vf.loadRobotModel (PartP72, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
-    ("ur10", "package://agimus_demos/srdf/ur10_robot.srdf")
+    ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
 
 
 ## Define initial configuration
@@ -136,7 +136,7 @@ part_handles = filter(lambda x: x.startswith("part/"), all_handles)
 
 graph = ConstraintGraph(robot, 'graph')
 factory = ConstraintGraphFactory(graph)
-factory.setGrippers(["ur10/gripper",])
+factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
 graph.initialize()

@@ -27,7 +27,7 @@
 import rospy
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 
-tool_gripper = 'ur10/gripper'
+tool_gripper = 'ur10e/gripper'
 rosNodeStarted = False
 
 def initRosNode():

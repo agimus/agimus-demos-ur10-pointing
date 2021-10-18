@@ -1,6 +1,6 @@
 demo:
   robots:
-    ur10:
+    ur10e:
       srdf:
         package: agimus_demos
         file: srdf/ur10_robot.srdf
@@ -12,4 +12,4 @@ demo:
       contacts:
         []
   grippers:
-    [ur10/gripper,]
+    [ur10e/gripper,]
