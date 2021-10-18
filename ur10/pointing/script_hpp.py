@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys, argparse, numpy as np, time, rospy
-from math import pi
+from math import pi, sqrt
 from hpp.corbaserver import loadServerPlugin
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
@@ -124,7 +124,7 @@ ur10JointNames = filter(lambda j: j.startswith("ur10/"), robot.jointNames)
 ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
 ## Load P72
-#
+#[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
 vf.loadRobotModel (PartP72, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 
@@ -134,9 +134,12 @@ robot.client.manipulation.robot.insertRobotSRDFModel\
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
-q0[:3] = [0, -pi/2, pi/2]
+# set the joint match with real robot
+q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.0]
+# q0[:3] = [0, -pi/2, pi/2]
 r = robot.rankInConfiguration['part/root_joint']
-q0[r:r+3] = [0., 1., 0.8]
+# q0[r:r+7] = [0.0, -1.3, 0.8, 0, 0 ,1, 0]
+q0[r:r+7] = [1.3, 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Build constraint graph
 all_handles = ps.getAvailable('handle')
