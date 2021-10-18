@@ -29,7 +29,7 @@ from math import pi
 from hpp.corbaserver import loadServerPlugin
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
-    ConstraintGraphFactory, Rule, Constraints, CorbaClient
+    ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import ConfigGenerator, RosInterface
 
@@ -98,8 +98,11 @@ ps.addPathOptimizer("SimpleTimeParameterization")
 # ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.25)
 ps.setParameter('SimpleTimeParameterization/order', 2)
 ps.setParameter('SimpleTimeParameterization/maxAcceleration', .25)
-ps.setParameter('SimpleTimeParameterization/safety', 0.5)
+ps.setParameter('SimpleTimeParameterization/safety', 0.95)
 
+# Add path projector to avoid discontinuities
+ps.selectPathProjector ("Progressive", .05)
+ps.selectPathValidation("Dichotomy", 0)
 vf = ViewerFactory(ps)
 
 ## Shrink joint bounds of UR-10
@@ -108,7 +111,12 @@ jointBounds = dict()
 jointBounds["default"] = [ (jn, robot.getJointBounds(jn)) \
                            if not jn.startswith('ur10/') else
                            (jn, [-pi, pi]) for jn in robot.jointNames]
-
+jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
+  ('ur10e/shoulder_lift_joint', [-pi, pi]),
+  ('ur10e/elbow_joint', [-3.1, 3.1]),
+  ('ur10e/wrist_1_joint', [-pi, pi]),
+  ('ur10e/wrist_2_joint', [-pi, pi]),
+  ('ur10e/wrist_3_joint', [-pi, pi])]
 setRobotJointBounds("default")
 ## Remove some collision pairs
 #
@@ -139,6 +147,10 @@ factory = ConstraintGraphFactory(graph)
 factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
+sm = SecurityMargins(ps, factory, ["ur10e", "part"])
+sm.setSecurityMarginBetween("ur10e", "ur10e", 0.00)
+sm.defaultMargin = 0.01
+sm.apply()
 graph.initialize()
 # Set weights of levelset edges to 0
 for e in graph.edges.keys():
