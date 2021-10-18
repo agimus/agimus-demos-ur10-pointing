@@ -75,6 +75,7 @@ from dynamic_graph.sot.universal_robot.sot_universal_robot_device \
 
 supervisor.sots["Loop | f"].sot.setMaxControlIncrementSquaredNorm(1e8)
 robot.initializeTracer()
+robot.tracer.setBufferSize(2**24)
 robot.addTrace('___posture_task', 'controlGain')
 robot.addTrace('___posture_task', 'task')
 robot.addTrace('___posture_task', 'error')
