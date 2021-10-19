@@ -1,19 +1,21 @@
 # Development instructions
 
-These instructions are meant to help run the demo in simulation in the state as
-it is. They will evolve and eventually be replaced by instructions to run the
-demonstration on the real robot.
+These instructions are meant to help run the demo in simulation or an a real
+robot.
 
-## Steps prepare to run the demo on real RobotName
+## Before running the demo on the real robot
 
-1. Start the robot, verify all the steps on the screen is green ticked.
-2. Load the the file ros.urp on the tablet.
-3. Verify the robot is in the Home position. The robot can automatically move to the
-position by enter "Home" and hold the button "Move robot to New Position".
-    Sometime,the robot will go the protective state to prevent collision. In that case,
-    please rotate the wrists to a safe state and try again.
-4. In the Installtion tab, check the Safety => Robot Limits section to ensure the robot
-is in less Restricted conifiguration.
+1. Turn the robot on, click on the red button in the lower left part of the
+   tablet, click on "ON", verify that the two first steps on the screen turn
+   green. Click on "START". The remaining states should turn green.
+2. Load the file ros.urp on the tablet.
+3. Verify that the robot is in the home position. The robot can automatically
+   move to the position by entering "Home" and hold the button
+   "Move robot to New Position".
+   Sometime,the robot will go the protective state to prevent collision.
+   In that case, rotate the wrist to a safe state and try again.
+4. In the Installation tab, check the Safety => Robot Limits section to ensure
+   the robot is in the least restricted conifiguration.
 5. All the terminals should begin with
 
 ```bash
@@ -44,6 +46,7 @@ ipython -i script_hpp.py
 
 3. in terminal 3
 ```bash
+source /root/setup_ld.sh
 gepetto-gui
 ```
 
@@ -61,8 +64,12 @@ To run the robot instead:
 roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5
 ```
 
-After the ros is launched successfully, press the play icon in the tablet.
-
+After ROS is launched successfully, press the "play" icon in the tablet
+and select "Play from beginning Robot Program". In the terminal you should
+read
+```bash
+[ INFO] [1634638700.530389390]: Robot connected to reverse interface. Ready to receive control commands.
+```
 
 5. in terminal 2
 ```python
