@@ -97,7 +97,7 @@ ps.addPathOptimizer("SimpleTimeParameterization")
 # ps.setParameter('ConfigurationShooter/Gaussian/center', 12*[0.] + [1.])
 # ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.25)
 ps.setParameter('SimpleTimeParameterization/order', 2)
-ps.setParameter('SimpleTimeParameterization/maxAcceleration', .25)
+ps.setParameter('SimpleTimeParameterization/maxAcceleration', .5)
 ps.setParameter('SimpleTimeParameterization/safety', 0.95)
 
 # Add path projector to avoid discontinuities
@@ -117,7 +117,7 @@ jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
   ('ur10e/wrist_1_joint', [-pi, pi]),
   ('ur10e/wrist_2_joint', [-pi, pi]),
   ('ur10e/wrist_3_joint', [-pi, pi])]
-setRobotJointBounds("default")
+setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
 ur10JointNames = filter(lambda j: j.startswith("ur10/"), robot.jointNames)
@@ -151,7 +151,7 @@ factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
 sm = SecurityMargins(ps, factory, ["ur10e", "part"])
-sm.setSecurityMarginBetween("ur10e", "ur10e", 0.00)
+sm.setSecurityMarginBetween("ur10e", "ur10e", 0.02)
 sm.defaultMargin = 0.01
 sm.apply()
 graph.initialize()
