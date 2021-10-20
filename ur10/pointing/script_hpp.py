@@ -114,9 +114,9 @@ jointBounds["default"] = [ (jn, robot.getJointBounds(jn)) \
 jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
   ('ur10e/shoulder_lift_joint', [-pi, pi]),
   ('ur10e/elbow_joint', [-3.1, 3.1]),
-  ('ur10e/wrist_1_joint', [-pi, pi]),
-  ('ur10e/wrist_2_joint', [-pi, pi]),
-  ('ur10e/wrist_3_joint', [-pi, pi])]
+  ('ur10e/wrist_1_joint', [-3.2, 3.2]),
+  ('ur10e/wrist_2_joint', [-3.2, 3.2]),
+  ('ur10e/wrist_3_joint', [-3.2, 3.2])]
 setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
