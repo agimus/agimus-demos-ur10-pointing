@@ -74,7 +74,7 @@ except:
     print("reading generic URDF")
     from hpp.rostools import process_xacro, retrieve_resource
     Robot.urdfString = process_xacro\
-      ("package://agimus_demos/urdf/ur10_robot.urdf.xacro",
+      ("package://agimus_demos/urdf/ur10_robot_sim.urdf.xacro",
        "transmission_hw_interface:=hardware_interface/PositionJointInterface")
 Robot.srdfString = ""
 

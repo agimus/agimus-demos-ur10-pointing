@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<!-- This file is based on "package://ur_description/urdf/ur.xacro".
+     This file is used on the real robot. For simulation, see
+     "ur10_robot_sim.urdf.xacro"-->
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur">
+
+   <!-- import main macro -->
+   <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>
+
+   <!-- parameters -->
+   <xacro:arg name="joint_limit_params" default=""/>
+   <xacro:arg name="kinematics_params" default=""/>
+   <xacro:arg name="physical_params" default=""/>
+   <xacro:arg name="visual_params" default=""/>
+   <!-- legal values:
+         - hardware_interface/PositionJointInterface
+         - hardware_interface/VelocityJointInterface
+         - hardware_interface/EffortJointInterface
+   -->
+   <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+   <xacro:arg name="safety_limits" default="false"/>
+   <xacro:arg name="safety_pos_margin" default="0.15"/>
+   <xacro:arg name="safety_k_position" default="20"/>
+
+   <!-- arm -->
+   <xacro:ur_robot
+     prefix=""
+     joint_limits_parameters_file="$(arg joint_limit_params)"
+     kinematics_parameters_file="$(arg kinematics_params)"
+     physical_parameters_file="$(arg physical_params)"
+     visual_parameters_file="$(arg visual_params)"
+     transmission_hw_interface="$(arg transmission_hw_interface)"
+     safety_limits="$(arg safety_limits)"
+     safety_pos_margin="$(arg safety_pos_margin)"
+     safety_k_position="$(arg safety_k_position)"/>
+
+   <!-- Up to this line, this file is a copy of
+	"package://ur_description/urdf/ur.xacro".
+	The following lines add additional elements
+	- end effector,
+	- RGBD sensor,
+	- robot support.
+   -->
+   <link name="world" />
+
+   <link name="support_link">
+     <inertial>
+       <mass value="200"/>
+       <origin xyz="0 0 0.45"/>
+       <inertia ixx="50"  ixy="0"  ixz="0" iyy="50" iyz="0" izz="50" />
+     </inertial>
+     <visual>
+       <origin xyz="-0.4 0 0.45"/>
+       <geometry>
+	 <box size="1.0 1.2 0.9"/>
+       </geometry>
+     </visual>
+     <collision>
+       <origin xyz="-0.4 0 0.45"/>
+       <geometry>
+	 <box size="1.0 1.2 0.9"/>
+       </geometry>
+     </collision>
+   </link>
+   
+   <joint name="support_joint" type="fixed">
+     <parent link="world" />
+     <child link = "support_link" />
+     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+
+   <joint name="robot_joint" type="fixed">
+     <parent link="support_link" />
+     <child link = "base_link" />
+     <origin xyz="0.0 0.0 0.90" rpy="0.0 0.0 -1.5707963" />
+   </joint>
+
+   <link name="tool_link">
+   </link>
+
+   <link name="collision_cylinder">
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0" />
+       <geometry>
+	 <cylinder radius="0.045" length="0.115"/>
+       </geometry>
+       <material name="black">
+	 <color rgba="0 0 0 1"/>
+       </material>
+     </visual>
+     <collision>
+       <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+	 <cylinder radius="0.045" length="0.115"/>
+       </geometry>
+     </collision>
+   </link>
+
+   <joint name="collision_cylinder_joint" type="fixed">
+     <parent link="wrist_3_link" />
+     <child link = "collision_cylinder" />
+     <origin xyz="0.0 0.0 0.05" rpy="0.0 0.0 ${pi/2.0}" />
+   </joint>
+
+   <joint name="ee_fixed_joint" type="fixed">
+     <parent link="wrist_3_link" />
+     <child link = "ee_link" />
+     <origin xyz="0.0 0.0 0.117" rpy="0.0 0.0 ${pi/2.0}" />
+   </joint>
+
+   <link name="ee_link">
+     <collision>
+       <geometry>
+         <box size="0.01 0.01 0.01"/>
+       </geometry>
+       <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+     </collision>
+     <visual>
+       <geometry>
+         <box size="0.01 0.01 0.01"/>
+       </geometry>
+       <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+     </visual>
+   </link>
+   <joint name="tool_joint" type="fixed">
+     <parent link="ee_link"/>
+     <child link="tool_link" />
+     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+   </joint>
+</robot>
