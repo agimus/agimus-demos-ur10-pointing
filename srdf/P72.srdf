@@ -1,11 +1,6 @@
 <robot name="p72">
 
 
-<handle name="handle_8" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_09_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
 <handle name="handle_9" clearance="0.05">
     <position rpy="0 0 0"/>
@@ -19,23 +14,7 @@
     <mask>1 1 1 0 1 1</mask>
 </handle>
 
-<handle name="handle_11" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_12_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
-<handle name="handle_12" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_13_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
-
-<handle name="handle_13" clearance="0.05">
-    <position rpy="0 0 0"/>
-    <link name="hole_14_link" />
-    <mask>1 1 1 0 1 1</mask>
-</handle>
 
 <handle name="handle_14" clearance="0.05">
     <position rpy="0 0 0"/>
