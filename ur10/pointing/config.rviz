@@ -166,6 +166,262 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_00_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_01_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_02_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_03_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_04_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_05_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_06_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_07_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_08_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_09_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_10_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_11_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_12_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_13_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_14_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_15_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_16_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_17_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_18_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_19_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_20_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_21_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_22_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_23_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_24_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_25_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_26_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_27_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_28_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_29_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_30_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_31_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_32_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_33_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_34_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_35_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_36_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hole_37_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        table_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00001:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00002:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00003:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00004:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00006:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00015:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00100:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00101:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: Part
+      Robot Description: /part/robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
