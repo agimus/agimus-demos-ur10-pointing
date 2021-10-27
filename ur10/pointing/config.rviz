@@ -418,7 +418,7 @@ Visualization Manager:
           Value: true
       Name: Part
       Robot Description: /part/robot_description
-      TF Prefix: ""
+      TF Prefix: part
       Update Interval: 0
       Value: true
       Visual Enabled: true
