@@ -54,12 +54,12 @@ gepetto-gui
 
 4. in terminal 4
 
-To run the simulation:
+In simulation:
 ```bash
 roslaunch ./simulation.launch
 ```
 
-To run the robot instead:
+On the robot instead:
 ```bash
 roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=/root/catkin_ws/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
 ```
@@ -73,21 +73,21 @@ read
 
 5. in terminal 2
 ```python
-from tools_hpp import ConfigGenerator, RosInterface
+from tools_hpp import PathGenerator, RosInterface
 
 ri = RosInterface(robot)
-cg = ConfigGenerator(graph)
+pg = PathGenerator(ps, graph)
+pg.inStatePlanner.setEdge('Loop | f')
 q_init = ri.getCurrentConfig(q0)
-res = False
-while not res:
-    res, q_goal, qg = cg.generateValidConfigForHandle('part/handle_0', q0)
-
-ps.setInitialConfig(q_init)
-ps.addGoalConfig(q_goal)
-ps.solve()
+p = pg.generatePathForHandle('part/handle_0', q_init)
+ps.client.basic.problem.addPath(p)
 ```
 
 6. in terminal 5
+```bash
+roslaunch ./demo.launch simulation:=true
+```
+or
 ```bash
 roslaunch ./demo.launch
 ```

@@ -2,10 +2,13 @@
   <arg name="script_file" doc="Full path to the script which initialize the supervisor"
     default="$(find agimus_demos)/ur10/pointing/supervisor.py" />
   <arg name="estimation" default="false"/>
+  <arg name="simulation" default="false"/>
 
   <include file="$(find agimus_demos)/launch/ur10_pointing_world_setup.launch"/>
   <!-- start ros controller running the SoT -->
-  <include file="$(find sot_universal_robot)/launch/controller.launch"/>
+  <include file="$(find sot_universal_robot)/launch/controller.launch">
+    <arg name="simulation" value="$(arg simulation)"/>
+  </include>
 
   <!--This starts the HPP interface in namespace agimus/hpp-->
   <group ns="agimus/hpp">
@@ -28,5 +31,5 @@
     <arg name="gui" value="false"/>
   </include>
 
-  <include if="$(arg estimation)" file="$(find agimus_demos)/launch/tiago_deburring_estimation.launch"/>
+  <include if="$(arg estimation)" file="$(find agimus_demos)/launch/ur10_pointing_estimation.launch"/>
 </launch>
