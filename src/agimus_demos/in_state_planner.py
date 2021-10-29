@@ -25,17 +25,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from CORBA import Any, TC_long
-
-def wd(o):
-    from hpp.corbaserver import wrap_delete
-    return wrap_delete(o, client.basic._tools)
+from hpp.corbaserver import wrap_delete
 
 class InStatePlanner:
     # Default path planner
     parameters = {'kPRM*/numberOfNodes': Any(TC_long,2000)}
 
     def wd(self, o):
-        from hpp.corbaserver import wrap_delete
         return wrap_delete(o, self.ps.client.basic._tools)
 
     def __init__(self, ps, graph):

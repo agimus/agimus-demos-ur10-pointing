@@ -81,10 +81,7 @@ Robot.srdfString = ""
 loadServerPlugin (args.context, "manipulation-corba.so")
 newProblem()
 client = CorbaClient(context=args.context)
-client.basic._tools.deleteAllServants()
-def wd(o):
-    from hpp.corbaserver import wrap_delete
-    return wrap_delete(o, client.basic._tools)
+#client.basic._tools.deleteAllServants()
 client.manipulation.problem.selectProblem (args.context)
 
 robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
