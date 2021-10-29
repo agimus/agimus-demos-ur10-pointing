@@ -26,6 +26,16 @@
 
 import rospy
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
+from agimus_demos import InStatePlanner
+from hpp.corbaserver import wrap_delete
+from hpp.corbaserver.manipulation import CorbaClient
+
+def concatenatePaths(paths):
+    if len(paths) == 0: return None
+    p = paths[0].asVector()
+    for q in paths[1:]:
+        p.appendPath(q)
+    return p
 
 tool_gripper = 'ur10e/gripper'
 rosNodeStarted = False
@@ -64,6 +74,54 @@ class ConfigGenerator(object):
             if res and self.robot.configIsValid(qres):
                 return True, qres
         return False, None
+
+class PathGenerator(object):
+    def __init__(self, ps, graph):
+        self.ps = ps
+        self.robot = ps.robot
+        self.graph = graph
+        # store corba object corresponding to constraint graph
+        self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
+        # create Planner to solve path planning problems on manifolds
+        self.inStatePlanner = InStatePlanner(ps, graph)
+
+    def wd(self, o):
+        return wrap_delete(o, self.ps.client.basic._tools)
+
+    # Generate a path from an initial configuration and going through
+    # pregraps, grasp and pregrasp again for a given handle
+    def generatePathForHandle(self, handle, qinit):
+        # generate configurations
+        edge = tool_gripper + " > " + handle
+        ok = False
+        from itertools import chain
+        def project_and_validate(e, qrhs, q):
+            res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
+            return res and self.robot.configIsValid(qres), qres
+        qpg, qg = None, None
+        qguesses =  [qinit]
+        NrandomConfig = 10
+        for qrand in chain(qguesses, (self.robot.shootRandomConfig()
+                                      for _ in range(NrandomConfig))):
+            res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
+            if res:
+                ok, qg = project_and_validate(edge+" | f_12", qpg, qpg)
+                if ok: break
+        if not ok: return None
+        # build path
+        self.inStatePlanner.setEdge(edge + " | f_01")
+        p1 = self.inStatePlanner.computePath(qinit, qpg)
+        self.inStatePlanner.setEdge(edge + " | f_12")
+        p2 = self.inStatePlanner.computePath(qpg, qg)
+        p3 = self.wd(p2.reverse())
+        if not p1:
+            raise RuntimeError('Failed to plan a path between {} and {}'.
+                               format (qinit, qpg))
+        if not p2:
+            raise RuntimeError('Failed to plan a path between {} and {}'.
+                               format (qpg, qg))
+        # Concatenate paths
+        return concatenatePaths([p1, p2, p3])
 
 class RosInterface(object):
     nodeId = 0
