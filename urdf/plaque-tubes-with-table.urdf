@@ -8,13 +8,13 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://agimus_demos/meshes/plaque-tubes.obj" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://agimus_demos/meshes/plaque-tubes.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://agimus_demos/meshes/plaque-tubes.obj"  scale="0.001 0.001 0.001"/>
+        <mesh filename="package://agimus_demos/meshes/plaque-tubes.stl"  scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
     <inertial>
@@ -26,12 +26,12 @@
 
   <!-- Table -->
   <joint name="plaque_joint" type="fixed">
-    <parent link="table_link"/>
+    <parent link="base_link"/>
     <child link="plaque_link"/>
     <origin xyz="-0.5075 0 1.5" rpy="1.5708 0 0"/>
   </joint>
 
-  <link name="table_link">
+  <link name="base_link">
     <visual>
       <origin xyz="0 0 .725"/>
       <geometry>
