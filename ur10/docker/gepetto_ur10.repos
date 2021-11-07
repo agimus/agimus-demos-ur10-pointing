@@ -14,7 +14,7 @@ repositories:
   agimus-hpp:
     type: git
     url: https://github.com/agimus/agimus-hpp
-    version: master
+    version: devel
   agimus-sot:
     type: git
     url: https://github.com/florent-lamiraux/agimus-sot.git
@@ -30,7 +30,7 @@ repositories:
   dynamic-graph:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph
-    version: master
+    version: 8d3641ba676094c9d973335ed0457dcde98e81ba
   dynamic-graph-python:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph-python
@@ -62,7 +62,7 @@ repositories:
   hpp-core:
     type: git
     url: https://github.com/florent-lamiraux/hpp-core
-    version: devel
+    version: ab36b3b0d5fc6466585878f559d340e0b36ed720
   hpp-environments:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-environments

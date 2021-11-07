@@ -2,7 +2,7 @@
 
 address=gitlab.laas.fr:4567
 name=rob4fam/docker/ur10-pointing
-tag=2
+tag=4
 
 if [ ! -d "rob4fam-models" ]; then
   git clone --recursive https://gitlab.laas.fr/rob4fam/rob4fam-models.git

@@ -16,9 +16,16 @@ COPY ./ur10_local.sh  /root/ur10_local.sh
 
 RUN bash /root/bin/setup-opt-robotpkg.sh 
 
+#Visp manual build
+WORKDIR /root
+RUN git clone https://github.com/lagadic/visp
+RUN mkdir -p ~/visp-build
+RUN cd visp-build && cmake ../visp && make install -j10
+WORKDIR /root
+#end Visp manual build
+
 RUN apt update -qy && DEBIAN_FRONTEND=noninteractive apt install -qy \
-    robotpkg-py27-qt5-gepetto-viewer-corba robotpkg-py27-qt5-hpp-gui \
-    robotpkg-py27-qt5-hpp-plot oxygen-icon-theme robotpkg-py27-eigenpy 
+    robotpkg-py27-qt5-hpp-gui oxygen-icon-theme robotpkg-py27-eigenpy 
 
 # Configure catkin workspace
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool python-catkin-tools git cmake vim g++  \
@@ -40,6 +47,7 @@ RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Relea
              -DUSE_QPOASES=OFF -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_ROS_INTERFACE=ON -DINSTALL_DOCUMENTATION=OFF
                
 RUN git clone https://github.com/ros-planning/navigation_msgs src/navigation_msgs
+RUN git clone https://github.com/lagadic/vision_visp -b melodic
 RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Client_Library.git src/Universal_Robots_Client_Library
 RUN git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
 RUN git clone -b ur10-pointing https://github.com/longhathuc/universal_robot src/universal_robot
