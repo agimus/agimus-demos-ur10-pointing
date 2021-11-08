@@ -90,7 +90,7 @@ class PathGenerator(object):
 
     # Generate a path from an initial configuration and going through
     # pregraps, grasp and pregrasp again for a given handle
-    def generatePathForHandle(self, handle, qinit):
+    def generatePathForHandle(self, handle, qinit, NrandomConfig=10):
         # generate configurations
         edge = tool_gripper + " > " + handle
         ok = False
@@ -100,7 +100,6 @@ class PathGenerator(object):
             return res and self.robot.configIsValid(qres), qres
         qpg, qg = None, None
         qguesses =  [qinit]
-        NrandomConfig = 10
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
                                       for _ in range(NrandomConfig))):
             res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)

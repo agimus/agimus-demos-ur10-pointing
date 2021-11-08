@@ -31,7 +31,7 @@ from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto.manipulation import ViewerFactory
-from tools_hpp import ConfigGenerator, RosInterface
+from tools_hpp import ConfigGenerator, RosInterface, concatenatePaths
 
 class PartPlaque:
     urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
@@ -168,3 +168,48 @@ try:
     v(q0)
 except:
     print("Did you launch the GUI?")
+
+
+generateTrajectory = True
+if generateTrajectory:
+    from tools_hpp import PathGenerator, RosInterface
+    from hpp.gepetto import PathPlayer
+    ri = RosInterface(robot)
+    pg = PathGenerator(ps, graph)
+    pp = PathPlayer(v)
+    pg.inStatePlanner.setEdge('Loop | f')
+    q_init = ri.getCurrentConfig(q0)
+    holes_n = 5
+    holes_m = 7
+    NB_holes = holes_n * holes_m
+    hidden_holes = [0,2,11,12,14,17,20,24,33]
+    holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
+
+    def generatePath(index, qi):
+        try:
+            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 150)
+        except:
+            print("Failure")
+            return None, None
+        ps.client.basic.problem.addPath(p)
+        path_id = ps.numberPaths() - 1
+        print("Path " + str(path_id))
+        newq = ps.configAtParam(path_id, ps.pathLength(path_id))
+        return path_id, newq
+
+    qi = q_init
+    path_ids = []
+    for index in holes_to_do:
+        print("Generating path for index " + str(index))
+        path_id, newq = generatePath(index, qi)
+        if newq is not None:
+            qi = newq
+            path_ids.append(path_id)
+
+    def concat(path_ids):
+        for i in path_ids[1:]:
+            ps.concatenatePath(path_ids[0], i)
+
+    def visualize(path_ids):
+        for index in path_ids:
+            pp(index)
