@@ -20,7 +20,7 @@ RUN bash /root/bin/setup-opt-robotpkg.sh
 WORKDIR /root
 RUN git clone https://github.com/lagadic/visp
 RUN mkdir -p ~/visp-build
-RUN cd visp-build && cmake ../visp && make install -j10
+RUN cd visp-build && cmake ../visp && make install -j12
 WORKDIR /root
 #end Visp manual build
 
@@ -50,11 +50,12 @@ RUN git clone https://github.com/ros-planning/navigation_msgs src/navigation_msg
 RUN git clone https://github.com/lagadic/vision_visp -b melodic src/vision_visp
 RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Client_Library.git src/Universal_Robots_Client_Library
 RUN git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
-RUN git clone -b ur10-pointing https://github.com/longhathuc/universal_robot src/universal_robot
+RUN git clone -b calibration_devel https://github.com/fmauch/universal_robot src/universal_robot
 # RUN git clone -b calibration_devel https://github.com/fmauch/universal_robot.git src/fmauch_universal_robot
 
 
 RUN apt update -qq
+RUN apt install python-rospkg
 RUN rosdep update
 RUN rosdep install --from-paths src --ignore-src -y
 RUN . /opt/ros/melodic/setup.sh && /root/bin/setup-opt-robotpkg.sh && catkin build
@@ -69,7 +70,7 @@ RUN cd src/ && bash apply_patches.sh
 
 RUN . install/setup.sh && catkin build hpp-fcl
 RUN . install/setup.sh && catkin build example-robot-data
-RUN . install/setup.sh && catkin build -j 8
+RUN . install/setup.sh && catkin build -j12
 # Clone manually rob4fam-models
 COPY rob4fam-models src/rob4fam-models
 RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4fam/rob4fam-models.git
