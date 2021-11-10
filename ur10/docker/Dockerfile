@@ -47,7 +47,7 @@ RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Relea
              -DUSE_QPOASES=OFF -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_ROS_INTERFACE=ON -DINSTALL_DOCUMENTATION=OFF
                
 RUN git clone https://github.com/ros-planning/navigation_msgs src/navigation_msgs
-RUN git clone https://github.com/lagadic/vision_visp -b melodic
+RUN git clone https://github.com/lagadic/vision_visp -b melodic src/vision_visp
 RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Client_Library.git src/Universal_Robots_Client_Library
 RUN git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
 RUN git clone -b ur10-pointing https://github.com/longhathuc/universal_robot src/universal_robot
