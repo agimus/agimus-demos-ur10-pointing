@@ -29,6 +29,7 @@
         <param name="objectType" value="apriltag" />
         <param name="cameraFrame" value="camera_color_optical_frame" />
         <param name="depthScale"      value="0.001"/>  
+        <param name="depthRGBDistance"      value="0.00"/> 
 
     </node>
 
