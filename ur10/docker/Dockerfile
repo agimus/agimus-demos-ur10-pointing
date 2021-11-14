@@ -20,8 +20,8 @@ RUN bash /root/bin/setup-opt-robotpkg.sh
 WORKDIR /root
 RUN git clone https://github.com/lagadic/visp
 RUN mkdir -p ~/visp-build
-RUN cd visp-build && cmake ../visp && make install -j12
-WORKDIR /root
+RUN cd /root/visp-build && cmake ../visp && make -j12 && make install
+
 #end Visp manual build
 
 RUN apt update -qy && DEBIAN_FRONTEND=noninteractive apt install -qy \
@@ -34,7 +34,7 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev \
       ipython emacs pybind11-dev doxygen openssh-client gedit openscenegraph \
       python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential \
-      ros-melodic-visp ros-melodic-visp-bridge ros-melodic-moveit-ros ros-melodic-rqt-joint-trajectory-controller
+      ros-melodic-moveit-ros ros-melodic-rqt-joint-trajectory-controller
 
 
 
