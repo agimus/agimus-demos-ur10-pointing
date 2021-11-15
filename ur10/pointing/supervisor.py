@@ -35,6 +35,8 @@ def makeSupervisorWithFactory(robot):
     import pinocchio
     import rospy
 
+    if not hasattr(robot, "camera_frame"):
+        robot.camera_frame = "xtion_optical_frame"
     srdf = {}
     # retrieve objects from ros param
     demoDict = rospy.get_param("/demo")
