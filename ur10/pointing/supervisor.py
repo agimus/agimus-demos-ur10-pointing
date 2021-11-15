@@ -28,6 +28,11 @@
 # - robot, a SoT device
 # - simulateTorqueFeedbackForEndEffector, a boolean
 
+from agimus_sot.react import TaskFactory
+from agimus_sot.solver import Solver
+
+Solver.maxControlSqrNorm = 20
+
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
     from agimus_sot.factory import Factory, Affordance
@@ -70,6 +75,7 @@ def makeSupervisorWithFactory(robot):
 
     supervisor = Supervisor(robot, prefix=robotDict.keys()[0])
     factory = Factory(supervisor)
+    factory.tasks = TaskFactory(factory)
     factory.parameters["period"] = 0.01  # TODO soon: robot.getTimeStep()
     factory.parameters["simulateTorqueFeedback"] = simulateTorqueFeedbackForEndEffector
     factory.parameters["addTracerToAdmittanceController"] = False
