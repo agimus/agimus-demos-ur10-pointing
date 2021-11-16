@@ -172,13 +172,15 @@ except:
 
 generateTrajectory = True
 if generateTrajectory:
-    from tools_hpp import PathGenerator, RosInterface
-    from hpp.gepetto import PathPlayer
+    from tools_hpp import RosInterface
     ri = RosInterface(robot)
+    q_init = ri.getCurrentConfig(q0)
+    # q_init = robot.getCurrentConfig()
+    from tools_hpp import PathGenerator
+    from hpp.gepetto import PathPlayer
     pg = PathGenerator(ps, graph)
     pp = PathPlayer(v)
     pg.inStatePlanner.setEdge('Loop | f')
-    q_init = ri.getCurrentConfig(q0)
     holes_n = 5
     holes_m = 7
     NB_holes = holes_n * holes_m
@@ -199,16 +201,19 @@ if generateTrajectory:
 
     qi = q_init
     path_ids = []
+    grasp_configs = []
     for index in holes_to_do:
         print("Generating path for index " + str(index))
         path_id, newq = generatePath(index, qi)
         if newq is not None:
             qi = newq
             path_ids.append(path_id)
+            grasp_configs.append(newq)
 
     def concat(path_ids):
         for i in path_ids[1:]:
             ps.concatenatePath(path_ids[0], i)
+        return path_ids[0]
 
     def visualize(path_ids):
         for index in path_ids:

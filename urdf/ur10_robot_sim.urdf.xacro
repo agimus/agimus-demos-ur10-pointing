@@ -14,7 +14,6 @@
 
    <link name="world" />
 
-
     <!-- define global properties -->
     <xacro:property name="M_PI" value="3.1415926535897931" />
     <xacro:property name="camera_position_x" value="-0.12" />
@@ -50,19 +49,14 @@
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
     </joint>
 
-
-    <xacro:include filename="$(find tiago_description)/urdf/sensors/orbbec_astra.urdf.xacro" />
-
-    <!-- <link name="world" /> -->
-
     <joint name="robot_joint" type="fixed">
       <parent link="support_link" />
       <child link = "base_link" />
       <origin xyz="0.0 0.0 0.90" rpy="0.0 0.0 -1.5707963" />
     </joint>
 
-    <link name="tool_link">
-      <!--collision>
+    <!-- <link name="tool_link">
+      <collision>
         <geometry>
           <box size="0.02 0.05 0.2"/>
         </geometry>
@@ -73,17 +67,32 @@
           <box size="0.02 0.05 0.2"/>
         </geometry>
         <origin rpy="0 0 0" xyz="-0.01 0 0"/>
-      </visual-->
-    </link>
+      </visual>
+    </link -->
 
-  <joint name="ee_fixed_joint" type="fixed">
+  <!-- <link name="tool_link">
+     <collision>
+       <geometry>
+         <cylinder radius="0.002" length="0.16"/>
+       </geometry>
+       <origin rpy="0 0 0" xyz="0 0 -0.05"/>
+     </collision>
+     <visual>
+       <geometry>
+         <cylinder radius="0.002" length="0.16"/>
+       </geometry>
+       <origin rpy="0 0 0" xyz="0 0 -0.05"/>
+     </visual>
+  </link> -->
+
+    <joint name="ee_fixed_joint" type="fixed">
      <parent link="wrist_3_link" />
      <child link = "ee_link" />
      <origin xyz="0.0 0.0 0.117" rpy="0.0 0.0 ${pi/2.0}" />
    </joint>
 
    <link name="ee_link">
-     <collision>
+     <!-- <collision>
        <geometry>
          <box size="0.01 0.01 0.01"/>
        </geometry>
@@ -94,9 +103,8 @@
          <box size="0.01 0.01 0.01"/>
        </geometry>
        <origin rpy="0 0 0" xyz="-0.01 0 0"/>
-     </visual>
+     </visual> -->
    </link>
-
 
    <link name="ur10e_d435_mount_link">
      <inertial>
@@ -194,24 +202,9 @@
 
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
 
-   <sensor_d435 parent="ur10e_d435_mount_link">
+   <sensor_d435 parent="ur10e_d435_mount_link" name="camera">
      <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/>
    </sensor_d435>
-
-   <!-- <gazebo reference="camera_link">
-     <sensor name="camera" type="camera">
-       ...
-     </sensor>
-   </gazebo> -->
-
-   <xacro:orbbec_astra name="xtion" parent="ee"
-           camera_model="orbbec-astra'"
-           extrinsic_calibration_dir="$(find tiago_description_calibration)/urdf/calibration">
-     <origin xyz="${camera_position_x} ${camera_position_y} ${camera_position_z}"
-       rpy="${camera_orientation_r} ${camera_orientation_p}
-      ${camera_orientation_y}" />
-     <optical_origin xyz="0 0 0" rpy="0 0 0"/>
-   </xacro:orbbec_astra>
 
    <joint name="tool_joint" type="fixed">
      <parent link="ee_link"/>
