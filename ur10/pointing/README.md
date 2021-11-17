@@ -137,7 +137,7 @@ robot.startTracer()
 10. in terminal 6
 stop rostopic pub commands in terminal 6 and 7, then
 ```bash
-rosrun agimus rqt_path_execution 
+rosrun agimus rqt_path_execution
 ```
 then select path 2 and type execute path.
 
@@ -146,3 +146,5 @@ then select path 2 and type execute path.
 python
 robot.stopTracer()
 ```
+
+roslaunch realsense2_camera rs_rgbd.launch align_depth:=true depth_width:=640 depth_height:=480 color_width:=640 color_height:=480 color_fps:=30

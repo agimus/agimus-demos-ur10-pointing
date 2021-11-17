@@ -28,6 +28,7 @@ RUN apt update -qy && DEBIAN_FRONTEND=noninteractive apt install -qy \
     robotpkg-py27-qt5-hpp-gui oxygen-icon-theme robotpkg-py27-eigenpy
 
 #librealsense2
+RUN apt-get install software-properties-common
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
 RUN add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
 RUN apt-get install librealsense2-dkms
@@ -40,7 +41,7 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool
       ros-melodic-desktop-full python-omniorb libboost-dev liburdfdom-dev libassimp-dev libeigen3-dev libgraphviz-dev\
       libccd-dev libltdl-dev python-omniorb python-matplotlib libxml2 \
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev \
-      ipython emacs pybind11-dev doxygen openssh-client gedit openscenegraph \
+      ipython emacs pybind11-dev doxygen openssh-client gedit openscenegraph ros-melodic-rgbd-launch \
       python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential \
       ros-melodic-moveit-ros ros-melodic-rqt-joint-trajectory-controller ros-melodic-realsense2-camera ros-melodic-realsense2-description
 
