@@ -4,12 +4,23 @@
     <color rgba="0 0 0 1.0"/>
   </material>
 
+  <material name="white">
+    <color rgba="1 1 1 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="1 0 0 1.0"/>
+  </material>
+
   <link name="plaque_link">  
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <mesh filename="package://agimus_demos/meshes/plaque-tubes.stl" scale="0.001 0.001 0.001"/>
       </geometry>
+        <material name="white">
+          <color rgba="1 1 1 1"/>
+        </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -105,8 +116,10 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
-    <material name="black" />
   </link>
   <joint name="to_hole_01" type="fixed">
     <parent link="plaque_link" />
@@ -119,7 +132,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_02" type="fixed">
@@ -133,7 +148,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_03" type="fixed">
@@ -147,7 +164,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_04" type="fixed">
@@ -161,7 +180,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_05" type="fixed">
@@ -175,7 +196,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_06" type="fixed">
@@ -189,7 +212,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_07" type="fixed">
@@ -203,7 +228,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_08" type="fixed">
@@ -217,7 +244,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_09" type="fixed">
@@ -231,7 +260,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_10" type="fixed">
@@ -245,7 +276,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_11" type="fixed">
@@ -259,7 +292,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_12" type="fixed">
@@ -273,7 +308,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_13" type="fixed">
@@ -287,7 +324,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_14" type="fixed">
@@ -301,7 +340,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_15" type="fixed">
@@ -315,7 +356,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_16" type="fixed">
@@ -329,7 +372,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_17" type="fixed">
@@ -343,7 +388,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_18" type="fixed">
@@ -357,7 +404,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_19" type="fixed">
@@ -371,7 +420,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_20" type="fixed">
@@ -385,7 +436,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_21" type="fixed">
@@ -399,7 +452,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_22" type="fixed">
@@ -413,7 +468,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_23" type="fixed">
@@ -427,7 +484,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_24" type="fixed">
@@ -441,7 +500,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_25" type="fixed">
@@ -455,7 +516,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_26" type="fixed">
@@ -469,7 +532,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_27" type="fixed">
@@ -483,7 +548,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_28" type="fixed">
@@ -497,7 +564,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_29" type="fixed">
@@ -511,7 +580,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_30" type="fixed">
@@ -525,7 +596,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_31" type="fixed">
@@ -539,7 +612,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_32" type="fixed">
@@ -553,7 +628,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_33" type="fixed">
@@ -567,7 +644,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_34" type="fixed">
@@ -581,7 +660,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_35" type="fixed">
@@ -595,7 +676,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_36" type="fixed">
@@ -609,7 +692,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_37" type="fixed">
@@ -623,7 +708,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_38" type="fixed">
@@ -637,7 +724,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_39" type="fixed">
@@ -651,7 +740,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_40" type="fixed">
@@ -665,7 +756,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_41" type="fixed">
@@ -679,7 +772,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_42" type="fixed">
@@ -693,7 +788,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_43" type="fixed">
@@ -707,7 +804,9 @@
         <geometry>
             <sphere radius="0.003" />
         </geometry>
-       <material name="black" />
+        <material name="black">
+          <color rgba="0 0 0 1"/>
+        </material>
     </visual>
   </link>
   <joint name="to_hole_44" type="fixed">

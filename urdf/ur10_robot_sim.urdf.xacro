@@ -202,9 +202,9 @@
 
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
 
-   <sensor_d435 parent="ur10e_d435_mount_link" name="camera">
+   <xacro:sensor_d435 parent="ur10e_d435_mount_link" name="camera">
      <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/>
-   </sensor_d435>
+   </xacro:sensor_d435>
 
    <joint name="tool_joint" type="fixed">
      <parent link="ee_link"/>
