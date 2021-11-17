@@ -80,7 +80,8 @@ pg = PathGenerator(ps, graph)
 pg.inStatePlanner.setEdge('Loop | f')
 q_init = ri.getCurrentConfig(q0)
 p = pg.generatePathForHandle('part/handle_0', q_init)
-ps.client.basic.problem.addPath(p)
+pid = ps.client.basic.problem.addPath(p)
+ps.optimizePath(pid)
 ```
 
 6. in terminal 5
