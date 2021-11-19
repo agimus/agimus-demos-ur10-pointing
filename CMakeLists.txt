@@ -76,4 +76,5 @@ install(PROGRAMS
   scripts/calibration_frames_grabber.py
   scripts/publish_constants.py
   scripts/group_of_tags.py
+  scripts/publishwmc.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

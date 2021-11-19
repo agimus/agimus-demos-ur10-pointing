@@ -12,6 +12,148 @@
     <color rgba="1 0 0 1.0"/>
   </material>
 
+  <gazebo reference="plaque_link">
+    <material>Gazebo/White</material>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Wood</material>
+  </gazebo>
+
+<gazebo reference="hole_01_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_02_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_03_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_04_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_05_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_06_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_07_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_08_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_09_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_10_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_11_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_12_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_13_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_14_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_15_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_16_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_17_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_18_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_19_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_20_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_21_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_22_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_23_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_24_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_25_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_26_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_27_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_28_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_29_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_30_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_31_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_32_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_33_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_34_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_35_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_36_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_37_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_38_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_39_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_40_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_41_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_42_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_43_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+<gazebo reference="hole_44_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+
   <link name="plaque_link">  
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -48,6 +190,9 @@
       <geometry>
         <box size="0.8 0.8 .01"/>
       </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
     </visual>
     <visual>
       <origin xyz=".39 .39 .36"/>

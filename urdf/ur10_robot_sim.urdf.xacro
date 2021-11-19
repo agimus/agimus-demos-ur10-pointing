@@ -137,7 +137,6 @@
      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14159265359" />
    </joint>
 
-
    <link name="ur10e_tip_link">
      <inertial>
        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
@@ -200,10 +199,20 @@
      <origin xyz="0.0 0.0 0.00" rpy="0.0 0.0 0.0" />
   </joint>
 
+   <link name="ref_camera_link">
+   </link>
+
+    <joint name="ref_camera_joint" type="fixed">
+     <parent link="ur10e_d435_mount_link" />
+     <child link = "ref_camera_link" />
+     <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/>
+   </joint>
+
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
 
-   <xacro:sensor_d435 parent="ur10e_d435_mount_link" name="camera">
-     <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/>
+   <xacro:sensor_d435 parent="ref_camera_link" name="camera">
+     <!-- <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/> -->
+      <origin xyz="0 0 0" rpy="0 0 0"/>
    </xacro:sensor_d435>
 
    <joint name="tool_joint" type="fixed">
