@@ -251,8 +251,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="392.84743"
-     inkscape:cy="825.78785"
+     inkscape:cx="304.03444"
+     inkscape:cy="810.78785"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -700,12 +700,14 @@
          id="tspan2746">selection</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222222px;line-height:1.25;font-family:Times, serif;-inkscape-font-specification:'Times, serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
-       x="58.097073"
-       y="95.732414"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Times, serif;-inkscape-font-specification:'Times, serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="45.954586"
+       y="95.685165"
        id="text1608-1-6-3"><tspan
          sodipodi:role="line"
-         id="tspan2768">link_01_meas_wrt_optical_available</tspan></text>
+         id="tspan1109"
+         x="45.954586"
+         y="95.685165">part/base_link_meas_wrt_optical_available</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker2780)"
        d="m 57.074403,89.680059 4.630208,-0.09449 v 0 0 l 6e-6,-5.953127 24.615695,-0.04725"
@@ -715,13 +717,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Times, serif;-inkscape-font-specification:'Times, serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="49.77916"
-       y="82.783852"
+       x="42.928341"
+       y="82.8311"
        id="text1608-1-6-3-3"><tspan
          sodipodi:role="line"
-         id="tspan2906"
-         x="49.77916"
-         y="82.783852">link_01_meas_wrt_optical</tspan></text>
+         id="tspan1107"
+         x="42.928341"
+         y="82.8311">part/base_link_meas_wrt_optical</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker2918)"
        d="m 36.749558,23.44964 -0.133633,7.88445 -11.099792,0.06346 0.0081,42.432395 82.14648,-0.110706 0.17253,8.396061 h 10.69078"
