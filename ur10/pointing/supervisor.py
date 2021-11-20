@@ -39,6 +39,8 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
     import pinocchio
     import rospy
+    from rospkg import RosPack
+    rospack = RosPack()
 
     if not hasattr(robot, "camera_frame"):
         robot.camera_frame = "xtion_optical_frame"
@@ -57,9 +59,13 @@ def makeSupervisorWithFactory(robot):
                                  packageName = data["srdf"]["package"],
                                  prefix=r)
     for o, data in objectDict.items():
+        objectModel = pinocchio.buildModelFromUrdf\
+                      (rospack.get_path(data["urdf"]["package"]) +
+                       data["urdf"]["file"])
         srdfDict[o] = parse_srdf(srdf = data["srdf"]["file"],
                                  packageName = data["srdf"]["package"],
                                  prefix=o)
+        attach_all_to_link(objectModel, "base_link", srdfDict[o])
 
     grippers = list(demoDict["grippers"])
     handlesPerObjects = list()
