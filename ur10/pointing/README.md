@@ -27,12 +27,22 @@ to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
     Netmask  : 255.255.255.0
     Gateway  : 192.168.56.1
 
+7. In the docker add --privileged parameter to enable running realsense camera in docker image
+For example:
+docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged --net=host gitlab.laas.fr:4567/rob4fam/docker/ur10-pointing:5
+
 ## Steps to run the demo
 
 
 Open several tabs in a terminal, go to directory
 `/root/catkin_ws/src/agimus-demos/ur10/pointing` and type the following
 instructions
+
+0. interminal 0
+Run the following command to start realsense with ros
+```bash
+roslaunch realsense2_camera rs_rgbd.launch align_depth:=true depth_width:=640 depth_height:=480 depth_fps:=30 color_width:=640 color_height:=480 color_fps:=30
+```
 
 1. in terminal 1
 ```bash
@@ -70,6 +80,8 @@ read
 ```bash
 [ INFO] [1634638700.530389390]: Robot connected to reverse interface. Ready to receive control commands.
 ```
+
+After press "play", open new terminal at /agimus-demos/ur10/pointing, run the script stop-controllers.py to stop the conflicting controllers.
 
 5. in terminal 2
 ```python

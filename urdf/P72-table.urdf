@@ -1,5 +1,5 @@
 <robot name="p72-table">
-  <link name="base_link"/>
+
 
   <!--joint name="to_p72" type="fixed">
     <parent link="base_link"/>

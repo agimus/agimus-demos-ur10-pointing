@@ -161,7 +161,7 @@
      <origin xyz="0.0 0.0 0.01" rpy="0.0 0.0 0.0" />
    </joint>
 
-   <link name="drill_tip_link">
+   <!-- <link name="drill_tip_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
@@ -184,7 +184,7 @@
      <parent link="ur10e_tip_link" />
      <child link = "drill_tip_link" />
      <origin xyz="0.0 0.0 0.00" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
 
    <sensor_d435 parent="ur10e_d435_mount_link">
