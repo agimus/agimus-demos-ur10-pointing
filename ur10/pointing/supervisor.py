@@ -96,11 +96,20 @@ def makeSupervisorWithFactory(robot):
     factory.generate()
 
     supervisor.makeInitialSot()
-    return supervisor
+    # Add visual servoing in post actions of transtions
+    # 'ur10e/gripper > part_handle_* | f_12'
+    g = factory.grippers[0]
+    for h in factory.handles:
+        transitionName = '{} > {} | f_12'.format(g, h)
+        goalName = '{} grasps {}'.format(g, h)
+        supervisor.postActions[transitionName][goalName].sot = \
+          supervisor.sots[transitionName].sot
+
+    return factory, supervisor
 
 
 # Use service /agimus/sot/set_base_pose to set initial config
-supervisor = makeSupervisorWithFactory(robot)
+factory, supervisor = makeSupervisorWithFactory(robot)
 
 supervisor.plugTopicsToRos()
 supervisor.plugSot("")
