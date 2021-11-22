@@ -170,6 +170,21 @@ except:
     print("Did you launch the GUI?")
 
 
+q_calib = [1.5707,
+ -3,
+ 2.5,
+ -2.5,
+ -1.57,
+ 0.0,
+ 1.3,
+ 0.0,
+ 0.0,
+ 0.0,
+ 0.0,
+ -0.7071067811865476,
+ 0.7071067811865476]
+
+
 generateTrajectory = True
 if generateTrajectory:
     from tools_hpp import RosInterface
@@ -189,7 +204,7 @@ if generateTrajectory:
 
     def generatePath(index, qi):
         try:
-            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 150)
+            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 200)
         except:
             print("Failure")
             return None, None
@@ -199,16 +214,27 @@ if generateTrajectory:
         newq = ps.configAtParam(path_id, ps.pathLength(path_id))
         return path_id, newq
 
-    qi = q_init
-    path_ids = []
-    grasp_configs = []
-    for index in holes_to_do:
-        print("Generating path for index " + str(index))
-        path_id, newq = generatePath(index, qi)
-        if newq is not None:
-            qi = newq
-            path_ids.append(path_id)
-            grasp_configs.append(newq)
+    def go(concatenate=False):
+        ps.resetGoalConfigs()
+        ps.setInitialConfig(q_init)
+        ps.addGoalConfig(q_calib)
+        ps.solve()
+        ps.resetGoalConfigs()
+        path_ids = [ps.numberPaths()-1]
+        print("Path to calib config: " + str(path_ids[0]))
+
+        qi = q_calib
+        grasp_configs = []
+        for index in holes_to_do:
+            print("Generating path for index " + str(index))
+            path_id, newq = generatePath(index, qi)
+            if newq is not None:
+                qi = newq
+                path_ids.append(path_id)
+                grasp_configs.append(newq)
+        if concatenate:
+            concat(path_ids)
+        return path_ids, grasp_configs
 
     def concat(path_ids):
         for i in path_ids[1:]:
@@ -218,3 +244,5 @@ if generateTrajectory:
     def visualize(path_ids):
         for index in path_ids:
             pp(index)
+
+    path_ids, grasp_configs = go()
