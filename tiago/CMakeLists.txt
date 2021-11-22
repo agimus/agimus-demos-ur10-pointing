@@ -4,7 +4,7 @@ INSTALL_DEMO_LAUNCH_FILES(deburring
   2d_navigation.launch
   world_setup.launch
   estimation.launch
-
+  estimation_realsense.launch
   simulation.launch
   demo.launch
 

@@ -7,7 +7,7 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /Image1
-        - /Xtion Depth Registered1
+        - / Depth Registered1
       Splitter Ratio: 0.5414141416549683
     Tree Height: 493
   - Class: rviz/Selection
@@ -1202,14 +1202,9 @@ Visualization Manager:
                     head_1_link:
                       head_2_link:
                         xtion_link:
-                          xtion_optical_frame:
-                            {}
-                          xtion_orbbec_aux_joint_frame:
-                            xtion_rgb_frame:
-                              xtion_depth_frame:
-                                xtion_depth_optical_frame:
-                                  {}
-                              xtion_rgb_optical_frame:
+                          camera_link:
+                            camera_aligned_depth_to_color_frame:
+                              camera_color_optical_frame:
                                 part/base_link_measured:
                                   part/base_link:
                                     part/hole_00_link:
@@ -1296,6 +1291,20 @@ Visualization Manager:
                                       {}
                                     part/tag36_11_00102:
                                       {}
+                            camera_color_frame:
+                              {}
+                            camera_depth_frame:
+                              camera_depth_optical_frame:
+                                {}
+                          xtion_optical_frame:
+                            {}
+                          xtion_orbbec_aux_joint_frame:
+                            xtion_rgb_frame:
+                              xtion_depth_frame:
+                                xtion_depth_optical_frame:
+                                  {}
+                              xtion_rgb_optical_frame:
+                                {}
               rgbd_laser_link:
                 {}
           world:
@@ -1330,7 +1339,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /xtion/rgb/image_raw
+      Image Topic: /camera/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -1388,14 +1397,14 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: Xtion Depth Registered
+      Name: " Depth Registered"
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /xtion/depth_registered/points
+      Topic: /camera/depth_registered/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -1428,25 +1437,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.728607177734375
+      Distance: 0.02598940208554268
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.6279512643814087
-        Y: -0.42555102705955505
-        Z: -1.2463746070861816
+        X: -1.2548274993896484
+        Y: 1.0478355884552002
+        Z: 3.9894027709960938
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4247964918613434
+      Pitch: 0.37979650497436523
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.1656134128570557
+      Yaw: 4.765613079071045
     Saved: ~
 Window Geometry:
   Displays:

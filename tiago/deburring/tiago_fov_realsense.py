@@ -22,8 +22,7 @@ class TiagoFOV:
     def __init__(self,
             urdfString=None,
             urdfFilename=None,
-            fov = np.radians((60., 90.)),
-            # fov = np.radians((49.5, 60)),
+            fov = np.radians((49.5, 60)),
             geoms = [ "arm_3_link_0" ],
             ):
         if isinstance(fov, str):
@@ -57,7 +56,7 @@ class TiagoFOV:
                 root_joint = pinocchio.JointModelPlanar(),
                 geometry_types=pinocchio.GeometryType.COLLISION)
 
-        id_parent_frame = self.model.getFrameId("xtion_rgb_optical_frame")
+        id_parent_frame = self.model.getFrameId("camera_color_optical_frame")
         parent_frame = self.model.frames[id_parent_frame]
         go = pinocchio.GeometryObject("field_of_view", id_parent_frame, parent_frame.parent,
                 fov_fcl, parent_frame.placement)
@@ -86,7 +85,7 @@ class TiagoFOV:
             oMt = pinocchio.XYZQUATToSE3(oMt)
 
         pts = hppfcl.StdVec_Vec3f()
-        idc = self.model.getFrameId("xtion_rgb_optical_frame")
+        idc = self.model.getFrameId("camera_color_optical_frame")
 
         C = self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2]
         pts.append(C)
@@ -104,7 +103,7 @@ class TiagoFOV:
 
     def tagVisible(self, oMt, size, margin, size_margin):
         """ It assumes that updateGeometryPlacements has been called """
-        idc = self.model.getFrameId("xtion_rgb_optical_frame")
+        idc = self.model.getFrameId("camera_color_optical_frame")
         camera = self.model.frames[idc]
         oMc = self.data.oMf[idc]
 
@@ -210,7 +209,7 @@ class TiagoFOV:
                 color = [0.1, 0.1, 0.9, 0.2],
                 group = "robot/tiago/head_2_link")
         idl = self.model.getFrameId("head_2_link")
-        idc = self.model.getFrameId("xtion_rgb_optical_frame")
+        idc = self.model.getFrameId("camera_color_optical_frame")
         assert self.model.frames[idl].parent == self.model.frames[idc].parent
         gui.applyConfiguration("field_of_view", pinocchio.SE3ToXYZQUATtuple(
             self.model.frames[idl].placement.inverse() * self.model.frames[idc].placement))

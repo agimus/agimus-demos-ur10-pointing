@@ -1,6 +1,8 @@
 from __future__ import print_function
 from agimus_vision import py_agimus_vision as av
 import numpy as np, pinocchio, sys, os, pymannumopt as mno
+from pinocchio import liegroups
+from pinocchio.utils import *
 
 def toURDFTag(M):
     x,y,z = M.translation
@@ -122,6 +124,9 @@ class Variables:
         spaces = [ liegroups.Rn(4), ] * nplanes \
                 + [ liegroups.SE3() ] * ncameras \
                 + [ liegroups.SE3() ] * ntags
+                
+        #size of X: 4 * 2 + 5 * 7 + 12 * 7
+        
         self.space = spaces[0]
         for space in spaces[1:]:
             self.space *= space
@@ -305,31 +310,74 @@ class Stack(mno.VectorFunction):
             func.f_fx(X, f[r:r+d], fx[r:r+d,:])
             r += d
 
-datadir="../../../../rob4fam-models/meshes/P72_calibration/"
+#For hole calibration
+class TagResidual(mno.VectorFunction):
+    def __init__(self, space, Mis):
+        mno.VectorFunction.__init__(self)
+        self.Mis = Mis
+        self.space = space
+        self.dim = len(self.Mis) * space.nv
 
+    def dimension(self):
+        return self.dim
+
+    def f(self, X, f):
+        for r, Mi in zip(range(0,self.dim,6), self.Mis):
+            f[r:r+6] = self.space.difference(Mi, X)
+
+    def f_fx(self, X, f, fx):
+        for r, Mi in zip(range(0,self.dim,6), self.Mis):
+            f[r:r+6] = self.space.difference(Mi, X)
+            fx[r:r+6,:] = self.space.dDifference(Mi, X, pinocchio.ARG1)
+
+class TagError(mno.Function):
+    def __init__(self, residual):
+        mno.Function.__init__(self)
+        self.residual = residual
+        self.fd_eps = 1e-5
+
+    def f(self, X):
+        r = np.zeros((self.residual.dim))
+        self.residual.f(X, r)
+        return 0.5 * np.sum(r**2)
+
+    def f_fx(self, X, fx):
+        d = self.residual.dim
+        r = np.zeros((d))
+        rx = np.zeros((d, self.residual.space.nv))
+        self.residual.f_fx(X, r, rx)
+        fx[:] = np.dot(r.reshape((1, d)), rx)
+        return 0.5 * np.sum(r**2)
+
+    def f_fx_fxx(self, X, fx, fxx):
+        v = self.f_fx(X, fx)
+        pymannumopt.numdiff.second_order_central(self, X, self.fd_eps, fxx, integrate=self.residual.space.integrate)
+        return v
+datadir="/home/pal/DemoWorkspace/Calibration/"
+#datadir="/home/tlha/Calibration/"
 cam = av.makeTiagoCameraParameters()
 
 pi0 = [1, 0, 0, 0]
 
 tag_defs = (
-        (15, 0.0845), (6, 0.0845), (1, 0.0845),
-        (100, 0.041), (101, 0.041),
-        (2, 0.053), (3, 0.053), (4, 0.053),
+        (15, 0.0845), (1, 0.0845), (5, 0.0845), (6, 0.0845), (13, 0.0845), (14, 0.0845),
+        (100, 0.06), (101, 0.06), (102, 0.06),
+        (2, 0.053), (3, 0.053), (4, 0.053)
         )
 def idx(tag_id):
     for k, (id, _) in enumerate(tag_defs):
         if id == tag_id: return k
 def indices(tag_ids): return [ idx(tag_id) for tag_id in tag_ids ]
 coplanar_tags_s = (
-        indices(( 15, 6, 1 )), # corresponds to tag ids (15, 6, 1)
+        indices(( 15, 1, 5, 6, 13, 14, 100, 101, 102)), # corresponds to tag ids (15, 6, 1, 13)
         #( 0, 1, 2, 3, 4 ), # corresponds to tag ids (15, 6, 1, 100, 101)
         indices( (2,3,4) ), # corresponds to tag ids (2, 3, 4)
         )
 
 images = []
 I = av.Image()
-for fn in [ "001.png", "002.png", "003.png", "005.png" ]:
-    I.read(datadir + "base/" + fn)
+for fn in [ "000_Color.png", "001_Color.png", "002_Color.png", "003_Color.png", "004_Color.png", "005_Color.png"  ]:
+    I.read(datadir + "base_d435_new/" + fn)
     #I.initDisplay()
     I.display()
     images.append(makeImage(I, tag_defs, coplanar_tags_s))
@@ -338,8 +386,10 @@ for fn in [ "001.png", "002.png", "003.png", "005.png" ]:
 
 # Assume w is the object base link
 # We fix the pose of tag with ID 15
-wMt0 = pinocchio.SE3(pinocchio.rpy.rpyToMatrix(1.63558443485, -0.0100636021863, -0.0123677826844),
-        np.array([ -0.132714992453, -0.0338492746834, 0.546713277339 ]))
+#wMt0 = pinocchio.SE3(pinocchio.rpy.rpyToMatrix(1.668, -0.026, -0.009), np.array([ -0.141, -0.054, 0.543 ]))
+#wMt0 = pinocchio.SE3(pinocchio.rpy.rpyToMatrix(1.63558443485, -0.0100636021863, 0.003677826844),
+#        np.array([ -0.132714992453, -0.0338492746834, 0.546713277339 ]))
+wMt0 = pinocchio.SE3(pinocchio.rpy.rpyToMatrix(1.63558443485, -0.0100636021863, -0.0123677826844), np.array([ -0.132714992453, -0.0338492746834, 0.546713277339 ]))
 
 variables = Variables(len(images), len(tag_defs), len(coplanar_tags_s))
 image_residuals = ImageResiduals(variables, images)
@@ -366,6 +416,7 @@ penalty.maxIter = 40;
 penalty.verbose = True
 
 # Compute initial guess
+
 X0 = variables.space.neutral
 for k in range(variables.nplanes):
     variables.plane(X0, k)[0] = 1
@@ -396,6 +447,7 @@ while len(unknown_tags) > 0:
             variables.tag(X0, tag, False)[:] = pinocchio.SE3ToXYZQUAT(wMi)
             unknown_tags.remove(tag)
 
+#X: tuples of 7 for positions of tags 
 res, X = penalty.minimize(image_residuals, constraints, X0, gn, integrate=variables.space.integrate)
 
 # Compute position of holes
@@ -413,6 +465,7 @@ J = av.Image()
 # Set this to False to enable visualization
 initDisplay = True
 bMhs = []
+
 # plane of point
 plane_of_point = [ 0, ] * 28 + [ None ] * (40-28)
 def changePlaneFrame(api, bMa):
@@ -420,54 +473,82 @@ def changePlaneFrame(api, bMa):
     bpi[:3] = np.dot(bMa.rotation, api[:3])
     bpi[3] = api[3] - np.dot(bMa.translation, bpi[:3])
     return bpi
-for i in range(40):
-    img = datadir + "hole/{:03}.png".format(i)
-    tagCenters = []
-    print("reading " + img)
-    J.read(img)
-    if not initDisplay:
-        initDisplay = True
-        J.initDisplay()
-    J.display()
-    detector.imageReady = False
 
-    partDetected = aprilTagPart.detect(J)
-    holeDetected = aprilTagHole.detect(J)
-    if partDetected and holeDetected:
-        cMb = vpToSE3(aprilTagPart.getPose())
-        print(cMb.translation, pinocchio.rpy.matrixToRpy(cMb.rotation))
-
-        aprilTagPart.drawDebug(J)
-        aprilTagHole.drawDebug(J)
+for i in range(0,29):
+    bMhs_hole = []
+    for j in range(3):
+        img = datadir + "hole_d435_new/hole_{:03}_{:02}.png".format(i,j)
         
-        plane_id = plane_of_point[i]
-        if plane_id is None:
-            cMh = vpToSE3(aprilTagHole.getPose())
-            bMhs.append(cMb.inverse() * cMh)
-        else:
-            Pi_b = variables.plane(X, plane_id)
-            Pi_c = changePlaneFrame(Pi_b, cMb)
-
-            # Check that plane normal points inward
-            if Pi_b[1] < 0:
-                bRh = pinocchio.Quaternion(np.array([1,0,0]), -Pi_b[:3])
+        tagCenters = []
+        print("reading " + img)
+        J.read(img)
+        if not initDisplay:
+            initDisplay = True
+            J.initDisplay()
+        J.display()
+        detector.imageReady = False
+    
+        partDetected = aprilTagPart.detect(J)
+        holeDetected = aprilTagHole.detect(J)
+        if partDetected and holeDetected:
+            cMb = vpToSE3(aprilTagPart.getPose())
+            print(cMb.translation, pinocchio.rpy.matrixToRpy(cMb.rotation))
+    
+            aprilTagPart.drawDebug(J)
+            aprilTagHole.drawDebug(J)
+            
+            plane_id = plane_of_point[i]
+            if plane_id is None:
+                cMh = vpToSE3(aprilTagHole.getPose())
+#                bMhs.append(cMb.inverse() * cMh)
+                item = pinocchio.SE3ToXYZQUAT(cMb.inverse() * cMh)
+                bMhs_hole.append(item)
             else:
-                bRh = pinocchio.Quaternion(np.array([1,0,0]), Pi_b[:3])
+                Pi_b = variables.plane(X, plane_id)
+                Pi_c = changePlaneFrame(Pi_b, cMb)
+    
+                # Check that plane normal points inward
+                if Pi_b[1] < 0:
+                    bRh = pinocchio.Quaternion(np.array([1,0,0]), -Pi_b[:3])
+                else:
+                    bRh = pinocchio.Quaternion(np.array([1,0,0]), Pi_b[:3])
+                
+                #get 4 points corners of tags 
+                ps = [ np.array(v+[1,]) for v in aprilTagHole.getPoints(cam, 230) ]
+                # Project p onto plane pi, then compute centroid.
+                # find t such that t * pi[:3]^T * p + pi[3] = 0
+                ts = [ -Pi_c[3] / np.dot(Pi_c[:3], p) for p in ps ]
+                cPs = [ t * p for t, p in zip(ts, ps) ]
+                cC = np.mean(cPs, axis=0)
+                bC = cMb.inverse() * cC
+    
+#                bMhs.append(pinocchio.SE3(bRh, bC))
+                item = pinocchio.SE3ToXYZQUAT(pinocchio.SE3(bRh, bC))
+                bMhs_hole.append(item)
+        else:
+            print("Could not detect part or hole. Detected tags {}".format(detector.getTagsId()))
+    
+        J.flush()
+        J.getClick()
+    space = liegroups.SE3()
+#    print("Gauss-Newton method")
+    tagResidual = TagResidual(space, bMhs_hole)
+    gn = mno.GaussNewton(space.nq, space.nv)
+    gn.xtol = 1e-8;
+    gn.fxtol2 = 1e-11;
+    gn.maxIter = 40;
+    gn.verbose = True
+    x0 = bMhs_hole[0]
+    res, x = gn.minimize(tagResidual, x0, integrate = space.integrate)
+    pose = pinocchio.XYZQUATToSE3(x)
+    bMhs.append(pose)
+    print("hole {:03} pose: ".format(i))
+    print(pose)  
 
-            ps = [ np.array(v+[1,]) for v in aprilTagHole.getPoints(cam, 230) ]
-            # Project p onto plane pi, then compute centroid.
-            # find t such that t * pi[:3]^T * p + pi[3] = 0
-            ts = [ -Pi_c[3] / np.dot(Pi_c[:3], p) for p in ps ]
-            cPs = [ t * p for t, p in zip(ts, ps) ]
-            cC = np.mean(cPs, axis=0)
-            bC = cMb.inverse() * cC
 
-            bMhs.append(pinocchio.SE3(bRh, bC))
-    else:
-        print("Could not detect part or hole. Detected tags {}".format(detector.getTagsId()))
 
-    J.flush()
-    J.getClick()
+   
+    
 
 def tagsInUrdfFormat(tags, bMis):
     tag_fmt="""

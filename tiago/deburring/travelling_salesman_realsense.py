@@ -36,7 +36,6 @@ p.add_argument ('--context', type=str, metavar='context',
 p.add_argument ('--n-random-handles', type=int, default=None,
                 help="Generate a random model with N handles.")
 args = p.parse_args ()
-
 if args.context != defaultContext:
     createContext (args.context)
 isSimulation = args.context == "simulation"
@@ -46,14 +45,14 @@ isSimulation = args.context == "simulation"
 
 #Robot.urdfFilename = "package://tiago_data/robots/tiago_steel_without_wheels.urdf"
 #Robot.srdfFilename = "package://tiago_data/srdf/tiago.srdf"
-try:
-    import rospy
-    Robot.urdfString = rospy.get_param('robot_description')
-    print("reading URDF from ROS param")
-except:
-    print("reading generic URDF")
-    from hpp.rostools import process_xacro, retrieve_resource
-    Robot.urdfString = process_xacro("package://tiago_description/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft")
+# try:
+import rospy
+    # Robot.urdfString = rospy.get_param('robot_description')
+    # print("reading URDF from ROS param")
+# except:
+print("reading generic URDF")
+from hpp.rostools import process_xacro, retrieve_resource
+Robot.urdfString = process_xacro("package://tiago_data/robots/tiago.urdf.xacro", "robot:=steel", "end_effector:=pal-hey5", "ft_sensor:=schunk-ft", "has_second_camera_model:=true")
 Robot.srdfString = ""
 
 if args.n_random_handles is None:
@@ -107,11 +106,11 @@ client.manipulation.problem.selectProblem (args.context)
 robot = Robot("robot", "tiago", rootJointType="planar", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 
-from tiago_fov import TiagoFOV, TiagoFOVGuiCallback
+from tiago_fov_realsense import TiagoFOV, TiagoFOVGuiCallback
 from hpp import Transform
 tiago_fov = TiagoFOV(urdfString = Robot.urdfString,
         # Real field of view angles are (49.5, 60),
-        fov = np.radians((44.5, 55)),
+        fov = np.radians((49.5, 60)),
         geoms = [ "arm_3_link_0" ])
 class Tag:
     def __init__(self, n, s):
@@ -146,6 +145,7 @@ tagss = [
                ], 
                1, 0.005, 0.1),
         Tags([ Tag('part/tag36_11_00100', 0.0600+0.01),
+               Tag('part/tag36_11_00101', 0.0600+0.01),
                Tag('part/tag36_11_00102', 0.0600+0.01),
                Tag('part/tag36_11_00001', 0.0845+0.01),
                Tag('part/tag36_11_00006', 0.0845+0.01),
@@ -230,9 +230,7 @@ vf.loadRobotModel (Driller, "driller")
 robot.insertRobotSRDFModel("driller", "package://gerard_bauzil/srdf/qr_drill.srdf")
 robot.setJointBounds('driller/root_joint', [-10, 10, -10, 10, 0, 2])
 vf.loadRobotModel (PartP72, "part")
-
-#Modify from [-2,2] to [-5,5] to allow testing near the tables
-robot.setJointBounds('part/root_joint', [-5, 5, -5, 5, -2, 2])
+robot.setJointBounds('part/root_joint', [-5, 5, -5, 5, -5, 5])
 
 srdf_disable_collisions_fmt = """  <disable_collisions link1="{}" link2="{}" reason=""/>\n"""
 # Disable collision between tiago/hand_safety_box_0 and driller
@@ -378,14 +376,14 @@ lock_head = [ lockJoint(n, q0) for n in robot.jointNames
 # Create "Look at gripper" constraints: for (X,Y,Z) the position of the gripper in the camera frame,
 # (X, Y) = 0 and Z >= 0
 tool_gripper = "driller/drill_tip"
-ps.createPositionConstraint("look_at_gripper", "tiago/xtion_rgb_optical_frame", tool_gripper,
+ps.createPositionConstraint("look_at_gripper", "tiago/camera_color_optical_frame", tool_gripper,
         (0,0,0), (0,0,0), (True,True,True))
 look_at_gripper = ps.hppcorba.problem.getConstraint("look_at_gripper")
 import hpp_idl
 look_at_gripper.setComparisonType([hpp_idl.hpp.EqualToZero,hpp_idl.hpp.EqualToZero,hpp_idl.hpp.Superior])
 
 # Create "Look at part" constraint
-ps.createPositionConstraint("look_at_part", "tiago/xtion_rgb_optical_frame", "part/to_tag_00015",
+ps.createPositionConstraint("look_at_part", "tiago/camera_color_optical_frame", "part/to_tag_00001",
         (0,0,0), (0,0,0), (True,True,False))
 look_at_part = ps.hppcorba.problem.getConstraint("look_at_part")
 # 3}}}
@@ -412,7 +410,6 @@ test_handles = [    'part/handle_10',
                     'part/handle_4',
                     'part/handle_5',
                     'part/handle_9']
-
 factory.setObjects([ "driller", "part", ], [ [ "driller/handle", ], part_handles, ], [ [], [] ])
 
 factory.setRules([
@@ -959,10 +956,10 @@ if solve_tsp_problems:
 # {{{2 Function for online reso 
 def recompute_clusters(handles = None, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_config(robot, graph, q0)
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_config(robot, graph, q0)
         try:
-            qcurrent = estimation.get_cylinder_pose(robot, qcurrent, timeout=0.5)
+            qcurrent = estimation_realsense.get_cylinder_pose(robot, qcurrent, timeout=0.5)
         except RuntimeError:
             pass
     if handles is None:
@@ -976,10 +973,10 @@ def recompute_clusters(handles = None, qcurrent = None):
 
 def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_config(robot, graph, q0)
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_config(robot, graph, q0)
         try:
-            qcurrent = estimation.get_cylinder_pose(robot, qcurrent, timeout=0.5)
+            qcurrent = estimation_realsense.get_cylinder_pose(robot, qcurrent, timeout=0.5)
         except RuntimeError:
             pass
 
@@ -1037,11 +1034,11 @@ def compute_base_path_to_cluster_init(i_cluster, qcurrent = None):
 
 def compute_path_for_cluster(i_cluster, qcurrent = None):
     if qcurrent is None:
-        import estimation 
-        qcurrent = estimation.get_current_robot_and_cylinder_config(robot, graph, q0[:])
+        import estimation_realsense
+        qcurrent = estimation_realsense.get_current_robot_and_cylinder_config(robot, graph, q0[:])
 
     cluster = clusters[i_cluster]
-    print("Cluster:", i_cluster)
+    print(i_cluster)
     print(cluster)
     # Recompute a configuration for each handle
     new_cluster = []
@@ -1064,20 +1061,4 @@ def compute_path_for_cluster(i_cluster, qcurrent = None):
     return new_cluster, path
 # 2}}}
 
-def gotoHandle(handle, q0, robot):
-    # generate_valid_config_for_handle(handle, qinit, qguesses = [], NrandomConfig=10):
-    ok, qphi2, qhi2 = generate_valid_config_for_handle(handle, q0, [], NrandomConfig=15)
-    new_cluster =[]
-    if ok:
-            
-        new_cluster.append((handle, qphi2, qhi2))
-    else:
-        print("Could not reach handle", handle)
-        return None
-    
-    setRobotJointBounds("default")
-    
-    paths = clusters_comp.solveTSP(armPlanner, new_cluster, qhome=q0)
-    path = concatenate_paths(paths)
-    return path
 # vim: foldmethod=marker foldlevel=1
