@@ -7,8 +7,10 @@ Panels:
         - /Global Options1
         - /Status1
         - /Image1
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
-    Tree Height: 477
+    Tree Height: 435
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -71,18 +73,50 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        base_link_inertia:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        collision_cylinder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        drill_tip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
           Value: true
         ee_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        flange:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         forearm_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
         shoulder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        support_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -95,8 +129,17 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
         upper_arm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ur10e_d435_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ur10e_tip_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -120,34 +163,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        xtion_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_orbbec_aux_joint_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_rgb_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        xtion_rgb_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Name: UR10
       Robot Description: robot_description
       TF Prefix: ""
@@ -156,7 +171,7 @@ Visualization Manager:
       Visual Enabled: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /xtion/rgb/image_raw
+      Image Topic: /camera/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -326,51 +341,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        hole_29_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_30_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_31_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_32_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_33_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_34_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_35_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_36_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hole_37_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         table_link:
           Alpha: 1
           Show Axes: false
@@ -396,7 +366,22 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        tag36_11_00005:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         tag36_11_00006:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00013:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tag36_11_00014:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -416,12 +401,322 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        tag36_11_00102:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: Part
       Robot Description: /part/robot_description
       TF Prefix: part
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        base:
+          Value: false
+        base_link:
+          Value: false
+        base_link_inertia:
+          Value: false
+        camera_aligned_depth_to_color_frame:
+          Value: false
+        camera_bottom_screw_frame:
+          Value: false
+        camera_color_frame:
+          Value: false
+        camera_color_optical_frame:
+          Value: false
+        camera_depth_frame:
+          Value: false
+        camera_depth_optical_frame:
+          Value: false
+        camera_link:
+          Value: false
+        collision_cylinder:
+          Value: false
+        drill_tip_link:
+          Value: false
+        ee_link:
+          Value: false
+        flange:
+          Value: false
+        forearm_link:
+          Value: false
+        part/base_link:
+          Value: false
+        part/base_link_measured:
+          Value: false
+        part/hole_00_link:
+          Value: false
+        part/hole_01_link:
+          Value: false
+        part/hole_02_link:
+          Value: false
+        part/hole_03_link:
+          Value: false
+        part/hole_04_link:
+          Value: false
+        part/hole_05_link:
+          Value: false
+        part/hole_06_link:
+          Value: false
+        part/hole_07_link:
+          Value: false
+        part/hole_08_link:
+          Value: false
+        part/hole_09_link:
+          Value: false
+        part/hole_10_link:
+          Value: false
+        part/hole_11_link:
+          Value: false
+        part/hole_12_link:
+          Value: false
+        part/hole_13_link:
+          Value: false
+        part/hole_14_link:
+          Value: false
+        part/hole_15_link:
+          Value: false
+        part/hole_16_link:
+          Value: false
+        part/hole_17_link:
+          Value: false
+        part/hole_18_link:
+          Value: false
+        part/hole_19_link:
+          Value: false
+        part/hole_20_link:
+          Value: false
+        part/hole_21_link:
+          Value: false
+        part/hole_22_link:
+          Value: false
+        part/hole_23_link:
+          Value: false
+        part/hole_24_link:
+          Value: false
+        part/hole_25_link:
+          Value: false
+        part/hole_26_link:
+          Value: false
+        part/hole_27_link:
+          Value: false
+        part/hole_28_link:
+          Value: false
+        part/table_link:
+          Value: false
+        part/tag36_11_00001:
+          Value: false
+        part/tag36_11_00002:
+          Value: false
+        part/tag36_11_00003:
+          Value: false
+        part/tag36_11_00004:
+          Value: false
+        part/tag36_11_00005:
+          Value: false
+        part/tag36_11_00006:
+          Value: false
+        part/tag36_11_00013:
+          Value: false
+        part/tag36_11_00014:
+          Value: false
+        part/tag36_11_00015:
+          Value: false
+        part/tag36_11_00100:
+          Value: false
+        part/tag36_11_00101:
+          Value: false
+        part/tag36_11_00102:
+          Value: false
+        shoulder_link:
+          Value: false
+        support_link:
+          Value: false
+        tool0:
+          Value: false
+        tool0_controller:
+          Value: false
+        tool_link:
+          Value: false
+        upper_arm_link:
+          Value: false
+        ur10e_d435_mount_link:
+          Value: false
+        ur10e_tip_link:
+          Value: false
+        world:
+          Value: false
+        wrist_1_link:
+          Value: false
+        wrist_2_link:
+          Value: false
+        wrist_3_link:
+          Value: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          support_link:
+            base_link:
+              base:
+                tool0_controller:
+                  {}
+              base_link_inertia:
+                shoulder_link:
+                  upper_arm_link:
+                    forearm_link:
+                      wrist_1_link:
+                        wrist_2_link:
+                          wrist_3_link:
+                            collision_cylinder:
+                              {}
+                            ee_link:
+                              tool_link:
+                                {}
+                            flange:
+                              tool0:
+                                {}
+                            ur10e_d435_mount_link:
+                              camera_bottom_screw_frame:
+                                camera_link:
+                                  camera_aligned_depth_to_color_frame:
+                                    camera_color_optical_frame:
+                                      part/base_link_measured:
+                                        part/base_link:
+                                          part/hole_00_link:
+                                            {}
+                                          part/hole_01_link:
+                                            {}
+                                          part/hole_02_link:
+                                            {}
+                                          part/hole_03_link:
+                                            {}
+                                          part/hole_04_link:
+                                            {}
+                                          part/hole_05_link:
+                                            {}
+                                          part/hole_06_link:
+                                            {}
+                                          part/hole_07_link:
+                                            {}
+                                          part/hole_08_link:
+                                            {}
+                                          part/hole_09_link:
+                                            {}
+                                          part/hole_10_link:
+                                            {}
+                                          part/hole_11_link:
+                                            {}
+                                          part/hole_12_link:
+                                            {}
+                                          part/hole_13_link:
+                                            {}
+                                          part/hole_14_link:
+                                            {}
+                                          part/hole_15_link:
+                                            {}
+                                          part/hole_16_link:
+                                            {}
+                                          part/hole_17_link:
+                                            {}
+                                          part/hole_18_link:
+                                            {}
+                                          part/hole_19_link:
+                                            {}
+                                          part/hole_20_link:
+                                            {}
+                                          part/hole_21_link:
+                                            {}
+                                          part/hole_22_link:
+                                            {}
+                                          part/hole_23_link:
+                                            {}
+                                          part/hole_24_link:
+                                            {}
+                                          part/hole_25_link:
+                                            {}
+                                          part/hole_26_link:
+                                            {}
+                                          part/hole_27_link:
+                                            {}
+                                          part/hole_28_link:
+                                            {}
+                                          part/table_link:
+                                            {}
+                                          part/tag36_11_00001:
+                                            {}
+                                          part/tag36_11_00002:
+                                            {}
+                                          part/tag36_11_00003:
+                                            {}
+                                          part/tag36_11_00004:
+                                            {}
+                                          part/tag36_11_00005:
+                                            {}
+                                          part/tag36_11_00006:
+                                            {}
+                                          part/tag36_11_00013:
+                                            {}
+                                          part/tag36_11_00014:
+                                            {}
+                                          part/tag36_11_00015:
+                                            {}
+                                          part/tag36_11_00100:
+                                            {}
+                                          part/tag36_11_00101:
+                                            {}
+                                          part/tag36_11_00102:
+                                            {}
+                                  camera_color_frame:
+                                    {}
+                                  camera_depth_frame:
+                                    camera_depth_optical_frame:
+                                      {}
+                              ur10e_tip_link:
+                                drill_tip_link:
+                                  {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /camera/depth_registered/points
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -450,35 +745,35 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10
+      Distance: 2.5025267601013184
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 1.428358554840088
+        Y: 0.5162855386734009
+        Z: 0.6705768704414368
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.785398006439209
+      Pitch: 0.7153979539871216
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.785398006439209
+      Yaw: 4.148580551147461
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 971
+  Height: 916
   Hide Left Dock: false
   Hide Right Dock: false
   Image:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000015600000331fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b00000266000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0049006d00610067006501000002a7000000c50000001600ffffff000000010000010f00000331fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003b00000331000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d00650100000000000007800000024400fffffffb0000000800540069006d006501000000000000045000000000000000000000050f0000033100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000002fafc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000023c000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0049006d006100670065010000027d000000b80000001600ffffff000000010000010f000002fafc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003b000002fa000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073d0000003efc0100000002fb0000000800540069006d006501000000000000073d0000024400fffffffb0000000800540069006d00650100000000000004500000000000000000000004cc000002fa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -487,6 +782,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1920
+  Width: 1853
   X: 0
   Y: 31

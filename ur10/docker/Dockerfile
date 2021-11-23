@@ -1,40 +1,49 @@
 FROM osrf/ros:melodic-desktop-bionic
 
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/packages/debian/pub bionic robotpkg > /etc/apt/sources.list.d/robotpkg.list
 
 #Config robotpkg & install gepetto viewer
 RUN touch /etc/apt/sources.list.d/robotpkg.list
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/wip/packages/debian/pub $(lsb_release -cs) robotpkg >/etc/apt/sources.list.d/robotpkg.list
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/packages/debian/pub $(lsb_release -cs) robotpkg >> /etc/apt/sources.list.d/robotpkg.list
-RUN curl http://robotpkg.openrobots.org/packages/debian/robotpkg.key | sudo apt-key add -
-RUN apt update  
+RUN curl http://robotpkg.openrobots.org/packages/debian/robotpkg.key | apt-key add -
+RUN apt update
 
 COPY ./setup-opt-robotpkg.sh /root/bin/setup-opt-robotpkg.sh
 COPY ./ur10e_calibration.yaml /root/ur10e_calibration.yaml
 COPY ./ur10_local.sh  /root/ur10_local.sh
 
-RUN bash /root/bin/setup-opt-robotpkg.sh 
+RUN bash /root/bin/setup-opt-robotpkg.sh
 
 #Visp manual build
 WORKDIR /root
 RUN git clone https://github.com/lagadic/visp
 RUN mkdir -p ~/visp-build
-RUN cd visp-build && cmake ../visp && make install -j10
-WORKDIR /root
+RUN cd /root/visp-build && cmake ../visp && make -j12 && make install
+
 #end Visp manual build
 
 RUN apt update -qy && DEBIAN_FRONTEND=noninteractive apt install -qy \
-    robotpkg-py27-qt5-hpp-gui oxygen-icon-theme robotpkg-py27-eigenpy 
+    robotpkg-py27-qt5-hpp-gui oxygen-icon-theme robotpkg-py27-eigenpy
+
+#librealsense2
+RUN apt-get install software-properties-common
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+RUN add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+RUN apt-get install librealsense2-dkms
+RUN apt-get install librealsense2-utils
+RUN apt-get install librealsense2-dev
+#end librealsense2
 
 # Configure catkin workspace
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool python-catkin-tools git cmake vim g++  \
       ros-melodic-desktop-full python-omniorb libboost-dev liburdfdom-dev libassimp-dev libeigen3-dev libgraphviz-dev\
       libccd-dev libltdl-dev python-omniorb python-matplotlib libxml2 \
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev \
-      ipython emacs pybind11-dev doxygen openssh-client gedit openscenegraph \
+      ipython emacs pybind11-dev doxygen openssh-client gedit openscenegraph ros-melodic-rgbd-launch \
       python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential \
-      ros-melodic-visp ros-melodic-visp-bridge ros-melodic-moveit-ros ros-melodic-rqt-joint-trajectory-controller
+      ros-melodic-moveit-ros ros-melodic-rqt-joint-trajectory-controller ros-melodic-realsense2-camera ros-melodic-realsense2-description
 
 
 
@@ -45,16 +54,17 @@ WORKDIR /root/catkin_ws
 RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DPYBIND11_PYTHON_VERSION=2.7 \
              -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=ON -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=OFF \
              -DUSE_QPOASES=OFF -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_ROS_INTERFACE=ON -DINSTALL_DOCUMENTATION=OFF
-               
+
 RUN git clone https://github.com/ros-planning/navigation_msgs src/navigation_msgs
 RUN git clone https://github.com/lagadic/vision_visp -b melodic src/vision_visp
 RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Client_Library.git src/Universal_Robots_Client_Library
 RUN git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
-RUN git clone -b ur10-pointing https://github.com/longhathuc/universal_robot src/universal_robot
+RUN git clone -b calibration_devel https://github.com/fmauch/universal_robot src/universal_robot
 # RUN git clone -b calibration_devel https://github.com/fmauch/universal_robot.git src/fmauch_universal_robot
 
 
 RUN apt update -qq
+RUN apt install python-rospkg
 RUN rosdep update
 RUN rosdep install --from-paths src --ignore-src -y
 RUN . /opt/ros/melodic/setup.sh && /root/bin/setup-opt-robotpkg.sh && catkin build
@@ -69,7 +79,7 @@ RUN cd src/ && bash apply_patches.sh
 
 RUN . install/setup.sh && catkin build hpp-fcl
 RUN . install/setup.sh && catkin build example-robot-data
-RUN . install/setup.sh && catkin build -j 8
+RUN . install/setup.sh && catkin build -j12
 # Clone manually rob4fam-models
 COPY rob4fam-models src/rob4fam-models
 RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4fam/rob4fam-models.git

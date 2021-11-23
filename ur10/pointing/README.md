@@ -27,12 +27,34 @@ to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
     Netmask  : 255.255.255.0
     Gateway  : 192.168.56.1
 
+7. In the docker add --privileged parameter to enable running realsense camera in docker image
+For example:
+docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged --net=host gitlab.laas.fr:4567/rob4fam/docker/ur10-pointing:5
+
+Copy the files https://github.com/IntelRealSense/librealsense/blob/master/config/99-realsense-libusb.rules to /etc/udev/rules.d/ before connecting the camera
+
+
+##3d models
+
+For Onshape, an account is needed before downloading stl file
+
+Camera mount: https://cad.onshape.com/documents/e21ee279b60811091f599ced/w/b0798cf871b5308cc07c899f/e/5201c11ca0cbe439c3f7114c
+
+Drill Tip mount: https://cad.onshape.com/documents/c03aa227492bc9ee7d6bcfaf/w/85e5617ae64ca6b7c1ea8b43/e/44cc71f7db254f57f77def39
+
+Wires clamps: https://www.thingiverse.com/thing:3832407
 ## Steps to run the demo
 
 
 Open several tabs in a terminal, go to directory
 `/root/catkin_ws/src/agimus-demos/ur10/pointing` and type the following
 instructions
+
+0. interminal 0
+Run the following command to start realsense with ros
+```bash
+roslaunch realsense2_camera rs_rgbd.launch align_depth:=true depth_width:=640 depth_height:=480 depth_fps:=30 color_width:=640 color_height:=480 color_fps:=30
+```
 
 1. in terminal 1
 ```bash
@@ -70,6 +92,8 @@ read
 ```bash
 [ INFO] [1634638700.530389390]: Robot connected to reverse interface. Ready to receive control commands.
 ```
+
+After press "play", open new terminal at /agimus-demos/ur10/pointing, run the script stop-controllers.py to stop the conflicting controllers.
 
 5. in terminal 2
 ```python
@@ -138,7 +162,7 @@ robot.startTracer()
 10. in terminal 6
 stop rostopic pub commands in terminal 6 and 7, then
 ```bash
-rosrun agimus rqt_path_execution 
+rosrun agimus rqt_path_execution
 ```
 then select path 2 and type execute path.
 
