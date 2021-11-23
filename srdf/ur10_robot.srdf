@@ -31,7 +31,7 @@
           link2="ur10e_d435_mount_link" reason=""/>
   <disable_collisions link1="ur10e_d435_mount_link"
           link2="ur10e_tip_link" reason=""/>
-  <disable_collisions link1="drill_tip_link"
-          link2="ur10e_tip_link" reason=""/>
+  <disable_collisions link1="ur10e_tip_link"
+          link2="drill_tip_link" reason=""/>
 
 </robot>

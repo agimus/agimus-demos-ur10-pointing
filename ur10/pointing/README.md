@@ -31,8 +31,12 @@ to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
 For example:
 docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged --net=host gitlab.laas.fr:4567/rob4fam/docker/ur10-pointing:5
 
+Copy the files https://github.com/IntelRealSense/librealsense/blob/master/config/99-realsense-libusb.rules to /etc/udev/rules.d/ before connecting the camera
+
 
 ##3d models
+
+For Onshape, an account is needed before downloading stl file
 
 Camera mount: https://cad.onshape.com/documents/e21ee279b60811091f599ced/w/b0798cf871b5308cc07c899f/e/5201c11ca0cbe439c3f7114c
 
@@ -100,7 +104,8 @@ pg = PathGenerator(ps, graph)
 pg.inStatePlanner.setEdge('Loop | f')
 q_init = ri.getCurrentConfig(q0)
 p = pg.generatePathForHandle('part/handle_0', q_init)
-ps.client.basic.problem.addPath(p)
+pid = ps.client.basic.problem.addPath(p)
+ps.optimizePath(pid)
 ```
 
 6. in terminal 5
@@ -166,5 +171,3 @@ then select path 2 and type execute path.
 python
 robot.stopTracer()
 ```
-
-roslaunch realsense2_camera rs_rgbd.launch align_depth:=true depth_width:=640 depth_height:=480 color_width:=640 color_height:=480 color_fps:=30
