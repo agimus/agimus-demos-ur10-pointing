@@ -33,6 +33,32 @@ from agimus_sot.solver import Solver
 
 Solver.maxControlSqrNorm = 20
 
+# Action to be performed at start of pre-action of transition
+# "ur10e/gripper > part/handle_{} | f_12"
+class ObjectLocalization(object):
+    timeout = 5
+    def __init__(self, sotrobot, factory, gripper, handle):
+        self.sotrobot = sotrobot
+        self.objectLocalization = factory.tasks.getGrasp(gripper, handle)\
+                                  ['pregrasp'].objectLocalization
+
+    def __call__(self):
+        ts = self.sotrobot.device.getTimeStep()
+        to = int(self.timeout / self.sotrobot.device.getTimeStep())
+        from time import sleep
+        start_it = self.sotrobot.device.control.time
+        while True:
+            t = self.sotrobot.device.control.time
+            if t > start_it + to:
+                print("Failed to perform object localization")
+                return False
+            self.objectLocalization.trigger(t)
+            if self.objectLocalization.done.value:
+                print("Succesfully performed object localization")
+                return True
+            sleep(ts)
+
+
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
     from agimus_sot.factory import Factory, Affordance
@@ -96,15 +122,20 @@ def makeSupervisorWithFactory(robot):
     factory.generate()
 
     supervisor.makeInitialSot()
-    # Add visual servoing in post actions of transtions
-    # 'ur10e/gripper > part_handle_* | f_12'
     g = factory.grippers[0]
     for h in factory.handles:
         transitionName = '{} > {} | f_12'.format(g, h)
         goalName = '{} grasps {}'.format(g, h)
+        # Add visual servoing in post actions of transtion 'g > h | f_12'
+        # visual servoing is deactivated by default at this step to avoid
+        # undesirable effects when grasping an object.
         supervisor.postActions[transitionName][goalName].sot = \
           supervisor.sots[transitionName].sot
-
+        # Add a pre-action to the pre-action of transition 'g > h | f_12'
+        # in order to perform object localization before starting the
+        # motion.
+        supervisor.preActions[transitionName].preActions.append\
+            (ObjectLocalization(robot, factory, g, h))
     return factory, supervisor
 
 
