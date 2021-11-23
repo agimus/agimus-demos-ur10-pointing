@@ -31,6 +31,14 @@ to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
 For example:
 docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged --net=host gitlab.laas.fr:4567/rob4fam/docker/ur10-pointing:5
 
+
+##3d models
+
+Camera mount: https://cad.onshape.com/documents/e21ee279b60811091f599ced/w/b0798cf871b5308cc07c899f/e/5201c11ca0cbe439c3f7114c
+
+Drill Tip mount: https://cad.onshape.com/documents/c03aa227492bc9ee7d6bcfaf/w/85e5617ae64ca6b7c1ea8b43/e/44cc71f7db254f57f77def39
+
+Wires clamps: https://www.thingiverse.com/thing:3832407
 ## Steps to run the demo
 
 
