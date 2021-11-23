@@ -187,10 +187,10 @@ q_calib = [1.5707,
 
 generateTrajectory = True
 if generateTrajectory:
-    from tools_hpp import RosInterface
-    ri = RosInterface(robot)
-    q_init = ri.getCurrentConfig(q0)
-    # q_init = robot.getCurrentConfig()
+    # from tools_hpp import RosInterface
+    # ri = RosInterface(robot)
+    # q_init = ri.getCurrentConfig(q0)
+    q_init = robot.getCurrentConfig()
     from tools_hpp import PathGenerator
     from hpp.gepetto import PathPlayer
     pg = PathGenerator(ps, graph)
@@ -204,7 +204,7 @@ if generateTrajectory:
 
     def generatePath(index, qi):
         try:
-            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 200)
+            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 10)
         except:
             print("Failure")
             return None, None
@@ -232,6 +232,9 @@ if generateTrajectory:
                 qi = newq
                 path_ids.append(path_id)
                 grasp_configs.append(newq)
+            else:
+                print("! FAILURE !")
+                return None, None
         if concatenate:
             concat(path_ids)
         return path_ids, grasp_configs
@@ -245,4 +248,4 @@ if generateTrajectory:
         for index in path_ids:
             pp(index)
 
-    path_ids, grasp_configs = go()
+    # path_ids, grasp_configs = go()

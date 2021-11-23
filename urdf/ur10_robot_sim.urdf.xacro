@@ -210,7 +210,7 @@
 
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
 
-   <xacro:sensor_d435 parent="ref_camera_link" name="camera">
+   <xacro:sensor_d435 parent="ref_camera_link" name="camera" use_nominal_extrinsics="true">
      <!-- <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/> -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
    </xacro:sensor_d435>

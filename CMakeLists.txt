@@ -77,4 +77,5 @@ install(PROGRAMS
   scripts/publish_constants.py
   scripts/group_of_tags.py
   scripts/publishwmc.py
+  scripts/publish_camera_extrinsics.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -20,4 +20,7 @@
   <!-- Publish pose of end-effector in topic /pose -->
   <node name="publishwmc" pkg="agimus_demos" type="publishwmc.py"/>
 
+  <!-- Publish extrinsics parameters of camera -->
+  <node name="publish_camera_extrinsics" pkg="agimus_demos" type="publish_camera_extrinsics.py"/>
+
 </launch>
