@@ -11,7 +11,7 @@ demo:
         file: /urdf/P72-with-table.urdf
       srdf:
         package: agimus_demos
-        file: srdf/P72.srdf
+        file: srdf/plaque-tubes.srdf
       contacts:
         []
   grippers:

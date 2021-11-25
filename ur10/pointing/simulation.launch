@@ -38,8 +38,8 @@
   <!-- P72 -->
   <group ns="part">
     <node name="spawn_part" pkg="gazebo_ros" type="spawn_model"
-	  args="-file $(find agimus_demos)/urdf/P72-with-table.urdf -urdf
-		-model part -x 1.3 -y 0 -z 0.8 -Y -1.57079632679" />
+	  args="-file $(find agimus_demos)/urdf/plaque-tubes-with-table.urdf -urdf
+		-model part -x 1.3 -y 0 -z 0 -Y -1.57079632679" />
   </group>
 
 </launch>
