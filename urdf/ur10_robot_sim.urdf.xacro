@@ -55,36 +55,6 @@
       <origin xyz="0.0 0.0 0.90" rpy="0.0 0.0 -1.5707963" />
     </joint>
 
-    <!-- <link name="tool_link">
-      <collision>
-        <geometry>
-          <box size="0.02 0.05 0.2"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="-0.01 0 0"/>
-      </collision>
-      <visual>
-        <geometry>
-          <box size="0.02 0.05 0.2"/>
-        </geometry>
-        <origin rpy="0 0 0" xyz="-0.01 0 0"/>
-      </visual>
-    </link -->
-
-  <!-- <link name="tool_link">
-     <collision>
-       <geometry>
-         <cylinder radius="0.002" length="0.16"/>
-       </geometry>
-       <origin rpy="0 0 0" xyz="0 0 -0.05"/>
-     </collision>
-     <visual>
-       <geometry>
-         <cylinder radius="0.002" length="0.16"/>
-       </geometry>
-       <origin rpy="0 0 0" xyz="0 0 -0.05"/>
-     </visual>
-  </link> -->
-
     <joint name="ee_fixed_joint" type="fixed">
      <parent link="wrist_3_link" />
      <child link = "ee_link" />
@@ -214,12 +184,5 @@
      <!-- <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/> -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
    </xacro:sensor_d435>
-
-   <joint name="tool_joint" type="fixed">
-     <parent link="ee_link"/>
-     <child link="tool_link" />
-     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-   </joint>
-
 
 </robot>
