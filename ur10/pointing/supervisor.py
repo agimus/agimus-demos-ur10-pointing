@@ -69,7 +69,7 @@ def makeSupervisorWithFactory(robot):
     rospack = RosPack()
 
     if not hasattr(robot, "camera_frame"):
-        robot.camera_frame = "xtion_optical_frame"
+        robot.camera_frame = "camera_color_optical_frame"
     srdf = {}
     # retrieve objects from ros param
     demoDict = rospy.get_param("/demo")

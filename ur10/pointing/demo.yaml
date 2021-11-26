@@ -8,7 +8,7 @@ demo:
     part:
       urdf:
         package: agimus_demos
-        file: /urdf/P72-with-table.urdf
+        file: /urdf/plaque-tubes-with-table.urdf
       srdf:
         package: agimus_demos
         file: srdf/plaque-tubes.srdf
