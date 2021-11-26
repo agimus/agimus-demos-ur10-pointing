@@ -118,7 +118,7 @@ jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
 setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
-ur10JointNames = filter(lambda j: j.startswith("ur10/"), robot.jointNames)
+ur10JointNames = list(filter(lambda j: j.startswith("ur10/"), robot.jointNames))
 ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
 ## Load P72
@@ -142,7 +142,7 @@ q0[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Build constraint graph
 all_handles = ps.getAvailable('handle')
-part_handles = filter(lambda x: x.startswith("part/"), all_handles)
+part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
 graph = ConstraintGraph(robot, 'graph')
 factory = ConstraintGraphFactory(graph)
