@@ -16,7 +16,7 @@ def run():
     counter = 1
     while not rospy.is_shutdown():
         try:
-            pose = listener.lookupTransform('/ref_camera_link', '/world', rospy.Time(0))
+            pose = listener.lookupTransform('ref_camera_link', 'world', rospy.Time(0))
             (trans,rot) = pose
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue

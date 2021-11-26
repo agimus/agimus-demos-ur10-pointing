@@ -142,7 +142,7 @@ robot.client.manipulation.robot.insertRobotSRDFModel\
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
 # set the joint match with real robot
-q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.0]
+q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 # q0[:3] = [0, -pi/2, pi/2]
 r = robot.rankInConfiguration['part/root_joint']
 # q0[r:r+7] = [0.0, -1.3, 0.8, 0, 0 ,1, 0]
@@ -183,7 +183,7 @@ except:
 q_calib = [1.5707,
  -3,
  2.5,
- -2.5,
+ -2.8,
  -1.57,
  0.0,
  1.3,
@@ -197,10 +197,10 @@ q_calib = [1.5707,
 
 generateTrajectory = True
 if generateTrajectory:
-    # from tools_hpp import RosInterface
-    # ri = RosInterface(robot)
-    # q_init = ri.getCurrentConfig(q0)
-    q_init = robot.getCurrentConfig()
+    from tools_hpp import RosInterface
+    ri = RosInterface(robot)
+    q_init = ri.getCurrentConfig(q0)
+    # q_init = robot.getCurrentConfig()
     from tools_hpp import PathGenerator
     from hpp.gepetto import PathPlayer
     pg = PathGenerator(ps, graph)
@@ -209,16 +209,20 @@ if generateTrajectory:
     holes_n = 5
     holes_m = 7
     NB_holes = holes_n * holes_m
-    hidden_holes = [0,2,11,12,14,17,20,24,33]
+    hidden_holes = [0,2,10,11,12,14,16,24,33]
     holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 
     def generatePath(index, qi):
         try:
-            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 10)
+            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 50)
         except:
             print("Failure")
             return None, None
-        ps.client.basic.problem.addPath(p)
+        if p is None:
+            print("Failure")
+            return None, None
+        pid = ps.client.basic.problem.addPath(p)
+        ps.optimizePath(pid)
         path_id = ps.numberPaths() - 1
         print("Path " + str(path_id))
         newq = ps.configAtParam(path_id, ps.pathLength(path_id))
@@ -244,7 +248,7 @@ if generateTrajectory:
                 grasp_configs.append(newq)
             else:
                 print("! FAILURE !")
-                return None, None
+                return path_ids, grasp_configs
         if concatenate:
             concat(path_ids)
         return path_ids, grasp_configs

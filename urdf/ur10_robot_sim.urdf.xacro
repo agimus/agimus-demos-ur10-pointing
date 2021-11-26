@@ -32,13 +32,13 @@
       <visual>
         <origin xyz="-0.4 0 0.45"/>
         <geometry>
-	  <box size="1.0 1.2 0.9"/>
+	        <box size="1.0 1.2 0.9"/>
         </geometry>
       </visual>
       <collision>
         <origin xyz="-0.4 0 0.45"/>
         <geometry>
-	  <box size="1.0 1.2 0.9"/>
+	        <box size="1.0 1.2 0.9"/>
         </geometry>
       </collision>
     </link>

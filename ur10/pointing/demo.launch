@@ -27,7 +27,7 @@
   <!--This starts sot supervisor in namespace agimus/sot-->
   <include file="$(find agimus-sot)/launch/supervisor.launch" >
     <arg name="script_file" value="$(arg script_file)"/>
-    <arg name="robot_prefix" value="tiago/"/>
+    <arg name="robot_prefix" value="ur10/"/>
     <arg name="simulate_torque_feedback" value="false"/>
     <arg name="required" value="false"/>
   </include>
