@@ -105,7 +105,7 @@ def makeSupervisorWithFactory(robot):
         for k, data in srdfDict.items():
             srdf[w].update(data[w])
 
-    supervisor = Supervisor(robot, prefix=robotDict.keys()[0])
+    supervisor = Supervisor(robot, prefix=list(robotDict.keys())[0])
     factory = Factory(supervisor)
     factory.tasks = TaskFactory(factory)
     factory.parameters["period"] = 0.01  # TODO soon: robot.getTimeStep()
