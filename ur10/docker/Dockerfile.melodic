@@ -85,7 +85,7 @@ COPY rob4fam-models src/rob4fam-models
 RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4fam/rob4fam-models.git
 RUN catkin build rob4fam-models
 
-COPY config.sh /root/config.sh
+COPY config.sh.melodic /root/config.sh
 RUN echo "source ~/config.sh" >> ~/.bashrc
 
 # vim: ft=dockerfile
