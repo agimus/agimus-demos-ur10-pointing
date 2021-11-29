@@ -850,13 +850,20 @@ realsense-ros.configure_nodep:
 	mkdir -p ${SRC_DIR}/$(@:.configure_nodep=)/realsense2_camera/${BUILD_FOLDER}; \
 	cd ${SRC_DIR}/$(@:.configure_nodep=)/realsense2_camera/${BUILD_FOLDER}; \
 	cmake -DCMAKE_INSTALL_PREFIX=${DEVEL_HPP_DIR}/install -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${$(@:.configure_nodep=)_extra_flags} ..;\
+	mkdir -p ${SRC_DIR}/$(@:.configure_nodep=)/realsense2_description/${BUILD_FOLDER}; \
+	cd ${SRC_DIR}/$(@:.configure_nodep=)/realsense2_description/${BUILD_FOLDER}; \
+	cmake -DCMAKE_INSTALL_PREFIX=${DEVEL_HPP_DIR}/install -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${$(@:.configure_nodep=)_extra_flags} ..;\
 
 realsense-ros.install_nodep:realsense-ros.configure_nodep
 	cd ${SRC_DIR}/$(@:.install_nodep=)/realsense2_camera/${BUILD_FOLDER};\
 	make install; \
+	cd ${SRC_DIR}/$(@:.install_nodep=)/realsense2_description/${BUILD_FOLDER};\
+	make install; \
 
-realsense-ros.install:realsense-ros.configure
+realsense-ros.install:librealsense.install realsense-ros.configure
 	cd ${SRC_DIR}/$(@:.install=)/realsense2_camera/${BUILD_FOLDER};\
+	make install; \
+	cd ${SRC_DIR}/$(@:.install=)/realsense2_description/${BUILD_FOLDER};\
 	make install; \
 
 pal_behaviour_msgs.configure_nodep:
@@ -1140,7 +1147,8 @@ ur_dashboard_msgs.install: ur_dashboard_msgs.configure
 	cd ${SRC_DIR}/Universal_Robots_ROS_Driver/$(@:.install=)/${BUILD_FOLDER}; \
 	make install
 
-ur_robot_driver.install: ur_robot_driver.configure ur_dashboard_msgs.install
+ur_robot_driver.install: Universal_Robots_Client_Library.install \
+	ur_dashboard_msgs.install ur_robot_driver.configure
 	cd ${SRC_DIR}/Universal_Robots_ROS_Driver/$(@:.install=)/${BUILD_FOLDER}; \
 	make install
 
