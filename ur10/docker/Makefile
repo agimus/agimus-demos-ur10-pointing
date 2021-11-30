@@ -373,8 +373,14 @@ image_pipeline_extra_flags=
 ##################################
 # {{{ High-level targets
 
-all: hpp_tutorial.install hpp-gepetto-viewer.install hpp-plot.install hpp-gui.install
-	${MAKE} hpp-doc.install
+all: realsense-ros.install rgbd_launch.install visp_auto_tracker.install \
+	visp_camera_calibration.install visp_hand2eye_calibration.install \
+	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
+	hpp-plot.install hpp-gui.install sot-universal-robot.install \
+	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
+	agimus.install agimus.install agimus-demos.install \
+	rviz_camera_stream.install rviz_lighting.install \
+	Universal_Robots_ROS_Driver.install
 
 # For test on gepgitlab, install robot packages first
 test-ci: example-robot-data.install  hpp-environments.install \
@@ -493,11 +499,12 @@ hpp-tools.configure.dep: hpp-tools.checkout
 agimus-demos.configure.dep:
 agimus-vision.configure.dep:
 agimus-hpp.configure.dep: dynamic_graph_bridge_msgs.install \
-	agimus_sot_msgs.install
+	hpp-manipulation-corba.install agimus_sot_msgs.install
 agimus-sot.configure.dep: dynamic_graph_bridge.install agimus_sot_msgs.install
 agimus.configure.dep: agimus-hpp.install agimus_sot_msgs.install
 agimus_sot_msgs.configure.dep:
-agimus-doc.configure.dep: agimus.install agimus-hpp.install agimus-sot.install
+agimus-doc.configure.dep: agimus.install agimus-hpp.install agimus-sot.install \
+	agimus-demos.install
 gerard-bauzil.configure.dep: gerard-bauzil.checkout
 fake-ros.configure.dep: fake-ros.checkout
 ##### Dynamic graph sot ###################################

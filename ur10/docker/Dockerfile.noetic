@@ -30,7 +30,7 @@ COPY Makefile /root/devel/src
 COPY config.sh.noetic /root/devel/config.sh
 
 WORKDIR /root/devel
-RUN . /root/devel/config.sh && make -C /root/devel/src realsense-ros.install rgbd_launch.install visp_auto_tracker.install visp_camera_calibration.install visp_hand2eye_calibration.install hpp-manipulation-corba.install hpp-gepetto-viewer.install hpp-plot.install hpp-gui.install sot-universal-robot.install roscontrol_sot.install gerard-bauzil.install agimus-sot.install agimus.install agimus.install agimus-demos.install rviz_camera_stream.install rviz_lighting.install Universal_Robots_ROS_Driver.install
+RUN . /root/devel/config.sh && make -C /root/devel/src all
 RUN . /root/devel/config.sh && make -C /root/devel/src agimus-doc.install hpp-doc.install
 
 COPY 99-realsense-libusb.rules /etc/udev/rules.d/.
