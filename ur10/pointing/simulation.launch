@@ -12,7 +12,8 @@
   <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="debug" default="false"/>
-  
+  <arg name="part" default="plaque-tubes-with-table"/>
+  <arg name="part_pose" default="-x 1.3 -y 0 -z 0 -Y -1.57079632679"/>
   <!-- startup simulated world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" default="worlds/empty.world"/>
@@ -38,8 +39,8 @@
   <!-- P72 -->
   <group ns="part">
     <node name="spawn_part" pkg="gazebo_ros" type="spawn_model"
-	  args="-file $(find agimus_demos)/urdf/plaque-tubes-with-table.urdf -urdf
-		-model part -x 1.3 -y 0 -z 0 -Y -1.57079632679" />
+	  args="-file $(find agimus_demos)/urdf/$(arg part).urdf -urdf
+		-model part $(arg part_pose)" />
   </group>
 
 </launch>
