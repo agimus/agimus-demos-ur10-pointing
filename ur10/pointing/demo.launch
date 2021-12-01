@@ -1,10 +1,17 @@
 <launch>
-  <arg name="script_file" doc="Full path to the script which initialize the supervisor"
-    default="$(find agimus_demos)/ur10/pointing/supervisor.py" />
+  <arg name="script_file"
+       doc="Full path to the script which initialize the supervisor"
+       default="$(find agimus_demos)/ur10/pointing/supervisor.py" />
+  <!-- whether to launch estimation.launch -->
   <arg name="estimation" default="false"/>
+  <!-- whether the demonstration is run in simulation or on the real robot -->
   <arg name="simulation" default="false"/>
+  <!-- YAML file that describes the demonstration: robots, objects-->
+  <arg name="part" default="plaque-tubes-with-table"/>
 
-  <include file="$(find agimus_demos)/launch/ur10_pointing_world_setup.launch"/>
+  <include file="$(find agimus_demos)/launch/ur10_pointing_world_setup.launch">
+    <arg name="part" value="$(arg part)"/>
+  </include>
   <!-- start ros controller running the SoT -->
   <include file="$(find sot_universal_robot)/launch/controller.launch">
     <arg name="simulation" value="$(arg simulation)"/>
@@ -26,7 +33,7 @@
   </include>
 
   <rosparam command="load"
-	    file="$(find agimus_demos)/ur10/pointing/demo.yaml"/>
+	    file="$(find agimus_demos)/ur10/pointing/demo-$(arg part).yaml"/>
   <include file="$(find agimus)/launch/path_execution.launch">
     <arg name="gui" value="false"/>
   </include>

@@ -12,7 +12,8 @@ INSTALL_DEMO_LAUNCH_FILES(pointing
 
 INSTALL(FILES
   pointing/supervisor.py
-  pointing/demo.yaml
+  pointing/demo-plaque-tubes-with-table.yaml
+  pointing/demo-april-tag-plank.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing
   )
 

@@ -38,6 +38,11 @@ class PartPlaque:
     srdfFilename = "package://agimus_demos/srdf/plaque-tubes.srdf"
     rootJointType = "freeflyer"
 
+class AprilTagPlank:
+    urdfFilename = "package://agimus_demos/urdf/april-tag-plank.urdf"
+    srdfFilename = "package://agimus_demos/srdf/april-tag-plank.srdf"
+    rootJointType = "freeflyer"
+ 
 # parse arguments
 defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
@@ -123,9 +128,11 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
 ## Load P72
 #[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
-vf.loadRobotModel (PartPlaque, "part")
+Part = PartPlaque
+
+vf.loadRobotModel (Part, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
-print("PartPlaque loaded")
+print("Part loaded")
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
