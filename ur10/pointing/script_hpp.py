@@ -32,6 +32,7 @@ from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import ConfigGenerator, RosInterface, concatenatePaths
+from hpp.gepetto import PathPlayer
 
 class PartPlaque:
     urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
@@ -176,6 +177,7 @@ ri = None
 try:
     v = vf.createViewer()
     v(q0)
+    pp = PathPlayer(v)
 except:
     print("Did you launch the GUI?")
 
@@ -202,9 +204,7 @@ if generateTrajectory:
     q_init = ri.getCurrentConfig(q0)
     # q_init = robot.getCurrentConfig()
     from tools_hpp import PathGenerator
-    from hpp.gepetto import PathPlayer
     pg = PathGenerator(ps, graph)
-    pp = PathPlayer(v)
     pg.inStatePlanner.setEdge('Loop | f')
     holes_n = 5
     holes_m = 7
@@ -228,30 +228,37 @@ if generateTrajectory:
         newq = ps.configAtParam(path_id, ps.pathLength(path_id))
         return path_id, newq
 
-    def go(concatenate=False):
-        ps.resetGoalConfigs()
-        ps.setInitialConfig(q_init)
-        ps.addGoalConfig(q_calib)
-        ps.solve()
-        ps.resetGoalConfigs()
-        path_ids = [ps.numberPaths()-1]
-        print("Path to calib config: " + str(path_ids[0]))
+    def vprint(verbose, msg):
+        if verbose:
+            print(msg)
 
-        qi = q_calib
+    def generatePointingPaths(concatenate=False, calib=True, verbose=False):
+        ps.resetGoalConfigs()
+        qi = q_init
+        path_ids = []
+        if calib:
+            ps.setInitialConfig(q_init)
+            ps.addGoalConfig(q_calib)
+            ps.solve()
+            ps.resetGoalConfigs()
+            path_ids.append(ps.numberPaths()-1)
+            vprint(verbose, "Path to calib config: " + str(path_ids[0]))
+            qi = q_calib
+
         grasp_configs = []
         for index in holes_to_do:
-            print("Generating path for index " + str(index))
+            vprint(verbose,"Generating path for index " + str(index))
             path_id, newq = generatePath(index, qi)
             if newq is not None:
                 qi = newq
                 path_ids.append(path_id)
                 grasp_configs.append(newq)
             else:
-                print("! FAILURE !")
-                return path_ids, grasp_configs
+                vprint(verbose,"! FAILURE !")
+                return False, path_ids, grasp_configs
         if concatenate:
             concat(path_ids)
-        return path_ids, grasp_configs
+        return True, path_ids, grasp_configs
 
     def concat(path_ids):
         for i in path_ids[1:]:
@@ -260,6 +267,15 @@ if generateTrajectory:
 
     def visualize(path_ids):
         for index in path_ids:
-            pp(index)
+            try:
+                pp(index)
+            except:
+                print("Cannot play path. Is the GUI launched ?")
+
+    def go():
+        res = False
+        while not res:
+            res, path_ids, config_grasps = generatePathPointing()
+        return path_ids, config_grasps
 
     # path_ids, grasp_configs = go()

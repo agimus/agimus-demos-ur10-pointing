@@ -1,0 +1,9 @@
+<launch>
+  <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+
+  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur10_robot_sim.urdf.xacro' transmission_hw_interface:=$(arg transmission_hw_interface)" />
+  <group ns="part">
+    <param name="robot_description" textfile="$(find agimus_demos)/urdf/plaque-tubes-with-table.urdf"/>
+  </group>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(dirname)/config.rviz"/>
+</launch>

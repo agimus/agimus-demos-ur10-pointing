@@ -8,20 +8,38 @@
 
 -->
 <launch>
+
+  <!-- Remap topic /camera/depth/image_raw -->
+  <remap from="/camera/depth/image_raw" to="/camera/depth/image_rect_raw" />
+
   <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
   <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="debug" default="false"/>
   <arg name="part" default="plaque-tubes-with-table"/>
   <arg name="part_pose" default="-x 1.3 -y 0 -z 0 -Y -1.57079632679"/>
-  <!-- startup simulated world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" default="$(find agimus_demos)/worlds/empty.world"/>
-    <arg name="paused" value="$(arg paused)"/>
-    <arg name="gui" value="$(arg gui)"/>
-    <arg name="debug" value="$(arg debug)"/>
-    <arg name="verbose" value="true"/>
-  </include>
+  <arg name="slower" default="false"/>
+
+  <group if="$(arg slower)">
+    <!-- startup simulated world with gazebo 30 times slower -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" default="$(find agimus_demos)/worlds/empty.world"/>
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="gui" value="$(arg gui)"/>
+      <arg name="debug" value="$(arg debug)"/>
+      <arg name="verbose" value="true"/>
+    </include>
+  </group>
+  <group unless="$(arg slower)">
+    <!-- startup simulated world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" default="empty.world"/>
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="gui" value="$(arg gui)"/>
+      <arg name="debug" value="$(arg debug)"/>
+      <arg name="verbose" value="true"/>
+    </include>
+  </group>
 
   <!-- send robot urdf to param server -->
   <include file="$(find agimus_demos)/launch/ur10_pointing_ur10_upload.launch">
@@ -43,8 +61,5 @@
 	  args="-file $(find agimus_demos)/urdf/$(arg part).urdf -urdf
 		-model part $(arg part_pose)" />
   </group>
-
-  <!-- Remap topic /camera/depth/image_raw -->
-  <remap from="/camera/depth/image_raw" to="/camera/depth/image_rect_raw" />
 
 </launch>
