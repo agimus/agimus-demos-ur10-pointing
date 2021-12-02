@@ -6,14 +6,16 @@
         output="$(arg output)"
         name="tracker"
         >
-        <param name="imageTopic"      value="/xtion/rgb/image_raw" />
-        <param name="cameraInfoTopic" value="/xtion/rgb/camera_info" />
+        <param name="imageTopic"      value="/camera/color/image_raw" />
+        <param name="cameraInfoTopic" value="/camera/color/camera_info" />
+	<param name="depthImageTopic" value="/camera/depth/image_rect"/>
+	<param name="depthCameraInfoTopic" value="/camera/depth/camera_info"/>
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
         <param name="broadcastTfPostfix" value="_tf" />
         <param name="objectType" value="apriltag" />
-        <param name="cameraFrame" value="xtion_rgb_optical_frame" />
+        <param name="cameraFrame" value="camera_color_optical_frame" />
     </node>
 
     <!-- Part -->
