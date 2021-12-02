@@ -8,6 +8,8 @@
         >
         <param name="imageTopic"      value="/camera/color/image_raw" />
         <param name="cameraInfoTopic" value="/camera/color/camera_info" />
+	<param name="depthImageTopic" value="/camera/depth/image_raw"/>
+	<param name="depthCameraInfoTopic" value="/camera/depth/camera_info"/>
         <param name="debugDisplay"    value="false" />
         <param name="broadcastTopic"  value="true" />
         <param name="broadcastTf"     value="true" />
