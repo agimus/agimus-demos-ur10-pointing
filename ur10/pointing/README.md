@@ -83,7 +83,7 @@ roslaunch ./simulation.launch
 
 On the robot instead:
 ```bash
-roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=/root/catkin_ws/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
+roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=/root/devel/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
 ```
 
 After ROS is launched successfully, press the "play" icon in the tablet
