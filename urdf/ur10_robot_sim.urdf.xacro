@@ -58,7 +58,7 @@
     <joint name="ee_fixed_joint" type="fixed">
      <parent link="wrist_3_link" />
      <child link = "ee_link" />
-     <origin xyz="0.0 0.0 0.117" rpy="0.0 0.0 ${pi/2.0}" />
+     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2.0}" />
    </joint>
 
    <link name="ee_link">
@@ -147,18 +147,18 @@
        izz="0.001" />
    </inertial>
    <visual>
-     <origin xyz="0 0 0" rpy="0 0 0" />
+     <origin xyz="0 0 0.125" rpy="0 0 0" />
      <geometry>
-       <mesh filename="package://agimus_demos/meshes/ur10e_drillrod.stl"/>
+       <cylinder radius="0.0015" length="0.25"/>
      </geometry>
-     <material name="Red">
-       <color rgba="0.9 0.1 0.1 1.0"/>
+     <material name="Pine">
+       <color rgba="0.8 0.65 0.4 1.0"/>
      </material>
    </visual>
    <collision>
-     <origin xyz="0 0 0" rpy="0 0 0" />
+     <origin xyz="0 0 0.125" rpy="0 0 0" />
      <geometry>
-       <mesh filename="package://agimus_demos/meshes/ur10e_drillrod.stl"/>
+       <cylinder radius="0.0015" length="0.25"/>
      </geometry>
    </collision>
   </link>
