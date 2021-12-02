@@ -341,9 +341,13 @@ librealsense_repository=${INTEL_REPO}
 librealsense_branch=master
 librealsense_extra_flags=-DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false -DBUILD_GLSL_EXTENSIONS=false -DCMAKE_BUILD_TYPE=Release
 
-realsense-ros_repository=${INTEL_REPO}
-realsense-ros_branch=development
+realsense-ros_repository=${FLORENT_REPO}
+realsense-ros_branch=noetic-devel
 realsense-ros_extraflags=
+
+realsense_gazebo_plugin_repository=${PAL_REPO}
+realsense_gazebo_plugin_branch=melodic-devel
+realsense_gazebo_plugin_extra_flags=
 
 opencv_repository=https://github.com/opencv
 opencv_branch=master
@@ -373,7 +377,8 @@ image_pipeline_extra_flags=
 ##################################
 # {{{ High-level targets
 
-all: realsense-ros.install rgbd_launch.install visp_auto_tracker.install \
+all: realsense-ros.install realsense_gazebo_plugin.install\
+	rgbd_launch.install visp_auto_tracker.install \
 	visp_camera_calibration.install visp_hand2eye_calibration.install \
 	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
 	hpp-plot.install hpp-gui.install sot-universal-robot.install \
@@ -563,6 +568,7 @@ visp_hand2eye_calibration.configure.dep: visp_bridge.install
 
 image_pipeline.configure.dep: image_pipeline.checkout
 realsense-ros.configure.dep: realsense-ros.checkout
+realsense_gazebo_plugin.configure.dep: realsense_gazebo_plugin.checkout
 
 # }}}
 ##################################
@@ -852,6 +858,13 @@ image_pipeline.install:image_pipeline.configure
 	make install;\
 	cd ${SRC_DIR}/$(@:.install=)/stereo_image_proc/${BUILD_FOLDER};\
 	make install
+
+realsense-ros.checkout:
+	if [ -d $(@:.checkout=) ]; then \
+		echo "$(@:.checkout=) already checkout out."; \
+	else \
+		git clone ${GIT_QUIET} --recursive -b ${$(@:.checkout=)_branch} ${$(@:.checkout=)_repository}/realsense realsense-ros; \
+	fi \
 
 realsense-ros.configure_nodep:
 	mkdir -p ${SRC_DIR}/$(@:.configure_nodep=)/realsense2_camera/${BUILD_FOLDER}; \
