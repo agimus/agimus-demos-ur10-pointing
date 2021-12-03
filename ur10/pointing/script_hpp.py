@@ -129,6 +129,7 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 ## Load P72
 #[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
 Part = PartPlaque
+#Part = AprilTagPlank
 
 vf.loadRobotModel (Part, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
@@ -146,6 +147,8 @@ q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.0]
 r = robot.rankInConfiguration['part/root_joint']
 # q0[r:r+7] = [0.0, -1.3, 0.8, 0, 0 ,1, 0]
 q0[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
+# Initial configuration of AprilTagPlank
+# q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
 
 ## Build constraint graph
 all_handles = ps.getAvailable('handle')
