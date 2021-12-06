@@ -269,7 +269,7 @@ agimus-hpp_branch=devel
 agimus-hpp_repository=${AGIMUS_REPO}
 agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-vision_branch=devel
+agimus-vision_branch=master
 agimus-vision_repository=${AGIMUS_REPO}
 
 agimus-demos_branch=ur10-pointing
@@ -298,7 +298,7 @@ dynamic-graph-python_branch=master
 dynamic-graph-python_repository=${SOT_REPO}
 dynamic-graph-python_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-dynamic_graph_bridge_branch=master
+dynamic_graph_bridge_branch=devel
 dynamic_graph_bridge_repository=${SOT_REPO}
 
 dynamic_graph_bridge_msgs_branch=master
@@ -317,7 +317,7 @@ sot-dynamic-pinocchio_repository=${SOT_REPO}
 sot-dynamic-pinocchio_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 roscontrol_sot_branch=noetic-devel
-roscontrol_sot_repository=${SOT_REPO}
+roscontrol_sot_repository=${FLORENT_REPO}
 
 pal_msgs_repository=${PAL_REPO}
 pal_msgs_branch=indigo-devel
@@ -566,7 +566,7 @@ visp_auto_tracker.configure.dep: visp_tracker.install
 visp_camera_calibration.configure.dep: visp_bridge.install
 visp_hand2eye_calibration.configure.dep: visp_bridge.install
 
-image_pipeline.configure.dep: image_pipeline.checkout
+image_pipeline.configure.dep: vision_opencv.install image_pipeline.checkout
 realsense-ros.configure.dep: realsense-ros.checkout
 realsense_gazebo_plugin.configure.dep: realsense_gazebo_plugin.checkout
 
@@ -843,7 +843,7 @@ image_pipeline.install_nodep:image_pipeline.configure_nodep
 	cd ${SRC_DIR}/$(@:.install_nodep=)/stereo_image_proc/${BUILD_FOLDER};\
 	make install
 
-image_pipeline.install:image_pipeline.configure
+image_pipeline.install:vision_opencv.install image_pipeline.configure
 	cd ${SRC_DIR}/$(@:.install=)/camera_calibration/${BUILD_FOLDER};\
 	make install; \
 	cd ${SRC_DIR}/$(@:.install=)/depth_image_proc/${BUILD_FOLDER};\
