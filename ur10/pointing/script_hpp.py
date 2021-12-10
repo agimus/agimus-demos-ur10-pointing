@@ -30,6 +30,7 @@ from hpp.corbaserver import loadServerPlugin
 from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
+from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import ConfigGenerator, RosInterface, concatenatePaths
 from hpp.gepetto import PathPlayer

@@ -95,7 +95,17 @@ class Calibration(object):
                 i += 1
         return configs
 
-    def buildDistanceMatrix(self, configs):
+    def buildEuclideanDistanceMatrix (self, configs):
+        N = len (configs)
+        # Build matrix of distances between box poses
+        dist = np.matrix (np.zeros (N*N).reshape (N,N))
+        for i in range (N):
+            for j in range (i+1,N):
+                dist [i,j] = self.distance (configs [i], configs [j])
+                dist [j,i] = dist [i,j]
+        return dist
+
+    def buildRoadmapDistanceMatrix(self, configs):
         N = len(configs)
         # Build matrix of distances between box poses
         dist = np.matrix(np.zeros(N*N).reshape(N,N))
@@ -106,9 +116,10 @@ class Calibration(object):
         # Set value for configurations that are linked by an edge in the roadmap
         for k in range(self.ps.numberEdges()):
             e = self.ps.edge(k)
-            i = configs.index(e[0])
-            j = configs.index(e[1])
-            dist[i,j] = dist[j,i] = self.distance(e[0],e[1])
+            if e[0] in configs and e[1] in configs:
+                i = configs.index(e[0])
+                j = configs.index(e[1])
+                dist[i,j] = dist[j,i] = self.distance(e[0],e[1])
         return dist
 
     def orderConfigurations(self, configs):
@@ -117,7 +128,7 @@ class Calibration(object):
         # salesman problem
         notVisited = list(range(1,N))
         visited = [0]
-        dist = self.buildDistanceMatrix(configs)
+        dist = self.buildRoadmapDistanceMatrix(configs)
         while len(notVisited) > 0:
             # rank of current configuration in visited
             i = visited [-1]
@@ -136,8 +147,9 @@ class Calibration(object):
         return orderedConfigs
 
     def buildRoadmap(self, configs):
+        self.ps.clearRoadmap()
         if len(configs)==0: return
-        dist = self.buildDistanceMatrix(configs)
+        dist = self.buildEuclideanDistanceMatrix(configs)
         for q in configs:
             self.ps.addConfigToRoadmap(q)
         for i, q in enumerate(configs):
@@ -157,11 +169,15 @@ class Calibration(object):
     def visitConfigurations(self, configs):
         nOptimizers = len(self.ps.getSelected("PathOptimizer"))
         for q_init, q_goal in zip(configs, configs [1:]):
-            self.ps.resetGoalConfigs()
-            self.ps.setInitialConfig(q_init)
-            self.ps.addGoalConfig(q_goal)
-            self.ps.solve()
-            for i in range(nOptimizers):
-                # remove non optimized paths
-                pid = self.ps.numberPaths() - 2
-                self.ps.erasePath(pid)
+            if q_init in self.ps.nodesConnectedComponent(0) and \
+               q_goal in self.ps.nodesConnectedComponent(0):
+                self.ps.resetGoalConfigs()
+                self.ps.setInitialConfig(q_init)
+                self.ps.addGoalConfig(q_goal)
+                self.ps.solve()
+                for i in range(nOptimizers):
+                    # remove non optimized paths
+                    pid = self.ps.numberPaths() - 2
+                    self.ps.erasePath(pid)
+            else:
+                break
