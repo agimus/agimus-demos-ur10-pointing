@@ -89,8 +89,13 @@ newProblem()
 client = CorbaClient(context=args.context)
 #client.basic._tools.deleteAllServants()
 client.manipulation.problem.selectProblem (args.context)
+def wd(o):
+    from hpp.corbaserver import wrap_delete
+    return wrap_delete(o, client.basic._tools)
 
 robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
+crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
+
 print("Robot loaded")
 robot.opticalFrame = 'xtion_rgb_optical_frame'
 ps = ProblemSolver(robot)
@@ -174,13 +179,6 @@ for e in graph.edges.keys():
 ## Generate grasp configuration
 ri = None
 
-try:
-    v = vf.createViewer()
-    v(q0)
-    pp = PathPlayer(v)
-except:
-    print("Did you launch the GUI?")
-
 
 q_calib = [1.5707,
  -3,
@@ -197,85 +195,122 @@ q_calib = [1.5707,
  0.7071067811865476]
 
 
-generateTrajectory = True
-if generateTrajectory:
-    from tools_hpp import RosInterface
-    ri = RosInterface(robot)
-    q_init = ri.getCurrentConfig(q0)
-    # q_init = robot.getCurrentConfig()
-    from tools_hpp import PathGenerator
-    pg = PathGenerator(ps, graph)
-    pg.inStatePlanner.setEdge('Loop | f')
-    holes_n = 5
-    holes_m = 7
-    NB_holes = holes_n * holes_m
-    hidden_holes = [0,2,10,11,12,14,16,24,33]
-    holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 
-    def generatePath(index, qi):
-        try:
-            p = pg.generatePathForHandle('part/handle_'+str(index), qi, 50)
-        except:
-            print("Failure")
-            return None, None
-        if p is None:
-            print("Failure")
-            return None, None
-        pid = ps.client.basic.problem.addPath(p)
-        ps.optimizePath(pid)
-        path_id = ps.numberPaths() - 1
-        print("Path " + str(path_id))
-        newq = ps.configAtParam(path_id, ps.pathLength(path_id))
-        return path_id, newq
+from tools_hpp import RosInterface
+ri = RosInterface(robot)
+q_init = ri.getCurrentConfig(q0)
+# q_init = robot.getCurrentConfig()
+from tools_hpp import PathGenerator
+pg = PathGenerator(ps, graph)
+pg.inStatePlanner.setEdge('Loop | f')
+holes_n = 5
+holes_m = 7
+NB_holes = holes_n * holes_m
+NB_holes_total = 44
+hidden_holes = [0,2,10,11,12,14,16,24,33]
+holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
+isClogged = None
 
-    def vprint(verbose, msg):
-        if verbose:
-            print(msg)
+useFOV = True
+if useFOV:
+    from ur10_fov import RobotFOV, RobotFOVGuiCallback, Feature, Features
+    ur10_fov = RobotFOV(urdfString = Robot.urdfString,
+                        fov = np.radians((52, 69.4)),
+                        geoms = [],
+                        optical_frame = "camera_color_optical_frame",
+                        group_camera_link = "robot/ur10e/ref_camera_link",
+                        camera_link = "ref_camera_link")
 
-    def generatePointingPaths(concatenate=False, calib=True, verbose=False):
+    feature_list = []
+    for i in range(1, NB_holes_total+1):
+        feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003+0.001) )
+    featuress = [Features(feature_list, 2, 0.01, 0.1)]
+    ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress)
+    ur10_fov.reduceModel([], q_init, len_prefix=len("ur10e/"))
+    del crobot
+
+    # Display Tiago Field of view.
+    #vf.guiRequest.append( (tiago_fov.loadInGui, {'self':None}))
+    # Display visibility cones.
+    vf.addCallback(ur10_fov_gui)
+    isClogged = lambda x : ur10_fov.clogged(x, robot, featuress)
+
+
+try:
+    v = vf.createViewer()
+    v(q0)
+    pp = PathPlayer(v)
+except:
+    print("Did you launch the GUI?")
+
+
+def generatePath(index, qi):
+    try:
+        p = pg.generatePathForHandle('part/handle_'+str(index), qi, 50, isClogged=isClogged)
+    except:
+        print("Failure")
+        return None, None
+    if p is None:
+        print("Failure")
+        return None, None
+    pid = ps.client.basic.problem.addPath(p)
+    ps.optimizePath(pid)
+    path_id = ps.numberPaths() - 1
+    print("Path " + str(path_id))
+    newq = ps.configAtParam(path_id, ps.pathLength(path_id))
+    return path_id, newq
+
+def vprint(verbose, msg):
+    if verbose:
+        print(msg)
+
+def generatePointingPaths(concatenate=False, calib=True, verbose=False):
+    ps.resetGoalConfigs()
+    qi = q_init
+    path_ids = []
+    if calib:
+        ps.setInitialConfig(q_init)
+        ps.addGoalConfig(q_calib)
+        ps.solve()
         ps.resetGoalConfigs()
-        qi = q_init
-        path_ids = []
-        if calib:
-            ps.setInitialConfig(q_init)
-            ps.addGoalConfig(q_calib)
-            ps.solve()
-            ps.resetGoalConfigs()
-            path_ids.append(ps.numberPaths()-1)
-            vprint(verbose, "Path to calib config: " + str(path_ids[0]))
-            qi = q_calib
+        path_ids.append(ps.numberPaths()-1)
+        vprint(verbose, "Path to calib config: " + str(path_ids[0]))
+        qi = q_calib
 
-        grasp_configs = []
-        for index in holes_to_do:
-            vprint(verbose,"Generating path for index " + str(index))
-            path_id, newq = generatePath(index, qi)
-            if newq is not None:
-                qi = newq
-                path_ids.append(path_id)
-                grasp_configs.append(newq)
-            else:
-                vprint(verbose,"! FAILURE !")
-                return False, path_ids, grasp_configs
-        if concatenate:
-            concat(path_ids)
-        return True, path_ids, grasp_configs
+    grasp_configs = []
+    for index in holes_to_do:
+        vprint(verbose,"Generating path for index " + str(index))
+        path_id, newq = generatePath(index, qi)
+        if newq is not None:
+            qi = newq
+            path_ids.append(path_id)
+            grasp_configs.append(newq)
+        else:
+            vprint(verbose,"! FAILURE !")
+            return False, path_ids, grasp_configs
+    if concatenate:
+        concat(path_ids)
+    return True, path_ids, grasp_configs
 
-    def concat(path_ids):
-        for i in path_ids[1:]:
-            ps.concatenatePath(path_ids[0], i)
-        return path_ids[0]
+def concat(path_ids):
+    for i in path_ids[1:]:
+        ps.concatenatePath(path_ids[0], i)
+    return path_ids[0]
 
-    def visualize(path_ids):
-        for index in path_ids:
-            try:
-                pp(index)
-            except:
-                print("Cannot play path. Is the GUI launched ?")
+def visualize(path_ids):
+    for index in path_ids:
+        try:
+            pp(index)
+        except:
+            print("Cannot play path. Is the GUI launched ?")
 
-    def go():
-        res = False
-        while not res:
-            res, path_ids, config_grasps = generatePathPointing()
-        return path_ids, config_grasps
+def go():
+    res = False
+    while not res:
+        res, path_ids, config_grasps = generatePathPointing()
+    return path_ids, config_grasps
 
-    # path_ids, grasp_configs = go()
+
+generateTrajectory = False
+if generateTrajectory:
+    path_ids, grasp_configs = go()

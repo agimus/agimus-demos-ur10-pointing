@@ -50,13 +50,15 @@ class ConfigGenerator(object):
         self.graph = graph
 
     def generateValidConfigForHandle(self, handle, qinit, qguesses = [],
-                                     NrandomConfig=10):
+                                     NrandomConfig=10, isClogged=None):
+        if isClogged is None:
+            isClogged = lambda x : False
         edge = tool_gripper + " > " + handle
         ok = False
         from itertools import chain
         def project_and_validate(e, qrhs, q):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
-            return res and self.robot.configIsValid(qres), qres
+            return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
         qpg, qg = None, None
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
                                       for _ in range(NrandomConfig))):
@@ -90,14 +92,16 @@ class PathGenerator(object):
 
     # Generate a path from an initial configuration and going through
     # pregraps, grasp and pregrasp again for a given handle
-    def generatePathForHandle(self, handle, qinit, NrandomConfig=10):
+    def generatePathForHandle(self, handle, qinit, NrandomConfig=10, isClogged=None):
+        if isClogged is None:
+            isClogged = lambda x : False
         # generate configurations
         edge = tool_gripper + " > " + handle
         ok = False
         from itertools import chain
         def project_and_validate(e, qrhs, q):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
-            return res and self.robot.configIsValid(qres), qres
+            return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
         qpg, qg = None, None
         qguesses =  [qinit]
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()

@@ -54,8 +54,13 @@ class RobotFOV:
             geoms = [],
             optical_frame = "camera_color_optical_frame",
             group_camera_link = "robot/ur10e/ref_camera_link",
-            camera_link = "ref_camera_link"
+            camera_link = "ref_camera_link",
+            supp_nb_dof = 3
             ):
+        self.optical_frame = optical_frame
+        self.group_camera_link = group_camera_link
+        self.camera_link = camera_link
+        self.supp_nb_dof = supp_nb_dof
         if isinstance(fov, str):
             self.fov = fov
             fov_fcl = hppfcl.MeshLoader().load(hpp.rostools.retrieve_resource(fov))
@@ -87,7 +92,7 @@ class RobotFOV:
                 root_joint = pinocchio.JointModelPlanar(),
                 geometry_types=pinocchio.GeometryType.COLLISION)
 
-        id_parent_frame = self.model.getFrameId(optical_frame)
+        id_parent_frame = self.model.getFrameId(self.optical_frame)
         parent_frame = self.model.frames[id_parent_frame]
         go = pinocchio.GeometryObject("field_of_view", id_parent_frame, parent_frame.parent,
                 fov_fcl, parent_frame.placement)
@@ -116,9 +121,10 @@ class RobotFOV:
             oMt = pinocchio.XYZQUATToSE3(oMt)
 
         pts = hppfcl.StdVec_Vec3f()
-        idc = self.model.getFrameId(optical_frame)
+        idc = self.model.getFrameId(self.optical_frame)
 
         C = self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2]
+
         pts.append(C)
         increasedSize = (1 + size_margin)*size
         for pt in [
@@ -134,7 +140,7 @@ class RobotFOV:
 
     def featureVisible(self, oMt, size, margin, size_margin):
         """ It assumes that updateGeometryPlacements has been called """
-        idc = self.model.getFrameId(optical_frame)
+        idc = self.model.getFrameId(self.optical_frame)
         camera = self.model.frames[idc]
         oMc = self.data.oMf[idc]
 
@@ -177,8 +183,8 @@ class RobotFOV:
         def _print(*args):
             if verbose:
                 print(*args)
-        # should see at least on feature per featuress
-        self.updateGeometryPlacements(q[:-14])
+        # should see at least n_visibility_thr feature per featuress
+        self.updateGeometryPlacements(q[:-supp_nb_dof])
         for features in featuress:
             nvisible = 0
             for oMt, feature in zip(robot.hppcorba.robot.getJointsPosition(q, features.names), features.features):
@@ -238,21 +244,22 @@ class RobotFOV:
         gui = v.client.gui
         _add_fov_to_gui(gui, "field_of_view", self.fov,
                 color = [0.1, 0.1, 0.9, 0.2],
-                group = group_camera_link)
-        idl = self.model.getFrameId(camera_link)
-        idc = self.model.getFrameId(optical_frame)
+                group = self.group_camera_link)
+        idl = self.model.getFrameId(self.camera_link)
+        idc = self.model.getFrameId(self.optical_frame)
         assert self.model.frames[idl].parent == self.model.frames[idc].parent
         gui.applyConfiguration("field_of_view", pinocchio.SE3ToXYZQUATtuple(
             self.model.frames[idl].placement.inverse() * self.model.frames[idc].placement))
         gui.refresh()
 
 class RobotFOVGuiCallback:
-    def __init__(self, robot, robot_fov, featuress):
+    def __init__(self, robot, robot_fov, featuress, supp_nb_dof=3):
         self.robot = robot
         self.fov = robot_fov
         self.namess = [ [ "fov_" + t.name for t in features.features ] for features in featuress ]
         self.featuress = featuress
         self.initialized = False
+        self.supp_nb_dof = supp_nb_dof
 
     def initialize(self, viewer):
         self.initialized = True
@@ -281,7 +288,7 @@ class RobotFOVGuiCallback:
             self.initialize(viewer)
         gui = viewer.client.gui
 
-        self.fov.updateGeometryPlacements(q[:-14])
+        self.fov.updateGeometryPlacements(q[:-self.supp_nb_dof])
         for names, features in zip(self.namess, self.featuress):
             oMts = self.robot.hppcorba.robot.getJointsPosition(q, [ t.name for t in features.features ])
             for name, oMt, feature in zip (names, oMts, features.features):
