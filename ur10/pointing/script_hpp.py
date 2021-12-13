@@ -220,22 +220,18 @@ if useFOV:
                         geoms = [],
                         optical_frame = "camera_color_optical_frame",
                         group_camera_link = "robot/ur10e/ref_camera_link",
-                        camera_link = "ref_camera_link")
-
+                        camera_link = "ref_camera_link",
+                        modelConfig = lambda q : q[:6])
     feature_list = []
     for i in range(1, NB_holes_total+1):
         feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003+0.001) )
     featuress = [Features(feature_list, 2, 0.01, 0.1)]
-    ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress)
-    ur10_fov.reduceModel([], q_init, len_prefix=len("ur10e/"))
-    del crobot
-
-    # Display Tiago Field of view.
-    #vf.guiRequest.append( (tiago_fov.loadInGui, {'self':None}))
+    ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress, modelConfig = lambda q : q[:6])
+    # Display Robot Field of view.
+    #vf.guiRequest.append( (ur10_fov.loadInGui, {'self':None}))
     # Display visibility cones.
     vf.addCallback(ur10_fov_gui)
     isClogged = lambda x : ur10_fov.clogged(x, robot, featuress)
-
 
 try:
     v = vf.createViewer()
@@ -243,7 +239,6 @@ try:
     pp = PathPlayer(v)
 except:
     print("Did you launch the GUI?")
-
 
 def generatePath(index, qi):
     try:
