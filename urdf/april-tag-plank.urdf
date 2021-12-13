@@ -1,7 +1,7 @@
 <robot name="plank-with-april-tags">
   <link name="base_link">
     <visual>
-      <origin xyz="-0.015 0 1.073" rpy="0 0 0"/>
+      <origin xyz="-0.01 0 1.073" rpy="0 0 0"/>
       <geometry>
         <box size="0.02 1.00 1.90"/>
       </geometry>
@@ -17,6 +17,13 @@
       <origin xyz="0.01 0.3 0.01" rpy="0 0 0"/>
       <geometry>
         <box size="0.4 0.05 0.02"/>
+      </geometry>
+    </visual>
+    <!-- calibration chessboard-->
+    <visual>
+      <origin xyz="-0.021 0 1.41" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry>
+	<mesh filename="package://gerard_bauzil/meshes/visp/chessboard-0.027-10-7.dae" scale="0.027 0.027 1."/>
       </geometry>
     </visual>
     <collision>
@@ -50,7 +57,7 @@
   <joint name="to_tag_013_base" type="fixed">
     <parent link="base_link"/>
     <child link="tag36_11_00013"/>
-    <origin xyz="0 0.045 1.456" rpy="1.5707963267948966 0 1.5707963267948966"/>
+    <origin xyz="0.01 0.045 1.456" rpy="1.5707963267948966 0 1.5707963267948966"/>
   </joint>
   <link name="tag36_11_00013_cao">
     <visual>
