@@ -33,7 +33,7 @@
   <group unless="$(arg slower)">
     <!-- startup simulated world -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <arg name="world_name" default="empty.world"/>
+      <arg name="world_name" default="worlds/empty.world"/>
       <arg name="paused" value="$(arg paused)"/>
       <arg name="gui" value="$(arg gui)"/>
       <arg name="debug" value="$(arg debug)"/>
@@ -55,7 +55,7 @@
     <!-- <rosparam command="load" file="$(find ur_gazebo)/controller/arm_controller_ur10.yaml"/> -->
   <!-- <include file="$(find ur_gazebo)/launch/controller_utils.launch"/> -->
 
-  <!-- P72 -->
+  <!-- Part -->
   <group ns="part">
     <node name="spawn_part" pkg="gazebo_ros" type="spawn_model"
 	  args="-file $(find agimus_demos)/urdf/$(arg part).urdf -urdf
