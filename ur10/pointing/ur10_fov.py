@@ -50,7 +50,7 @@ class RobotFOV:
     def __init__(self,
             urdfString=None,
             urdfFilename=None,
-            fov = np.radians((52, 69.4)),
+            fov = np.radians((69.4, 52)),
             geoms = [],
             optical_frame = "camera_color_optical_frame",
             group_camera_link = "robot/ur10e/camera_link",
@@ -60,19 +60,21 @@ class RobotFOV:
         self.optical_frame = optical_frame
         self.group_camera_link = group_camera_link
         self.camera_link = camera_link
+        self.theta_x = fov[0]/2
+        self.theta_y = fov[1]/2
+
         if modelConfig is None:
             self.modelConfig = lambda q : q
         else:
             self.modelConfig = modelConfig
 
         if isinstance(fov, str):
-            self.fov = fov
             fov_fcl = hppfcl.MeshLoader().load(hpp.rostools.retrieve_resource(fov))
         else:
             # build FOV tetahedron
-            dx, dy = np.sin(fov)
+            dx, dy = np.tan(fov/2)
             pts = hppfcl.StdVec_Vec3f()
-            FOV_DEPTH = 3
+            FOV_DEPTH = 1.5
             self.fov = [(0,0,0),
                     ( FOV_DEPTH*dx,  FOV_DEPTH*dy, FOV_DEPTH),
                     (-FOV_DEPTH*dx,  FOV_DEPTH*dy, FOV_DEPTH),
@@ -149,26 +151,35 @@ class RobotFOV:
         """ It assumes that updateGeometryPlacements has been called """
         idc = self.model.getFrameId(self.optical_frame)
         camera = self.model.frames[idc]
-        oMc = self.data.oMf[idc]
+        oMc = self.data.oMf[idc] # pose of the camera
+        if not isinstance(oMt, pinocchio.SE3):
+            oMt = pinocchio.XYZQUATToSE3(oMt) # pose of the feature
 
         # Check if the feature is in the field of view
-        feature_geom = hppfcl.Sphere(size)
-        _tmp = robot.hppcorba.robot.getJointPosition(feature_name)
-    	feature_pos = hppfcl.Transform3f( hppfcl.Quaternion(*_tmp[3:]), np.array(_tmp[:3]) )
-        fov_go = self.gmodel.geometryObjects[self.gid_field_of_view]
-        fov_oMg = self.gdata.oMg[self.gid_field_of_view]
 
-        request = hppfcl.CollisionRequest()
-        result_fov = hppfcl.CollisionResult()
-        hppfcl.collide(fov_go.geometry, hppfcl.Transform3f(fov_oMg), feature_geom, feature_pos, request, result_fov )
-        if not result_fov.isCollision():
-            # Feature not in field of view
+        # Axis of the camera frame
+        z_c = oMc.rotation[:,2] # View axis (z-axis of the camera frame)
+        x_c = oMc.rotation[:,0]
+        y_c = oMc.rotation[:,1]
+        
+        C = oMc.translation # camera
+        X = oMt.translation # feature
+        CX = X - C
+        CXy = CX - np.dot(CX, x_c) * x_c
+        CXx = CX - np.dot(CX, y_c) * y_c
+        cos_x = np.dot(z_c, CXx) / ( np.linalg.norm(z_c) * np.linalg.norm(CXx) )
+        cos_y = np.dot(z_c, CXy) / ( np.linalg.norm(z_c) * np.linalg.norm(CXy) )
+
+        # If the cos along x and y camera axis are smaller than the threshold
+        # given by the camera field-of-view, then the feature are not in the FoV
+        if cos_x < np.cos(self.theta_x) or cos_y < np.cos(self.theta_y):
+            # Feature not in the field of view
             return False
 
+        # Checking the angle with which we see the feature
+        # For april tags, if the angle is too steep, it is not readable
         # oMc.rotation[:,2] view axis
         # oMt.rotation[:,2] normal of the feature, on the feature side.
-        if not isinstance(oMt, pinocchio.SE3):
-            oMt = pinocchio.XYZQUATToSE3(oMt)
         cos_theta = - np.dot(oMc.rotation[:,2], oMt.rotation[:,2])
         if cos_theta < self.cos_angle_thr:
             return False
@@ -180,6 +191,7 @@ class RobotFOV:
         tetahedron.addSubModel(pts, _tetahedron_tris)
         tetahedron.endModel()
 
+        request = hppfcl.CollisionRequest()
         Id = hppfcl.Transform3f()
         # Check if the feature is blocked from the view by an obstacle
         for go, oMg in zip(self.gmodel.geometryObjects, self.gdata.oMg):
@@ -194,7 +206,6 @@ class RobotFOV:
             hppfcl.collide(go.geometry, hppfcl.Transform3f(oMg), tetahedron, Id, request, result)
             if result.isCollision():
                 if go.name != "field_of_view":
-                    print("Collision with " + go.name)
                     return False
         return True
 

@@ -216,7 +216,7 @@ useFOV = True
 if useFOV:
     from ur10_fov import RobotFOV, RobotFOVGuiCallback, Feature, Features
     ur10_fov = RobotFOV(urdfString = Robot.urdfString,
-                        fov = np.radians((52, 69.4)),
+                        fov = np.radians((69.4, 52)),
                         geoms = [],
                         optical_frame = "camera_color_optical_frame",
                         group_camera_link = "robot/ur10e/ref_camera_link",
