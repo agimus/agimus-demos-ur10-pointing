@@ -23,7 +23,7 @@
     <visual>
       <origin xyz="-0.021 0 1.41" rpy="1.5707963267948966 0 -1.5707963267948966"/>
       <geometry>
-	<mesh filename="package://gerard_bauzil/meshes/visp/chessboard-0.027-10-7.dae" scale="0.027 0.027 1."/>
+	<mesh filename="package://gerard_bauzil/meshes/visp/chessboard-10-7.dae" scale="0.027 0.027 1."/>
       </geometry>
     </visual>
     <collision>
