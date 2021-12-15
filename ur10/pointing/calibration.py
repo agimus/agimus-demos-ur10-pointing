@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from script_hpp import *
-import pinocchio, hpp.rostools, hppfcl, numpy as np
+import eigenpy, pinocchio, hpp.rostools, hppfcl, numpy as np
 from agimus_demos.calibration import Calibration
 from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
@@ -96,3 +96,31 @@ configs = [q_init] + configs
 calibration.buildRoadmap(configs)
 configs = calibration.orderConfigurations(configs)
 calibration.visitConfigurations(configs)
+
+def computeCameraPose(mMe, eMc, eMc_measured):
+    # we wish to compute a new position mMe_new of ref_camera_link in
+    # ur10e_d435_mount_link in such a way that
+    #  - eMc remains the same (we assume the camera is well calibrated),
+    #  - mMc = mMe_new * eMc = mMe * eMc_measured
+    # Thus
+    #  mMe_new = mMe*eMc_measured*eMc.inverse()
+    return mMe*eMc_measured*eMc.inverse()
+
+# Current position of ref_camera_link in ur10e_d435_mount_link
+mMe = pinocchio.SE3(translation=np.array([0.000, 0.115, 0.000]),
+                    quat = eigenpy.Quaternion(np.array(
+                        [-0.354, -0.354, -0.612, 0.612])))
+
+# Current position of camera_color_optical_frame in ref_camera_link
+eMc = pinocchio.SE3(translation=np.array([0.011, 0.033, 0.013]),
+                    quat = eigenpy.Quaternion(np.array(
+                        [-0.500, 0.500, -0.500, 0.500])))
+
+# Measured position of camera_optical_frame in ref_camera_link from calibration
+eMc_measured = pinocchio.SE3(translation=np.array(
+    [0.001654813892, 0.03350369364, 0.008705046959]),
+                             quat = eigenpy.Quaternion(np.array(
+    [-0.5110770111, 0.5103100146, -0.4885996829, 0.489545021])))
+
+#new position mMe_new of ref_camera_link in ur10e_d435_mount_link
+mMe_new = computeCameraPose(mMe, eMc, eMc_measured)
