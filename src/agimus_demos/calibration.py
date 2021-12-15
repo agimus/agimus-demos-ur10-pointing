@@ -46,6 +46,14 @@ def getClosest(dist,i,n):
     d.sort(key=lambda x:x[1])
     return list(zip(*d))[0][:n]
 
+def connectedComponent(ps, q):
+    for i in range(ps.numberConnectedComponents()):
+        if q in ps.nodesConnectedComponent(i):
+            return i
+    raise RuntimeError\
+        ('Configuration {} does not seem to belong to the roadmap.'.format\
+         (q))
+
 class Calibration(object):
     """
     Various methods to perform hand-eye calibration
@@ -169,8 +177,8 @@ class Calibration(object):
     def visitConfigurations(self, configs):
         nOptimizers = len(self.ps.getSelected("PathOptimizer"))
         for q_init, q_goal in zip(configs, configs [1:]):
-            if q_init in self.ps.nodesConnectedComponent(0) and \
-               q_goal in self.ps.nodesConnectedComponent(0):
+            if connectedComponent(self.ps, q_goal) == \
+               connectedComponent(self.ps, q_init):
                 self.ps.resetGoalConfigs()
                 self.ps.setInitialConfig(q_init)
                 self.ps.addGoalConfig(q_goal)

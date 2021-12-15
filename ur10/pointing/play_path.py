@@ -26,13 +26,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from csv import writer
-import roslib
+import time, roslib
 import rospy
 import math
 import tf2_ros
 import cv2 as cv
 import eigenpy, numpy as np
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from dynamic_graph_bridge_msgs.msg import Vector
 import geometry_msgs.msg
 from sensor_msgs.msg import JointState
@@ -40,6 +40,46 @@ from smach_msgs.msg import SmachContainerStatus
 from std_msgs.msg import Bool, UInt32
 from hpp.corbaserver import Client as HppClient
 
+cameraInfoString='''<?xml version="1.0"?>
+<root>
+  <!--This file stores intrinsic camera parameters used
+   in the vpCameraParameters Class of ViSP available
+   at https://visp.inria.fr/download/ .
+   It is constructed by reading the /camera_info topic.
+   WARNING: distortion coefficients are not reported. -->
+  <camera>
+    <!--Name of the camera-->
+    <name>Camera</name>
+    <!--Size of the image on which camera calibration was performed-->
+    <image_width>{width}</image_width>
+    <image_height>{height}</image_height>
+    <!--Intrinsic camera parameters computed for each projection model-->
+    <model>
+      <!--Projection model type-->
+      <type>perspectiveProjWithoutDistortion</type>
+      <!--Pixel ratio-->
+      <px>{px}</px>
+      <py>{py}</py>
+      <!--Principal point-->
+      <u0>{u0}</u0>
+      <v0>{v0}</v0>
+    </model>
+    <model>
+      <!--Projection model type-->
+      <type>perspectiveProjWithDistortion</type>
+      <!--Pixel ratio-->
+      <px>{px}</px>
+      <py>{py}</py>
+      <!--Principal point-->
+      <u0>{u0}</u0>
+      <v0>{v0}</v0>
+      <!--Distorsion-->
+      <kud>0</kud>
+      <kdu>0</kdu>
+    </model>
+  </camera>
+</root>
+'''
 # Write an image as read from a ROS topic to a file in png format
 def writeImage(image, filename):
     count = 0
@@ -61,7 +101,7 @@ def writeImage(image, filename):
 #    - record tf transformation between world and camera frames
 #    - record image
 class CalibrationControl (object):
-    cameraFrame = "camera_color_optical_frame"
+    endEffectorFrame = "ref_camera_link"
     origin = "world"
     maxDelay = rospy.Duration (1,0)
     def __init__ (self) :
@@ -77,6 +117,8 @@ class CalibrationControl (object):
                           SmachContainerStatus, self.statusCallback)
         self.subImage = rospy.Subscriber ("/camera/color/image_raw", Image,
                                                    self.imageCallback)
+        self.subCameraInfo = rospy.Subscriber("/camera/color/camera_info",
+                               CameraInfo, self.cameraInfoCallback)
         self.running = False
         self.sotJointStates = None
         self.rosJointStates = None
@@ -95,6 +137,9 @@ class CalibrationControl (object):
         self.pubStartPath.publish (pathId)
         self.waitForEndOfMotion ()
         if not self.errorOccured:
+            # wait to be sure that the robot is static
+            rospy.sleep(10.)
+            print("Collect data.")
             self.collectData ()
 
     def collectData (self):
@@ -102,7 +147,7 @@ class CalibrationControl (object):
         # record position of camera
         try:
             self.wMc = self.tfBuffer.lookup_transform\
-                (self.origin, self.cameraFrame, rospy.Time(0))
+                (self.origin, self.endEffectorFrame, rospy.Time(0))
             measurement["wMc"] = self.wMc
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
                 tf2_ros.ExtrapolationException):
@@ -120,6 +165,16 @@ class CalibrationControl (object):
         self.measurements.append (measurement)
 
     def save (self, directory):
+        # write camera.xml from camera_info topic
+        px = self.cameraInfo.K[0 * 3 + 0];
+        py = self.cameraInfo.K[1 * 3 + 1];
+        u0 = self.cameraInfo.K[0 * 3 + 2];
+        v0 = self.cameraInfo.K[1 * 3 + 2];
+        width = self.cameraInfo.width
+        height= self.cameraInfo.height
+        with open(directory + '/camera.xml', 'w') as f:
+            f.write(cameraInfoString.format(width=width, height=height,
+                                            px=px, py=py, u0=u0, v0=v0))
         count=0
         for measurement in self.measurements:
             if not "image" in measurement.keys() or \
@@ -174,6 +229,10 @@ class CalibrationControl (object):
     def imageCallback(self, msg):
         self.image = msg
 
+    def cameraInfoCallback(self, msg):
+        self.cameraInfo = msg
+        self.subCameraInfo = None
+
     def sotJointStateCallback (self, msg):
         self.sotJointStates = msg.data
 
@@ -184,14 +243,14 @@ class CalibrationControl (object):
 
 def playAllPaths (startIndex):
     i = startIndex
-    while i < nbPaths - 1:
+    while i < nbPaths:
         cc.playPath (i)
         if not cc.errorOccured:
             print("Ran {}".format(i))
             i+=1
-        rospy.sleep (1)
+        #rospy.sleep (1)
 
 if __name__ == '__main__':
     cc = CalibrationControl ()
     nbPaths = cc.hppClient.problem.numberPaths ()
-    # playAllPaths (0)
+    #playAllPaths (0)
