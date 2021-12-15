@@ -53,7 +53,7 @@ instructions
 0. interminal 0
 Run the following command to start realsense with ros
 ```bash
-roslaunch realsense2_camera rs_rgbd.launch align_depth:=true depth_width:=640 depth_height:=480 depth_fps:=30 color_width:=640 color_height:=480 color_fps:=30
+roslaunch realsense2_camera rs_camera.launch
 ```
 
 1. in terminal 1
