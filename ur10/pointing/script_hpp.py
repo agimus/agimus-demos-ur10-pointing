@@ -136,7 +136,7 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 ## Load P72
 #[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
 Part = PartPlaque
-#Part = AprilTagPlank
+# Part = AprilTagPlank
 
 vf.loadRobotModel (Part, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])

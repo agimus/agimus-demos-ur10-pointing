@@ -91,7 +91,8 @@ ri = RosInterface(robot)
 q_init = ri.getCurrentConfig(q0)
 calibration = Calibration(ps, graph)
 calibration.transition = 'go-look-at-cb'
-configs = calibration.readConfigsInFile('./data/calib-configs.csv')
+#configs = calibration.readConfigsInFile('./data/calib-configs.csv')
+configs += generateValidConfigs(q0, 10, .3, .5)
 configs = [q_init] + configs
 calibration.buildRoadmap(configs)
 configs = calibration.orderConfigurations(configs)
