@@ -109,9 +109,9 @@ def computeCameraPose(mMe, eMc, eMc_measured):
     return mMe*eMc_measured*eMc.inverse()
 
 # Current position of ref_camera_link in ur10e_d435_mount_link
-mMe = pinocchio.SE3(translation=np.array([0.000, 0.115, 0.000]),
+mMe = pinocchio.SE3(translation=np.array([0.000, 0.117, -0.010]),
                     quat = eigenpy.Quaternion(np.array(
-                        [-0.354, -0.354, -0.612, 0.612])))
+                        [-0.341, -0.340, -0.619, 0.620])))
 
 # Current position of camera_color_optical_frame in ref_camera_link
 eMc = pinocchio.SE3(translation=np.array([0.011, 0.033, 0.013]),
@@ -120,9 +120,9 @@ eMc = pinocchio.SE3(translation=np.array([0.011, 0.033, 0.013]),
 
 # Measured position of camera_optical_frame in ref_camera_link from calibration
 eMc_measured = pinocchio.SE3(translation=np.array(
-    [0.001654813892, 0.03350369364, 0.008705046959]),
+    [0.009813399648, 0.03326932627, 0.01378242934]),
                              quat = eigenpy.Quaternion(np.array(
-    [-0.5110770111, 0.5103100146, -0.4885996829, 0.489545021])))
+    [-0.498901464, 0.5012362124, -0.4974698347, 0.5023776988])))
 
 #new position mMe_new of ref_camera_link in ur10e_d435_mount_link
 mMe_new = computeCameraPose(mMe, eMc, eMc_measured)

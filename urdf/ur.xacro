@@ -221,8 +221,8 @@
     <joint name="ref_camera_joint" type="fixed">
      <parent link="ur10e_d435_mount_link" />
      <child link = "ref_camera_link" />
-     <origin xyz="0.00048381  0.11659973 -0.01043009"
-	     rpy="-0.00301722 -1.00532779 -1.56707044"/>
+     <origin xyz="0.00033351  0.11805402 -0.01064025"
+	     rpy="-0.00127120646 -1.00435876 -1.56137241"/>
    </joint>
 
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
