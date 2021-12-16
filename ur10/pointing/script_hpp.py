@@ -112,7 +112,7 @@ ps.setParameter('SimpleTimeParameterization/safety', 0.95)
 
 # Add path projector to avoid discontinuities
 ps.selectPathProjector ("Progressive", .05)
-ps.selectPathValidation("Dichotomy", 0)
+ps.selectPathValidation("Graph-Dichotomy", 0)
 vf = ViewerFactory(ps)
 
 ## Shrink joint bounds of UR-10

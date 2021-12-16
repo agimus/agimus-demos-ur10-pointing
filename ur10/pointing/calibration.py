@@ -83,6 +83,7 @@ graph.addConstraints(edge='stop-looking-at-cb',
 factory.generate()
 sm = SecurityMargins(ps, factory, ["ur10e", "part"])
 sm.setSecurityMarginBetween("ur10e", "ur10e", 0.02)
+sm.setSecurityMarginBetween("ur10e", "part", 0.1)
 sm.defaultMargin = 0.01
 sm.apply()
 graph.initialize()
