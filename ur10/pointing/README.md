@@ -50,7 +50,7 @@ Open several tabs in a terminal, go to directory
 `/root/catkin_ws/src/agimus-demos/ur10/pointing` and type the following
 instructions
 
-0. interminal 0
+0. in terminal 0
 Run the following command to start realsense with ros
 ```bash
 roslaunch realsense2_camera rs_camera.launch
@@ -103,7 +103,7 @@ ri = RosInterface(robot)
 pg = PathGenerator(ps, graph)
 pg.inStatePlanner.setEdge('Loop | f')
 q_init = ri.getCurrentConfig(q0)
-p = pg.generatePathForHandle('part/handle_0', q_init)
+p = pg.generatePathForHandle('part/handle_0', q_init, NrandomConfig=100)
 pid = ps.client.basic.problem.addPath(p)
 ps.optimizePath(pid)
 ```

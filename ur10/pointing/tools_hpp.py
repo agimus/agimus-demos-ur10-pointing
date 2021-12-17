@@ -50,7 +50,7 @@ class ConfigGenerator(object):
         self.graph = graph
 
     def generateValidConfigForHandle(self, handle, qinit, qguesses = [],
-                                     NrandomConfig=10, isClogged=None):
+                                     NrandomConfig=10, isClogged=None, step=3):
         if isClogged is None:
             isClogged = lambda x : False
         edge = tool_gripper + " > " + handle
@@ -90,9 +90,22 @@ class PathGenerator(object):
     def wd(self, o):
         return wrap_delete(o, self.ps.client.basic._tools)
 
-    # Generate a path from an initial configuration and going through
+    # Generate a path from an initial configuration to a grasp
+    #
+    # param handle: name of the handle,
+    # param qinit: initial configuration of the system,
+    # param NrandomConfig: number of trials to generate a pre-grasp
+    #                      configuration,
+    # param isClogged: function that checks whether the pregrasp and grasps
+    # are clogged.
+    # param step: final state of the motion:
+    #              1 -> pregrasp,
+    #              2 -> grasps,
+    #              3 -> back to pregrap.
+    # and going through
     # pregraps, grasp and pregrasp again for a given handle
-    def generatePathForHandle(self, handle, qinit, NrandomConfig=10, isClogged=None):
+    def generatePathForHandle(self, handle, qinit, NrandomConfig=10,
+                              isClogged=None, step=3):
         if isClogged is None:
             isClogged = lambda x : False
         # generate configurations
@@ -102,29 +115,40 @@ class PathGenerator(object):
         def project_and_validate(e, qrhs, q):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
             return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
-        qpg, qg = None, None
-        qguesses =  [qinit]
-        for qrand in chain(qguesses, (self.robot.shootRandomConfig()
-                                      for _ in range(NrandomConfig))):
-            res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
-            if res:
-                ok, qg = project_and_validate(edge+" | f_12", qpg, qpg)
-                if ok: break
-        if not ok: return None
-        # build path
-        self.inStatePlanner.setEdge(edge + " | f_01")
-        p1 = self.inStatePlanner.computePath(qinit, qpg)
-        self.inStatePlanner.setEdge(edge + " | f_12")
-        p2 = self.inStatePlanner.computePath(qpg, qg)
-        p3 = self.wd(p2.reverse())
-        if not p1:
-            raise RuntimeError('Failed to plan a path between {} and {}'.
-                               format (qinit, qpg))
-        if not p2:
-            raise RuntimeError('Failed to plan a path between {} and {}'.
-                               format (qpg, qg))
-        # Concatenate paths
-        return concatenatePaths([p1, p2, p3])
+        for nTrial in range(NrandomConfig):
+            qpg, qg = None, None
+            qguesses =  [qinit]
+            for qrand in chain(qguesses, (self.robot.shootRandomConfig()
+                                          for _ in range(NrandomConfig))):
+                res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
+                if res:
+                    ok, qg = project_and_validate(edge+" | f_12", qpg, qpg)
+                    if ok: break
+            if not ok: continue
+            # build path
+            # from qinit to pregrasp
+            self.inStatePlanner.setEdge(edge + " | f_01")
+            try:
+                p1 = self.inStatePlanner.computePath(qinit, qpg)
+            except hpp_idl.hpp.Error as exc:
+                p1 = None
+            if not p1: continue
+            if step < 2:
+                return p1
+            # from pregrasp to grasp
+            self.inStatePlanner.setEdge(edge + " | f_12")
+            try:
+                p2 = self.inStatePlanner.computePath(qpg, qg)
+            except hpp_idl.hpp.Error as exc:
+                p2 = None
+            if not p2: continue
+            # Return concatenation
+            if step < 3:
+                return concatenatePaths([p1, p2])
+            # back to pregrasp
+            p3 = self.wd(p2.reverse())
+            return concatenatePaths([p1, p2, p3])
+        raise RuntimeError('faile fo compute a path.')
 
 class RosInterface(object):
     nodeId = 0
