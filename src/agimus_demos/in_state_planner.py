@@ -107,13 +107,19 @@ class InStatePlanner:
                 self.wd(self.cproblem.getDistance()),
                 self.crobot))
 
-    def computePath(self, qinit, qgoal, resetRoadmap = False):
+    def computePath(self, qinit, qgoals, resetRoadmap = False):
         self.wd(self.cconstraints.getConfigProjector()).\
             setRightHandSideFromConfig(qinit)
-        res, qgoal2 = self.cconstraints.apply(qgoal)
         self.cproblem.setInitConfig(qinit)
         self.cproblem.resetGoalConfigs()
-        self.cproblem.addGoalConfig(qgoal2)
+        for q in qgoals:
+            if (type(q) != list and type(q) != tuple) or \
+               len(q) != self.ps.robot.getConfigSize():
+                raise TypeError\
+                    ('Expected a list of configurations as argument qgoals.' +
+                     ' One element turns out to be {};'.format(q))
+            res, q2 = self.cconstraints.apply(q)
+            self.cproblem.addGoalConfig(q2)
 
         if resetRoadmap or not hasattr(self, 'roadmap'):
             self.createEmptyRoadmap()

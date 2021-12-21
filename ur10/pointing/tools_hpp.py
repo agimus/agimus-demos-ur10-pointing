@@ -129,7 +129,7 @@ class PathGenerator(object):
             # from qinit to pregrasp
             self.inStatePlanner.setEdge(edge + " | f_01")
             try:
-                p1 = self.inStatePlanner.computePath(qinit, qpg)
+                p1 = self.inStatePlanner.computePath(qinit, [qpg])
             except hpp_idl.hpp.Error as exc:
                 p1 = None
             if not p1: continue
@@ -138,7 +138,7 @@ class PathGenerator(object):
             # from pregrasp to grasp
             self.inStatePlanner.setEdge(edge + " | f_12")
             try:
-                p2 = self.inStatePlanner.computePath(qpg, qg)
+                p2 = self.inStatePlanner.computePath(qpg, [qg])
             except hpp_idl.hpp.Error as exc:
                 p2 = None
             if not p2: continue
