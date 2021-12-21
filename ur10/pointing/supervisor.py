@@ -51,11 +51,11 @@ class ObjectLocalization(object):
             t = self.sotrobot.device.control.time
             if t > start_it + to:
                 print("Failed to perform object localization")
-                return False
+                return False, "Failed to perform object localization"
             self.objectLocalization.trigger(t)
             if self.objectLocalization.done.value:
-                print("Succesfully performed object localization")
-                return True
+                print("Successfully performed object localization")
+                return True, ""
             sleep(ts)
 
 
