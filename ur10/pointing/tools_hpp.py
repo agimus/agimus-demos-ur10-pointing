@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
+import hpp_idl
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 from agimus_demos import InStatePlanner
 from hpp.corbaserver import wrap_delete
@@ -34,6 +35,7 @@ def concatenatePaths(paths):
     if len(paths) == 0: return None
     p = paths[0].asVector()
     for q in paths[1:]:
+        assert(p.end() == q.initial())
         p.appendPath(q)
     return p
 
@@ -44,10 +46,18 @@ def initRosNode():
     if not rosNodeStarted:
         rospy.init_node("hpp", disable_signals=True)
 
-class ConfigGenerator(object):
-    def __init__(self, graph):
-        self.robot = graph.robot
+class PathGenerator(object):
+    def __init__(self, ps, graph):
+        self.ps = ps
+        self.robot = ps.robot
         self.graph = graph
+        # store corba object corresponding to constraint graph
+        self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
+        # create Planner to solve path planning problems on manifolds
+        self.inStatePlanner = InStatePlanner(ps, graph)
+
+    def wd(self, o):
+        return wrap_delete(o, self.ps.client.basic._tools)
 
     def generateValidConfigForHandle(self, handle, qinit, qguesses = [],
                                      NrandomConfig=10, isClogged=None, step=3):
@@ -77,19 +87,6 @@ class ConfigGenerator(object):
                 return True, qres
         return False, None
 
-class PathGenerator(object):
-    def __init__(self, ps, graph):
-        self.ps = ps
-        self.robot = ps.robot
-        self.graph = graph
-        # store corba object corresponding to constraint graph
-        self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
-        # create Planner to solve path planning problems on manifolds
-        self.inStatePlanner = InStatePlanner(ps, graph)
-
-    def wd(self, o):
-        return wrap_delete(o, self.ps.client.basic._tools)
-
     # Generate a path from an initial configuration to a grasp
     #
     # param handle: name of the handle,
@@ -111,25 +108,19 @@ class PathGenerator(object):
         # generate configurations
         edge = tool_gripper + " > " + handle
         ok = False
-        from itertools import chain
-        def project_and_validate(e, qrhs, q):
-            res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
-            return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
+        dist = self.inStatePlanner.cproblem.getDistance()
         for nTrial in range(NrandomConfig):
-            qpg, qg = None, None
-            qguesses =  [qinit]
-            for qrand in chain(qguesses, (self.robot.shootRandomConfig()
-                                          for _ in range(NrandomConfig))):
-                res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
-                if res:
-                    ok, qg = project_and_validate(edge+" | f_12", qpg, qpg)
-                    if ok: break
-            if not ok: continue
+            res, qpg, qg = self.generateValidConfigForHandle\
+               (handle=handle, qinit=qinit, NrandomConfig=NrandomConfig,
+                isClogged=isClogged, step=step)
+            if not res:
+                continue
             # build path
             # from qinit to pregrasp
             self.inStatePlanner.setEdge(edge + " | f_01")
             try:
-                p1 = self.inStatePlanner.computePath(qinit, [qpg])
+                p1 = self.inStatePlanner.computePath(qinit, [qpg],
+                                                     resetRoadmap = True)
             except hpp_idl.hpp.Error as exc:
                 p1 = None
             if not p1: continue

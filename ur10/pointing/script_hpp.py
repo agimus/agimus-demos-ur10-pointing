@@ -32,7 +32,7 @@ from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
-from tools_hpp import ConfigGenerator, RosInterface, concatenatePaths
+from tools_hpp import RosInterface, concatenatePaths
 from hpp.gepetto import PathPlayer
 
 class PartPlaque:
@@ -112,7 +112,7 @@ ps.setParameter('SimpleTimeParameterization/safety', 0.95)
 
 # Add path projector to avoid discontinuities
 ps.selectPathProjector ("Progressive", .05)
-ps.selectPathValidation("Graph-Dichotomy", 0)
+ps.selectPathValidation("Graph-Progressive", 0.01)
 vf = ViewerFactory(ps)
 
 ## Shrink joint bounds of UR-10
@@ -167,7 +167,7 @@ factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
 sm = SecurityMargins(ps, factory, ["ur10e", "part"])
-sm.setSecurityMarginBetween("ur10e", "ur10e", 0.02)
+sm.setSecurityMarginBetween("ur10e", "part", 0.06)
 sm.defaultMargin = 0.01
 sm.apply()
 graph.initialize()
