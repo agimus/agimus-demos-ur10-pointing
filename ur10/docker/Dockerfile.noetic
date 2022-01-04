@@ -18,7 +18,7 @@ RUN apt update && apt install -qy evince gdb gnuplot htop libzbar-dev liburdfdom
     x11-apps tigervnc-standalone-server tigervnc-xorg-extension xfce4 \
     iproute2
 
-RUN apt remove -qy gnome-screensaver
+RUN apt remove -qy gnome-screensaver light-locker
 
 RUN pip install -U pip \
     && pip install -U tensorflow \
