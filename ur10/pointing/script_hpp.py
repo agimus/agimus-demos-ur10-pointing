@@ -34,6 +34,7 @@ from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import RosInterface, concatenatePaths
 from hpp.gepetto import PathPlayer
+import random
 
 class PartPlaque:
     urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
@@ -103,6 +104,7 @@ ps = ProblemSolver(robot)
 ps.loadPlugin("manipulation-spline-gradient-based.so")
 ps.addPathOptimizer("EnforceTransitionSemantic")
 ps.addPathOptimizer("SimpleTimeParameterization")
+ps.addPathOptimizer("SimpleShortcut")
 # ps.selectConfigurationShooter('Gaussian')
 # ps.setParameter('ConfigurationShooter/Gaussian/center', 12*[0.] + [1.])
 # ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.25)
@@ -196,13 +198,12 @@ q_calib = [1.5707,
  -0.7071067811865476,
  0.7071067811865476]
 
-
-
 from tools_hpp import RosInterface
-ri = RosInterface(robot)
-q_init = ri.getCurrentConfig(q0)
-# q_init = robot.getCurrentConfig()
+# ri = RosInterface(robot)
+# q_init = ri.getCurrentConfig(q0)
+q_init = q0 #robot.getCurrentConfig()
 from tools_hpp import PathGenerator
+from hpp import Transform
 pg = PathGenerator(ps, graph)
 pg.inStatePlanner.setEdge('Loop | f')
 holes_n = 5
@@ -212,6 +213,7 @@ NB_holes_total = 44
 hidden_holes = [0,2,10,11,12,14,16,24,33]
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 isClogged = None
+ps.setTimeOutPathPlanning(10)
 
 useFOV = True
 if useFOV:
@@ -223,16 +225,26 @@ if useFOV:
                         group_camera_link = "robot/ur10e/ref_camera_link",
                         camera_link = "ref_camera_link",
                         modelConfig = lambda q : q[:6])
+    robot.setCurrentConfig(q_init)
+
+    # Add Plaque model in the field of view object
+    # to test if the plaque itself obstructs the view to the features
+    oMh, oMd = robot.hppcorba.robot.getJointsPosition(q_init, ["universe", "part/base_link"])
+    fMm = (Transform(oMh).inverse() * Transform(oMd)).toTuple()
+    ur10_fov.appendUrdfModel(PartPlaque.urdfFilename, "universe",
+        fMm, prefix="part/")
+
     feature_list = []
     for i in range(1, NB_holes_total+1):
-        feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003+0.001) )
-    featuress = [Features(feature_list, 2, 0.01, 0.1)]
+        feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003) )
+    featuress = [Features(feature_list, 2, 0.005, 0)]
     ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress, modelConfig = lambda q : q[:6])
     # Display Robot Field of view.
     #vf.guiRequest.append( (ur10_fov.loadInGui, {'self':None}))
     # Display visibility cones.
     vf.addCallback(ur10_fov_gui)
     isClogged = lambda x : ur10_fov.clogged(x, robot, featuress)
+    visibleFeatures = lambda x : ur10_fov.visible(x, robot, featuress)
 
 try:
     v = vf.createViewer()
@@ -311,3 +323,76 @@ def go():
 generateTrajectory = False
 if generateTrajectory:
     path_ids, grasp_configs = go()
+
+def findConfigWithNVisibleFeatures(N=1, IterMax=1000):
+    for i in range(IterMax):
+        q = shootRandomValidConfig()
+        n = visibleFeatures(q)[0]
+        if n == N:
+            print("Config", q, "sees", n, "features")
+            return q
+
+def shootRandomValidConfig(IterMax=100):
+    for i in range(IterMax):
+        q = robot.shootRandomConfig()
+        r = robot.rankInConfiguration['part/root_joint']
+        q[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
+        if robot.isConfigValid(q)[0]:
+            return q
+    return None
+
+def findGraspWithNVisibleFeatures(N=2, IterMax=10):
+    for j in range(IterMax):
+        to_do = holes_to_do[:]
+        random.shuffle(to_do)
+        for i in to_do:
+            q = shootRandomValidConfig()
+            res, qpg, qg = pg.generateValidConfigForHandle('part/handle_'+str(i), q_calib, [q], 50)
+            if res:
+                n = visibleFeatures(qg)[0]
+                if n == N:
+                    print("Foung grasp of hole", i, "with", N, "visible features")
+                    return i, qg
+    return None, None
+
+oMh1, oMh2, oMh3 = robot.hppcorba.robot.getJointsPosition(q_init, ["part/hole_01_link", "part/hole_40_link", "part/hole_38_link"])
+t1, t2, t3 = [np.array(m[:3]) for m in [oMh1, oMh2, oMh3] ]
+n = np.cross(t2-t1, t3-t2)
+n = n / np.linalg.norm(n) # unit normal vector of the part plane
+
+def distanceBetweenCameraAndPart(q):
+    translation_camera = np.array(robot.hppcorba.robot.getJointsPosition(q, ["ur10e/camera_color_optical_frame"])[0][:3])
+    dist = abs(np.dot(n, translation_camera - t1))
+    return dist
+
+def solve(qi, qg):
+    ps.setInitialConfig(qi)
+    ps.resetGoalConfigs()
+    ps.addGoalConfig(qg)
+    ps.solve()
+    return ps.numberPaths()-1
+
+def generatePathNVisibleFeatures(N=None, IterMax=10):
+    if N is None:
+        N = [3]
+    paths = []
+    configs = [q_init, q_calib]
+    p_id = solve(q_init, q_calib)
+    paths.append(p_id)
+    qi = q_calib
+    for n in N:
+        hole, q = findGraspWithNVisibleFeatures(N=n, IterMax=IterMax)
+        if q is None:
+            print("Failed to find grasp with", n, "visible features")
+            return paths, configs
+        ok, qpg, qg = pg.generateValidConfigForHandle('part/handle_'+str(hole), qi, [q])
+        if not ok:
+            print("Failure")
+            return paths, configs
+        configs.extend([qpg, qg, qpg])
+        p1 = solve(qi, qpg)
+        p2 = solve(qpg, qg)
+        p3 = solve(qg, qpg)
+        paths.extend([p1,p2,p3])
+        qi = qpg[:]
+    return paths, configs
