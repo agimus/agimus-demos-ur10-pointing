@@ -160,6 +160,7 @@ q0[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 # Initial configuration of AprilTagPlank
 # q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
 
+
 ## Build constraint graph
 all_handles = ps.getAvailable('handle')
 part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
@@ -183,8 +184,8 @@ for e in graph.edges.keys():
 ## Generate grasp configuration
 ri = None
 
-
-q_calib = [1.5707,
+q_calib = q0[:]
+q_calib[:13] = [1.5707,
  -3,
  2.5,
  -2.8,
@@ -217,6 +218,10 @@ ps.setTimeOutPathPlanning(10)
 
 useFOV = True
 if useFOV:
+
+    def configHPPtoFOV(q):
+        return q[:6] + q[-7:]
+
     from ur10_fov import RobotFOV, RobotFOVGuiCallback, Feature, Features
     ur10_fov = RobotFOV(urdfString = Robot.urdfString,
                         fov = np.radians((69.4, 52)),
@@ -224,7 +229,7 @@ if useFOV:
                         optical_frame = "camera_color_optical_frame",
                         group_camera_link = "robot/ur10e/ref_camera_link",
                         camera_link = "ref_camera_link",
-                        modelConfig = lambda q : q[:6])
+                        modelConfig = configHPPtoFOV)
     robot.setCurrentConfig(q_init)
 
     # Add Plaque model in the field of view object
@@ -238,7 +243,7 @@ if useFOV:
     for i in range(1, NB_holes_total+1):
         feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003) )
     featuress = [Features(feature_list, 2, 0.005, 0)]
-    ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress, modelConfig = lambda q : q[:6])
+    ur10_fov_gui = RobotFOVGuiCallback(robot, ur10_fov, featuress, modelConfig = configHPPtoFOV)
     # Display Robot Field of view.
     #vf.guiRequest.append( (ur10_fov.loadInGui, {'self':None}))
     # Display visibility cones.

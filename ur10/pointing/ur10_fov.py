@@ -146,7 +146,7 @@ class RobotFOV:
             pts.append(P + margin * u)
         return pts
 
-    def featureVisible(self, robot, feature_name, oMt, size, margin, size_margin):
+    def featureVisible(self, robot, feature_name, oMt, size, margin, size_margin, verbose=False):
         """ It assumes that updateGeometryPlacements has been called """
         idc = self.model.getFrameId(self.optical_frame)
         camera = self.model.frames[idc]
@@ -200,7 +200,8 @@ class RobotFOV:
             hppfcl.collide(go.geometry, hppfcl.Transform3f(oMg), tetahedron, Id, request, result)
             if result.isCollision():
                 if go.name != "field_of_view":
-                    print("Feature ", feature_name, " in collision with ", go.name)
+                    if verbose:
+                        print("Feature ", feature_name, " in collision with ", go.name)
                     return False
         return True
 
@@ -218,7 +219,7 @@ class RobotFOV:
             nvisible = 0
             for oMt, feature in zip(robot.hppcorba.robot.getJointsPosition(q, features.names), features.features):
                 if self.featureVisible(robot, feature.name, oMt, feature.size, features.depth_margin,
-                                   features.size_margin):
+                                   features.size_margin, verbose=verbose):
                     nvisible+=1
             if nvisible < features.n_visibility_thr:
                 _print("Not enough features visible among ", features)
@@ -237,7 +238,7 @@ class RobotFOV:
             nvisible = 0
             for oMt, feature in zip(robot.hppcorba.robot.getJointsPosition(q, features.names), features.features):
                 if self.featureVisible(robot, feature.name, oMt, feature.size, features.depth_margin,
-                                   features.size_margin):
+                                   features.size_margin, verbose=verbose):
                     nvisible+=1
             nvisibles.append(nvisible)
         return nvisibles
@@ -274,17 +275,9 @@ class RobotFOV:
             for go in gmodel.geometryObjects:
                 go.name = prefix + go.name
 
-        # igeom = self.gmodel.ngeoms
-
-        # print("id_parent_frame:", id_parent_frame)
-        # print("fMm:", fMm)
-
-        nmodel, ngmodel = pinocchio.appendModel(self.model, model, self.gmodel, gmodel, id_parent_frame, fMm)
-
-        # self.gid_field_of_view = ngmodel.getGeometryId("field_of_view")
-        # for go in gmodel.geometryObjects:
-        #     ngmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view,
-        #         ngmodel.getGeometryId(go.name)))
+        id_parent_joint = self.model.frames[id_parent_frame].parent
+        id_new_joint = self.model.addJoint(id_parent_joint, pinocchio.JointModelFreeFlyer(), pinocchio.SE3(), "part_joint")
+        nmodel, ngmodel = pinocchio.appendModel(self.model, model, self.gmodel, gmodel, id_new_joint, fMm)
 
         self.model, self.gmodel = nmodel, ngmodel
         self.data = pinocchio.Data(self.model)
