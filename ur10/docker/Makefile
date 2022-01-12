@@ -15,6 +15,7 @@ INTEL_REPO=https://github.com/IntelRealSense
 FLORENT_REPO=https://github.com/florent-lamiraux
 PAL_REPO=https://github.com/pal-robotics
 GEPETTO_GITLAB_REPO=https://gitlab.laas.fr/gepetto
+INRIA_GITLAB_REPO=https://gitlab.inria.fr/rainbow
 PYTHON_EXECUTABLE=/usr/bin/python3
 
 SRC_DIR=${DEVEL_HPP_DIR}/src
@@ -45,7 +46,7 @@ INSTALL_DOCUMENTATION=ON
 ##################################
 # {{{ Dependencies
 
-pinocchio_branch=v2.6.4
+pinocchio_branch=devel
 pinocchio_repository=${SOT_REPO}
 pinocchio_extra_flags= -DBUILD_PYTHON_INTERFACE=ON -DBUILD_UNIT_TESTS=OFF -DBUILD_WITH_COLLISION_SUPPORT=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -254,8 +255,8 @@ hpp-tools_extra_flags=
 ##################################
 # {{{ Packages for Agimus
 
-agimus_branch=master
-agimus_repository=${AGIMUS_REPO}
+agimus_branch=react
+agimus_repository=${FLORENT_REPO}
 agimus_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus-sot_branch=react
@@ -266,8 +267,9 @@ agimus_sot_msgs_branch=master
 agimus_sot_msgs_repository=${AGIMUS_REPO}
 
 agimus-hpp_branch=devel
-agimus-hpp_repository=${AGIMUS_REPO}
-agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
+agimus-hpp_repository=${FLORENT_REPO}
+agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DCLIENT_TO_GEPETTO_VIEWER=ON \
+	-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus-vision_branch=master
 agimus-vision_repository=${AGIMUS_REPO}
@@ -372,6 +374,10 @@ vision_visp_extra_flags=
 image_pipeline_repository= https://github.com/ros-perception
 image_pipeline_branch=noetic
 image_pipeline_extra_flags=
+
+react_inria_repository=${INRIA_GITLAB_REPO}
+react_inria_branch=master
+react_inria_extra_flags=
 
 # }}}
 ##################################
@@ -569,6 +575,8 @@ visp_hand2eye_calibration.configure.dep: visp_bridge.install
 image_pipeline.configure.dep: vision_opencv.install image_pipeline.checkout
 realsense-ros.configure.dep: realsense-ros.checkout
 realsense_gazebo_plugin.configure.dep: realsense_gazebo_plugin.checkout
+
+react_inria.configure.dep: visp_bridge.install react_inria.checkout
 
 # }}}
 ##################################
