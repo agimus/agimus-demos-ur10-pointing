@@ -70,13 +70,19 @@ class PathGenerator(object):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
             return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
         qpg, qg = None, None
+        res = False
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
                                       for _ in range(NrandomConfig))):
-            res, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
-            if res:
-                ok, qg = project_and_validate(edge+" | f_12", qpg, qpg)
-                if ok: break
-        return ok, qpg, qg
+            res1, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
+            if not res1: continue
+            if step >= 2:
+                res2, qg = project_and_validate(edge+" | f_12", qpg, qpg)
+                if not res2:
+                    continue
+            else:
+                res2 = True
+            res = True; break
+        return res, qpg, qg
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
         from itertools import chain
