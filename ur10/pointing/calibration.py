@@ -31,6 +31,8 @@ from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
 
 chessboardCenter = (0, 0, 1.41)
+# to aim at the center of the plaque with tubes, use
+# chessboardCenter = (0, 0, 1.)
 
 def generateValidConfigs(q, n, m, M):
     result = list()
