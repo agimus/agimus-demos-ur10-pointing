@@ -117,8 +117,8 @@ class PathGenerator(object):
         dist = self.inStatePlanner.cproblem.getDistance()
         for nTrial in range(NrandomConfig):
             res, qpg, qg = self.generateValidConfigForHandle\
-               (handle=handle, qinit=qinit, NrandomConfig=NrandomConfig,
-                isClogged=isClogged, step=step)
+               (handle=handle, qinit=qinit, qguesses = [qinit],
+                NrandomConfig=NrandomConfig, isClogged=isClogged, step=step)
             if not res:
                 continue
             # build path
