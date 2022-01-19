@@ -32,7 +32,7 @@ from hpp import Transform
 
 chessboardCenter = (0, 0, 1.41)
 # to aim at the center of the plaque with tubes, use
-# chessboardCenter = (0, 0, 1.)
+chessboardCenter = (0, 0, 1.17)
 
 def generateValidConfigs(q, n, m, M):
     result = list()

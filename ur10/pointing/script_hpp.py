@@ -98,7 +98,7 @@ robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 
 print("Robot loaded")
-robot.opticalFrame = 'xtion_rgb_optical_frame'
+robot.opticalFrame = 'camera_color_optical_frame'
 ps = ProblemSolver(robot)
 ps.loadPlugin("manipulation-spline-gradient-based.so")
 ps.addPathOptimizer("EnforceTransitionSemantic")
@@ -148,6 +148,7 @@ robot.client.manipulation.robot.insertRobotSRDFModel\
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
+q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
 # set the joint match with real robot
 q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 # q0[:3] = [0, -pi/2, pi/2]
