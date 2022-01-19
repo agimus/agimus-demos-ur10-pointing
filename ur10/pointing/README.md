@@ -16,11 +16,7 @@ robot.
    In that case, rotate the wrist to a safe state and try again.
 4. In the Installation tab, check the Safety => Robot Limits section to ensure
    the robot is in the least restricted conifiguration.
-5. All the terminals should begin with
 
-```bash
-source /root/catkin_ws/ur10_robot.sh
-```
 to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
 6. The computer connected to robot should have the Ethernet configuration as following
     IPv4 addr: 192.168.56.1
@@ -34,7 +30,7 @@ docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged
 Copy the files https://github.com/IntelRealSense/librealsense/blob/master/config/99-realsense-libusb.rules to /etc/udev/rules.d/ before connecting the camera
 
 
-##3d models
+## 3D models
 
 For Onshape, an account is needed before downloading stl file
 
@@ -68,7 +64,6 @@ ipython -i script_hpp.py
 
 3. in terminal 3
 ```bash
-source /root/setup_ld.sh
 gepetto-gui
 ```
 
@@ -83,7 +78,7 @@ roslaunch ./simulation.launch
 
 On the robot instead:
 ```bash
-roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=/root/devel/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
+roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=$DEVEL_HPP_DIR/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
 ```
 
 After ROS is launched successfully, press the "play" icon in the tablet
@@ -103,7 +98,7 @@ ri = RosInterface(robot)
 pg = PathGenerator(ps, graph)
 pg.inStatePlanner.setEdge('Loop | f')
 q_init = ri.getCurrentConfig(q0)
-p = pg.generatePathForHandle('part/handle_0', q_init, NrandomConfig=100)
+p = pg.generatePathForHandle('part/handle_1', q_init, NrandomConfig=100)
 pid = ps.client.basic.problem.addPath(p)
 ps.optimizePath(pid)
 ```
