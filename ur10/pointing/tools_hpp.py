@@ -134,10 +134,8 @@ class PathGenerator(object):
                 return p1
             # from pregrasp to grasp
             self.inStatePlanner.setEdge(edge + " | f_12")
-            try:
-                p2 = self.inStatePlanner.computePath(qpg, [qg])
-            except hpp_idl.hpp.Error as exc:
-                p2 = None
+            res, p2, msg = self.inStatePlanner.directPath(qpg, qg, True)
+            if not res: p2 = None
             if not p2: continue
             # Return concatenation
             if step < 3:
@@ -145,7 +143,7 @@ class PathGenerator(object):
             # back to pregrasp
             p3 = self.wd(p2.reverse())
             return concatenatePaths([p1, p2, p3])
-        raise RuntimeError('faile fo compute a path.')
+        raise RuntimeError('failed fo compute a path.')
 
 class RosInterface(object):
     nodeId = 0

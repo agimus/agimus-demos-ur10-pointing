@@ -66,12 +66,12 @@ class InStatePlanner:
 
     def setEdge(self, edge):
         # Get constraint of edge
-        edgeLoopFree = self.wd(self.cgraph.get(self.graph.edges[edge]))
-        self.cconstraints = self.wd(edgeLoopFree.pathConstraint())
-        self.cproblem.setPathValidation(edgeLoopFree.getPathValidation())
+        self.cedge = self.cgraph.get(self.graph.edges[edge])
+        self.cconstraints = self.cedge.pathConstraint()
+        self.cproblem.setPathValidation(self.cedge.getPathValidation())
         self.cproblem.setConstraints(self.cconstraints)
         self.cproblem.setSteeringMethod\
-            (self.wd(edgeLoopFree.getSteeringMethod()))
+            (self.wd(self.cedge.getSteeringMethod()))
         self.cproblem.filterCollisionPairs()
 
     def setReedsAndSheppSteeringMethod(self):
@@ -106,6 +106,22 @@ class InStatePlanner:
         self.roadmap = self.wd(self.ps.hppcorba.problem.createRoadmap(
                 self.wd(self.cproblem.getDistance()),
                 self.crobot))
+
+    ## Call steering method of selected edge
+    #
+    #  \param qinit, qgoal initial and end configurations
+    #  \param validate whether the path should ba validated
+    #
+    #  \todo call path projector
+    def directPath(self, qinit, qgoal, validate):
+        sm = self.wd(self.cproblem.getSteeringMethod())
+        p = sm.call(qinit, qgoal)
+        if not p: return False, None, "Steering method failed"
+        res = False; p1 = None; msg = ""
+        if validate:
+            pv = self.wd(self.cedge.getPathValidation())
+            res, p1, msg = pv.validate(p, False)
+        return res, p1, msg
 
     def computePath(self, qinit, qgoals, resetRoadmap = False):
         self.wd(self.cconstraints.getConfigProjector()).\
