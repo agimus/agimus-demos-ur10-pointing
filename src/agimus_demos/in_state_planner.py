@@ -24,7 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from CORBA import Any, TC_long
+from CORBA import Any, ORB_init, TC_long
 from hpp.corbaserver import wrap_delete
 
 class InStatePlanner:
@@ -35,13 +35,14 @@ class InStatePlanner:
         return wrap_delete(o, self.ps.client.basic._tools)
 
     def __init__(self, ps, graph):
+        self.orb = ORB_init()
         self.ps = ps
         self.graph = graph
         self.plannerType = "BiRRT*"
         self.optimizerTypes = []
         self.maxIterPathPlanning = None
         self.timeOutPathPlanning = None
-
+        self.cedge = None
         self.manipulationProblem = \
             self.wd(self.ps.hppcorba.problem.getProblem())
         self.crobot = self.manipulationProblem.robot()
@@ -64,8 +65,14 @@ class InStatePlanner:
             self.cproblem.addObstacle\
                 (self.wd(self.ps.hppcorba.problem.getObstacle(obs)))
 
+    def _deleteEdge(self):
+        if not self.cedge: return
+        ostr = self.orb.object_to_string(self.cedge)
+        self.ps.client.basic._tools.deleteServant(ostr)
+
     def setEdge(self, edge):
-        # Get constraint of edge
+        # Remove previous server to class Edge
+        self._deleteEdge()
         self.cedge = self.cgraph.get(self.graph.edges[edge])
         self.cconstraints = self.cedge.pathConstraint()
         self.cproblem.setPathValidation(self.cedge.getPathValidation())

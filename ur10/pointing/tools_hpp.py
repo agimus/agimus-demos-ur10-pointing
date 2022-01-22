@@ -114,7 +114,6 @@ class PathGenerator(object):
         # generate configurations
         edge = tool_gripper + " > " + handle
         ok = False
-        dist = self.inStatePlanner.cproblem.getDistance()
         for nTrial in range(NrandomConfig):
             res, qpg, qg = self.generateValidConfigForHandle\
                (handle=handle, qinit=qinit, qguesses = [qinit],
