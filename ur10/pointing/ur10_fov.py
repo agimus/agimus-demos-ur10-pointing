@@ -131,7 +131,6 @@ class RobotFOV:
         pts = hppfcl.StdVec_Vec3f()
         idc = self.model.getFrameId(self.optical_frame)
 
-        # C = self.data.oMf[idc].translation + 0.002*self.data.oMf[idc].rotation[:,2]
         C = self.data.oMf[idc].translation
 
         pts.append(C)
@@ -147,7 +146,7 @@ class RobotFOV:
             pts.append(P + margin * u)
         return pts
 
-    def featureVisible(self, robot, feature_name, oMt, size, margin, size_margin):
+    def featureVisible(self, robot, feature_name, oMt, size, margin, size_margin, verbose=False):
         """ It assumes that updateGeometryPlacements has been called """
         idc = self.model.getFrameId(self.optical_frame)
         camera = self.model.frames[idc]
@@ -155,8 +154,7 @@ class RobotFOV:
         if not isinstance(oMt, pinocchio.SE3):
             oMt = pinocchio.XYZQUATToSE3(oMt) # pose of the feature
 
-        # Check if the feature is in the field of view
-
+        ## Check if the feature is in the field of view
         # Axis of the camera frame
         z_c = oMc.rotation[:,2] # View axis (z-axis of the camera frame)
         x_c = oMc.rotation[:,0]
@@ -176,7 +174,7 @@ class RobotFOV:
             # Feature not in the field of view
             return False
 
-        # Checking the angle with which we see the feature
+        ## Checking the angle with which we see the feature
         # For april tags, if the angle is too steep, it is not readable
         # oMc.rotation[:,2] view axis
         # oMt.rotation[:,2] normal of the feature, on the feature side.
@@ -184,7 +182,8 @@ class RobotFOV:
         if cos_theta < self.cos_angle_thr:
             return False
 
-        pts = self.featureToTetahedronPts(oMt, size, margin + 0.002, size_margin)
+        ## Check if the view to the feature is free or clogged
+        pts = self.featureToTetahedronPts(oMt, size, margin, size_margin)
 
         tetahedron = hppfcl.BVHModelOBBRSS()
         tetahedron.beginModel(4, 5)
@@ -197,15 +196,12 @@ class RobotFOV:
         for go, oMg in zip(self.gmodel.geometryObjects, self.gdata.oMg):
             # Don't check for collision with the camera, except with the field_of_view
             if go.parentJoint == camera.parent and go.name != "field_of_view": continue
-            # if go.name.startswith("hand_safety_box"): continue #TODO ???
-            if go.name == "field_of_view":
-                request.security_margin = 0.
-            else:
-                request.security_margin = margin
             result = hppfcl.CollisionResult()
             hppfcl.collide(go.geometry, hppfcl.Transform3f(oMg), tetahedron, Id, request, result)
             if result.isCollision():
                 if go.name != "field_of_view":
+                    if verbose:
+                        print("Feature ", feature_name, " in collision with ", go.name)
                     return False
         return True
 
@@ -223,28 +219,46 @@ class RobotFOV:
             nvisible = 0
             for oMt, feature in zip(robot.hppcorba.robot.getJointsPosition(q, features.names), features.features):
                 if self.featureVisible(robot, feature.name, oMt, feature.size, features.depth_margin,
-                                   features.size_margin):
+                                   features.size_margin, verbose=verbose):
                     nvisible+=1
             if nvisible < features.n_visibility_thr:
                 _print("Not enough features visible among ", features)
                 return True
         return False
 
-    def addDriller(self, mesh, frame_name, fMm):
+    def visible (self, q, robot, featuress, verbose=False):
+        """Returns the number of visible features for the given configuration"""
+        def _print(*args):
+            if verbose:
+                print(*args)
+        # should see at least n_visibility_thr feature per featuress
+        self.updateGeometryPlacements(self.modelConfig(q))
+        nvisibles = []
+        for features in featuress:
+            nvisible = 0
+            for oMt, feature in zip(robot.hppcorba.robot.getJointsPosition(q, features.names), features.features):
+                if self.featureVisible(robot, feature.name, oMt, feature.size, features.depth_margin,
+                                   features.size_margin, verbose=verbose):
+                    nvisible+=1
+            nvisibles.append(nvisible)
+        return nvisibles
+
+    def addModel(self, name, mesh, frame_name, fMm):
         if not isinstance(fMm, pinocchio.SE3):
             fMm = pinocchio.XYZQUATToSE3(fMm)
         id_parent_frame = self.model.getFrameId(frame_name)
         parent_frame = self.model.frames[id_parent_frame]
 
-        go = pinocchio.GeometryObject("driller", id_parent_frame, parent_frame.parent,
+        go = pinocchio.GeometryObject(name, id_parent_frame, parent_frame.parent,
                 hppfcl.MeshLoader().load(hpp.rostools.retrieve_resource(mesh)),
                 parent_frame.placement * fMm)
 
         self.gmodel.addGeometryObject(go, self.model)
-        self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view, self.gmodel.ngeoms-1))
+        # self.gmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view, self.gmodel.ngeoms-1))
         self.gdata = pinocchio.GeometryData(self.gmodel)
 
     def appendUrdfModel(self, urdfFilename, frame_name, fMm, prefix = None):
+        print("appendUrdfModel")
         if not isinstance(fMm, pinocchio.SE3):
             fMm = pinocchio.XYZQUATToSE3(fMm)
         id_parent_frame = self.model.getFrameId(frame_name)
@@ -261,14 +275,9 @@ class RobotFOV:
             for go in gmodel.geometryObjects:
                 go.name = prefix + go.name
 
-        igeom = self.gmodel.ngeoms
-
-        nmodel, ngmodel = pinocchio.appendModel(self.model, model, self.gmodel, gmodel, id_parent_frame, fMm)
-
-        self.gid_field_of_view = ngmodel.getGeometryId("field_of_view")
-        for go in gmodel.geometryObjects:
-            ngmodel.addCollisionPair(pinocchio.CollisionPair(self.gid_field_of_view,
-                ngmodel.getGeometryId(go.name)))
+        id_parent_joint = self.model.frames[id_parent_frame].parent
+        id_new_joint = self.model.addJoint(id_parent_joint, pinocchio.JointModelFreeFlyer(), pinocchio.SE3(), "part_joint")
+        nmodel, ngmodel = pinocchio.appendModel(self.model, model, self.gmodel, gmodel, id_new_joint, fMm)
 
         self.model, self.gmodel = nmodel, ngmodel
         self.data = pinocchio.Data(self.model)
@@ -329,7 +338,7 @@ class RobotFOVGuiCallback:
         for names, features in zip(self.namess, self.featuress):
             oMts = self.robot.hppcorba.robot.getJointsPosition(q, [ t.name for t in features.features ])
             for name, oMt, feature in zip (names, oMts, features.features):
-                pts = [ pt.tolist() for pt in self.fov.featureToTetahedronPts(oMt, feature.size) ]
+                pts = [ pt.tolist() for pt in self.fov.featureToTetahedronPts(oMt, feature.size, features.depth_margin, features.size_margin) ]
                 gui.setCurvePoints(name, pts + pts[1:2])
                 if self.fov.featureVisible(self.robot, feature.name, oMt, feature.size, features.depth_margin,
                                        features.size_margin):
