@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
+from math import sqrt
 import hpp_idl
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 from agimus_demos import InStatePlanner
@@ -208,14 +209,20 @@ class RosInterface(object):
                 _cMo = tfBuffer.lookup_transform(cameraFrame, objectFrame,
                         rospy.Time(), rospy.Duration(timeout))
                 _cMo = _cMo.transform
+                # renormalize quaternion
+                x = _cMo.rotation.x
+                y = _cMo.rotation.y
+                z = _cMo.rotation.z
+                w = _cMo.rotation.w
+                n = sqrt(x*x+y*y+z*z+w*w)
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
                     tf2_ros.ExtrapolationException) as e:
                 print('could not get TF transform : ', e)
                 raise RuntimeError(str(e))
             cMo = XYZQUATToSE3([_cMo.translation.x, _cMo.translation.y,
-                                _cMo.translation.z, _cMo.rotation.x,
-                                _cMo.rotation.y, _cMo.rotation.z,
-                                _cMo.rotation.w])
+                                _cMo.translation.z, _cMo.rotation.x/n,
+                                _cMo.rotation.y/n, _cMo.rotation.z/n,
+                                _cMo.rotation.w/n])
             rk = self.robot.rankInConfiguration[obj + '/root_joint']
             assert self.robot.getJointConfigSize(obj + '/root_joint') == 7
             qres[rk:rk+7] = SE3ToXYZQUAT (wMc * cMo)
