@@ -47,10 +47,12 @@ def initRosNode():
         rospy.init_node("hpp", disable_signals=True)
 
 class PathGenerator(object):
-    def __init__(self, ps, graph):
+    def __init__(self, ps, graph, ri=None, qref=None):
         self.ps = ps
         self.robot = ps.robot
         self.graph = graph
+        self.ri = ri
+        self.qref = qref # this configuration stores the default pose of the part
         # store corba object corresponding to constraint graph
         self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
         # create Planner to solve path planning problems on manifolds
@@ -93,6 +95,14 @@ class PathGenerator(object):
                 return True, qres
         return False, None
 
+    def checkQInit(self, qinit):
+        if qinit is None:
+            if self.ri is None or self.qref is None:
+                raise ValueError('ri and qref must be defined')
+            else:
+                return self.ri.getCurrentConfig(self.qref)
+        return qinit
+
     # Generate a path from an initial configuration to a grasp
     #
     # param handle: name of the handle,
@@ -107,8 +117,9 @@ class PathGenerator(object):
     #              3 -> back to pregrap.
     # and going through
     # pregraps, grasp and pregrasp again for a given handle
-    def generatePathForHandle(self, handle, qinit, NrandomConfig=10,
+    def generatePathForHandle(self, handle, qinit=None, NrandomConfig=10,
                               isClogged=None, step=3):
+        qinit = self.checkQInit(qinit)
         if isClogged is None:
             isClogged = lambda x : False
         # generate configurations
@@ -143,6 +154,14 @@ class PathGenerator(object):
             p3 = self.wd(p2.reverse())
             return concatenatePaths([p1, p2, p3])
         raise RuntimeError('failed fo compute a path.')
+
+    def goTo(self, qgoal, qinit=None):
+        qinit = self.checkQInit(qinit)
+        self.inStatePlanner.setEdge("Loop | f")
+        p1 = self.inStatePlanner.computePath(qinit, [qgoal],
+                                             resetRoadmap = True)
+        return p1
+
 
 class RosInterface(object):
     nodeId = 0

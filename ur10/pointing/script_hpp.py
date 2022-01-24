@@ -145,6 +145,7 @@ print("Part loaded")
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
 
+partPose = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
@@ -154,7 +155,7 @@ q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 # q0[:3] = [0, -pi/2, pi/2]
 r = robot.rankInConfiguration['part/root_joint']
 # q0[r:r+7] = [0.0, -1.3, 0.8, 0, 0 ,1, 0]
-q0[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
+q0[r:r+7] = partPose
 # Initial configuration of AprilTagPlank
 # q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
 
@@ -162,11 +163,41 @@ q0[r:r+7] = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 all_handles = ps.getAvailable('handle')
 part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
-graph = ConstraintGraph(robot, 'graph')
+graph = ConstraintGraph(robot, 'graph2')
 factory = ConstraintGraphFactory(graph)
 factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
+
+import math
+def norm(quaternion):
+    norm_squared = 0
+    for e in quaternion:
+        norm_squared += e*e
+    return math.sqrt(norm_squared)
+
+n = norm([-0.599, -0.026, -0.069, 0.797])
+ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
+                                  [-0.012, -0.541, 1.285, -0.599/n, -0.026/n, -0.069/n, 0.797/n],
+                                  [True, True, True, True, True, True,])
+graph.createNode(['look-at-part'])
+graph.createEdge('free', 'look-at-part', 'go-look-at-part', 1, 'free')
+graph.createEdge('look-at-part', 'free', 'stop-looking-at-part', 1, 'free')
+
+graph.addConstraints(node='look-at-part',
+                     constraints = Constraints(numConstraints=['look-at-part']))
+
+ps.createTransformationConstraint('placement/complement', '','part/base_link',
+                                  [0,0,0,0, 0, 0, 1],
+                                  [True, True, True, True, True, True,])
+ps.setConstantRightHandSide('placement/complement', False)
+graph.addConstraints(edge='go-look-at-part',
+                     constraints = Constraints(numConstraints=\
+                                               ['placement/complement']))
+graph.addConstraints(edge='stop-looking-at-part',
+                     constraints = Constraints(numConstraints=\
+                                               ['placement/complement']))
+
 sm = SecurityMargins(ps, factory, ["ur10e", "part"])
 sm.setSecurityMarginBetween("ur10e", "part", 0.01)
 sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -179,10 +210,7 @@ for e in graph.edges.keys():
         graph.setWeight(e, 0)
 
 
-## Generate grasp configuration
-ri = None
-
-
+## Calibration configuration: the part should be wholly visible
 q_calib = [1.5707,
  -3,
  2.5,
@@ -197,14 +225,12 @@ q_calib = [1.5707,
  -0.7071067811865476,
  0.7071067811865476]
 
-
-
 from tools_hpp import RosInterface
 ri = RosInterface(robot)
 q_init = ri.getCurrentConfig(q0)
 # q_init = robot.getCurrentConfig()
 from tools_hpp import PathGenerator
-pg = PathGenerator(ps, graph)
+pg = PathGenerator(ps, graph, ri, q_init)
 pg.inStatePlanner.setEdge('Loop | f')
 holes_n = 5
 holes_m = 7
@@ -214,7 +240,7 @@ hidden_holes = [0,2,10,11,12,14,16,24,33]
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 isClogged = None
 
-useFOV = True
+useFOV = False
 if useFOV:
     from ur10_fov import RobotFOV, RobotFOVGuiCallback, Feature, Features
     ur10_fov = RobotFOV(urdfString = Robot.urdfString,
@@ -242,73 +268,85 @@ try:
 except:
     print("Did you launch the GUI?")
 
-def generatePath(index, qi):
-    try:
-        p = pg.generatePathForHandle('part/handle_'+str(index), qi, 50, isClogged=isClogged)
-    except:
-        print("Failure")
-        return None, None
-    if p is None:
-        print("Failure")
-        return None, None
-    pid = ps.client.basic.problem.addPath(p)
-    ps.optimizePath(pid)
-    path_id = ps.numberPaths() - 1
-    print("Path " + str(path_id))
-    newq = ps.configAtParam(path_id, ps.pathLength(path_id))
-    return path_id, newq
+def addPath(p, optimizePath=True):
+    pid = robot.client.basic.problem.addPath(p)
+    if optimizePath:
+        ps.optimizePath(pid)
+    return ps.numberPaths()-1
 
-def vprint(verbose, msg):
-    if verbose:
-        print(msg)
+def goToCalib():
+    p = pg.goTo(q_calib)
+    pid = addPath(p)
+    return pid
 
-def generatePointingPaths(concatenate=False, calib=True, verbose=False):
-    ps.resetGoalConfigs()
-    qi = q_init
+def generateLocalizationConfig(qinit, maxIter=1000):
+    for _ in range(maxIter):
+        q = robot.shootRandomConfig()
+        res, q, e = graph.generateTargetConfig('go-look-at-part', qinit, q)
+        if res:
+            return q
+    raise RuntimeError("Failed to generate target config for localization")
+
+def goToLocalization(qinit=q_init, maxIter=100):
+    q_local = generateLocalizationConfig(qinit, maxIter=maxIter)
+    p = pg.goTo(q_local)
+    pid = addPath(p)
+    return pid
+
+def localizePart(qinit=q_init):
+    q1 = ri.getCurrentConfig(qinit)
+    new_q_init = ri.getObjectPose(q1)
+    new_q_init[-4:] = [e/norm(new_q_init[-4:]) for e in new_q_init[-4:]]
+    #v(new_q_init)
+    return new_q_init
+
+def planDeburringPathForHole(hole_id, qinit):
+    p = pg.generatePathForHandle('part/handle_'+str(hole_id), qinit, 50, isClogged=isClogged)
+    if p:
+        pid = addPath(p)
+    return pid
+
+def planDeburringPaths(holes, qinit):
+    qi = ri.getCurrentConfig(qinit)
     path_ids = []
-    if calib:
-        ps.setInitialConfig(q_init)
-        ps.addGoalConfig(q_calib)
-        ps.solve()
-        ps.resetGoalConfigs()
-        path_ids.append(ps.numberPaths()-1)
-        vprint(verbose, "Path to calib config: " + str(path_ids[0]))
-        qi = q_calib
+    for hole_id in holes:
+        print(qi)
+        pid = planDeburringPathForHole(hole_id, qi)
+        qi = ps.configAtParam(pid, ps.pathLength(pid))
+        path_ids.append(pid)
+    return path_ids
 
-    grasp_configs = []
-    for index in holes_to_do:
-        vprint(verbose,"Generating path for index " + str(index))
-        path_id, newq = generatePath(index, qi)
-        if newq is not None:
-            qi = newq
-            path_ids.append(path_id)
-            grasp_configs.append(newq)
-        else:
-            vprint(verbose,"! FAILURE !")
-            return False, path_ids, grasp_configs
-    if concatenate:
-        concat(path_ids)
-    return True, path_ids, grasp_configs
+from scipy.spatial.transform import Rotation as R
 
-def concat(path_ids):
-    for i in path_ids[1:]:
-        ps.concatenatePath(path_ids[0], i)
-    return path_ids[0]
+# Create transformation constraint that will be used for generating
+# configurations behind configurations after failure
+# (useful if the robot fails in grasp position)
+ps.client.basic.problem.createTransformationR3xSO3Constraint('behind-failure', '', 'ur10e/wrist_3_link',
+                                  [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1],
+                                  [True, True, True, True, True, True,])
+ps.setConstantRightHandSide('behind-failure', False)
+ps.addNumericalConstraints('config-projector', ['behind-failure'])
 
-def visualize(path_ids):
-    for index in path_ids:
-        try:
-            pp(index)
-        except:
-            print("Cannot play path. Is the GUI launched ?")
+def moveBackwardsAfterFailure(qinit=q_init):
+    qi = ri.getCurrentConfig(qinit)
+    # Get current transform of wrist
+    t = robot.getCurrentTransformation('ur10e/wrist_3_joint')
+    trans = [t[i][3] for i in range(3)]
+    rot_matrix = [t[i][:3] for i in range(3)]
+    quat = list(R.from_matrix(rot_matrix).as_quat())
+    # Set back 10cm
+    wrist_x = np.matmul(np.array(rot_matrix), np.array([0,0,1]))
+    new_trans = list(np.array(trans) - 0.1 * wrist_x)
+    # Set the right hand side of the existing 'behind-failure' constraint
+    ps.setRightHandSideByName('behind-failure', new_trans+quat)
+    res, qgoal, err = ps.applyConstraints(qi)
+    if not res:
+        raise RuntimeError("Failed to project configuration")
+    p = pg.goTo(qgoal, qinit=qi)
+    pid = addPath(p)
+    return pid
 
-def go():
-    res = False
-    while not res:
-        res, path_ids, config_grasps = generatePathPointing()
-    return path_ids, config_grasps
-
-
-generateTrajectory = False
-if generateTrajectory:
-    path_ids, grasp_configs = go()
+def eraseAllPaths(excepted=[]):
+    for i in range(ps.numberPaths()-1,-1,-1):
+        if i not in excepted:
+            ps.erasePath(i)
