@@ -27,7 +27,7 @@
 import sys, argparse, numpy as np, time, rospy
 from math import pi, sqrt
 from hpp.corbaserver import loadServerPlugin
-from hpp.corbaserver.manipulation import Robot, loadServerPlugin, \
+from hpp.corbaserver.manipulation import Robot, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto import PathPlayer
@@ -60,20 +60,6 @@ def setRobotJointBounds(which):
     for jn, bound in jointBounds[which]:
         robot.setJointBounds(jn, bound)
 
-def planMotionToHole(ri, q0, handle):
-    if ri is None:
-        ri = RosInterface(robot)
-    q_init = ri.getCurrentConfig(q0)
-    c = ConfigGenerator(graph)
-    res, qpg, qg = c.generateValidConfigForHandle(handle, q_init,
-                                                  qguesses = [q_init,])
-    if not res:
-        raise RuntimeError("Failed to generate valid config for hole {}".
-                           format(handle))
-    ps.setInitialConfig(q_init)
-    ps.addGoalConfig(qpg)
-    ps.solve()
-
 try:
     import rospy
     Robot.urdfString = rospy.get_param('robot_description')
@@ -104,7 +90,6 @@ ps = ProblemSolver(robot)
 ps.loadPlugin("manipulation-spline-gradient-based.so")
 ps.addPathOptimizer("EnforceTransitionSemantic")
 ps.addPathOptimizer("SimpleTimeParameterization")
-ps.addPathOptimizer("SimpleShortcut")
 # ps.selectConfigurationShooter('Gaussian')
 # ps.setParameter('ConfigurationShooter/Gaussian/center', 12*[0.] + [1.])
 # ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.25)
@@ -174,14 +159,11 @@ factory.generate()
 
 import math
 def norm(quaternion):
-    norm_squared = 0
-    for e in quaternion:
-        norm_squared += e*e
-    return math.sqrt(norm_squared)
+    return math.sqrt(sum([e*e for e in quaternion]))
 
-n = norm([-0.599, -0.026, -0.069, 0.797])
+n = norm([-0.576, -0.002, 0.025, 0.817])
 ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
-                                  [-0.012, -0.541, 1.285, -0.599/n, -0.026/n, -0.069/n, 0.797/n],
+                                  [-0.126, -0.611, 1.209, -0.576/n, -0.002/n, 0.025/n, 0.817/n],
                                   [True, True, True, True, True, True,])
 graph.createNode(['look-at-part'])
 graph.createEdge('free', 'look-at-part', 'go-look-at-part', 1, 'free')
@@ -212,7 +194,6 @@ for e in graph.edges.keys():
     if e[-3:] == "_ls" and graph.getWeight(e) != -1:
         graph.setWeight(e, 0)
 
-
 ## Calibration configuration: the part should be wholly visible
 q_calib = [1.5707,
  -3,
@@ -229,6 +210,7 @@ q_calib = [1.5707,
  0.7071067811865476]
 
 from tools_hpp import RosInterface
+ri = None
 # ri = RosInterface(robot)
 # q_init = ri.getCurrentConfig(q0)
 q_init = q0 #robot.getCurrentConfig()
@@ -241,12 +223,11 @@ NB_holes = holes_n * holes_m
 NB_holes_total = 44
 hidden_holes = [0,2,10,11,12,14,16,24,33]
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
-isClogged = None
+pg.setIsClogged(None)
 ps.setTimeOutPathPlanning(10)
 
 useFOV = False
 if useFOV:
-
     def configHPPtoFOV(q):
         return q[:6] + q[-7:]
 
@@ -259,14 +240,12 @@ if useFOV:
                         camera_link = "ref_camera_link",
                         modelConfig = configHPPtoFOV)
     robot.setCurrentConfig(q_init)
-
     # Add Plaque model in the field of view object
     # to test if the plaque itself obstructs the view to the features
     oMh, oMd = robot.hppcorba.robot.getJointsPosition(q_init, ["universe", "part/base_link"])
     fMm = (Transform(oMh).inverse() * Transform(oMd)).toTuple()
     ur10_fov.appendUrdfModel(PartPlaque.urdfFilename, "universe",
         fMm, prefix="part/")
-
     feature_list = []
     for i in range(1, NB_holes_total+1):
         feature_list.append( Feature('part/hole_' + str(i).zfill(2) + '_link', 0.003) )
@@ -277,6 +256,7 @@ if useFOV:
     # Display visibility cones.
     vf.addCallback(ur10_fov_gui)
     isClogged = lambda x : ur10_fov.clogged(x, robot, featuress)
+    pg.setIsClogged(isClogged)
     visibleFeatures = lambda x : ur10_fov.visible(x, robot, featuress)
 
 try:
@@ -286,85 +266,75 @@ try:
 except:
     print("Did you launch the GUI?")
 
-def addPath(p, optimizePath=True):
-    pid = robot.client.basic.problem.addPath(p)
-    if optimizePath:
-        ps.optimizePath(pid)
-    return ps.numberPaths()-1
-
-def goToCalib():
-    p = pg.goTo(q_calib)
-    pid = addPath(p)
-    return pid
-
 def generateLocalizationConfig(qinit, maxIter=1000):
     for _ in range(maxIter):
         q = robot.shootRandomConfig()
         res, q, e = graph.generateTargetConfig('go-look-at-part', qinit, q)
+        if not res:
+            continue
+        res = robot.isConfigValid(q)
         if res:
             return q
     raise RuntimeError("Failed to generate target config for localization")
 
-def goToLocalization(qinit=q_init, maxIter=100):
-    q_local = generateLocalizationConfig(qinit, maxIter=maxIter)
-    p = pg.goTo(q_local)
-    pid = addPath(p)
-    return pid
-
-def localizePart(qinit=q_init):
-    q1 = ri.getCurrentConfig(qinit)
-    new_q_init = ri.getObjectPose(q1)
-    new_q_init[-4:] = [e/norm(new_q_init[-4:]) for e in new_q_init[-4:]]
-    #v(new_q_init)
-    return new_q_init
-
-def planDeburringPathForHole(hole_id, qinit):
-    p = pg.generatePathForHandle('part/handle_'+str(hole_id), qinit, 50, isClogged=isClogged)
-    if p:
-        pid = addPath(p)
-    return pid
-
-def planDeburringPaths(holes, qinit):
-    qi = ri.getCurrentConfig(qinit)
-    path_ids = []
-    for hole_id in holes:
-        print(qi)
-        pid = planDeburringPathForHole(hole_id, qi)
-        qi = ps.configAtParam(pid, ps.pathLength(pid))
-        path_ids.append(pid)
-    return path_ids
-
-from scipy.spatial.transform import Rotation as R
-
-# Create transformation constraint that will be used for generating
-# configurations behind configurations after failure
-# (useful if the robot fails in grasp position)
-ps.client.basic.problem.createTransformationR3xSO3Constraint('behind-failure', '', 'ur10e/wrist_3_link',
-                                  [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1],
-                                  [True, True, True, True, True, True,])
-ps.setConstantRightHandSide('behind-failure', False)
-ps.addNumericalConstraints('config-projector', ['behind-failure'])
-
-def moveBackwardsAfterFailure(qinit=q_init):
-    qi = ri.getCurrentConfig(qinit)
-    # Get current transform of wrist
-    t = robot.getCurrentTransformation('ur10e/wrist_3_joint')
-    trans = [t[i][3] for i in range(3)]
-    rot_matrix = [t[i][:3] for i in range(3)]
-    quat = list(R.from_matrix(rot_matrix).as_quat())
-    # Set back 10cm
-    wrist_x = np.matmul(np.array(rot_matrix), np.array([0,0,1]))
-    new_trans = list(np.array(trans) - 0.1 * wrist_x)
-    # Set the right hand side of the existing 'behind-failure' constraint
-    ps.setRightHandSideByName('behind-failure', new_trans+quat)
-    res, qgoal, err = ps.applyConstraints(qi)
-    if not res:
-        raise RuntimeError("Failed to project configuration")
-    p = pg.goTo(qgoal, qinit=qi)
-    pid = addPath(p)
-    return pid
+pg.setConfig("home", q_home)
+pg.setConfig("calib", q_calib)
 
 def eraseAllPaths(excepted=[]):
     for i in range(ps.numberPaths()-1,-1,-1):
         if i not in excepted:
             ps.erasePath(i)
+
+### DEMO
+
+v(q_init)
+
+import time
+time.sleep(2)
+
+pid1, q1 = pg.planToConfig("calib")
+
+# ## Compute a configuration for localization
+res = False
+while not res:
+    try:
+        q_local = generateLocalizationConfig(q_init)
+        pg.setConfig("localization", q_local)
+        pid2, q2 = pg.planToConfig("localization", qinit=q1)
+        res = True
+    except:
+        print("Failed to generate path to localization. Generating new localization configuration")
+
+q3 = pg.localizePart()
+
+# from agimus_hpp.plugin import Client as AgimusHppClient
+
+# loadServerPlugin('corbaserver', 'agimus-hpp.so')
+# cl = AgimusHppClient()
+# pcl = cl.server.getPointCloud()
+# pcl.setDistanceBounds(0.3,1.)
+# pcl.initializeRosNode('agimus_hpp_pcl', False)
+
+# def getPointCloud(timeout=30):
+#     print(f"Getting point cloud ... (timeout is {timeout})")
+#     res = pcl.getPointCloud('part/base_link', '/camera/depth/color/points',
+#                 'ur10e/camera_depth_optical_frame', .01,
+#                 ri.getCurrentConfig(q3), timeout)
+#     if res:
+#         print("Success")
+#     else:
+#         print("Failure")
+
+## Compute paths for holes.
+# demo_holes = range(NB_holes_total)
+# pids, q4 = pg.planDeburringPaths(demo_holes, qinit=q3)
+# pid, q = pg.planDeburringPathForHole(28, qinit=q2)
+# pid, qend = pg.planToConfig("home", qinit=q4)
+
+
+
+# TODO
+# - tester grasp avec rotation libre
+# - détecter les trous en collision DONE
+# - ajouter nuage de points octree
+# - prendre une vidéo de la démo

@@ -31,6 +31,7 @@ from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 from agimus_demos import InStatePlanner
 from hpp.corbaserver import wrap_delete
 from hpp.corbaserver.manipulation import CorbaClient
+from scipy.spatial.transform import Rotation as R
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -58,20 +59,38 @@ class PathGenerator(object):
         self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
         # create Planner to solve path planning problems on manifolds
         self.inStatePlanner = InStatePlanner(ps, graph)
+        self.configs = {}
+        self.isClogged = lambda x : False
+
+    # Create the constraint used to generate a new configuration
+    # behind the current one in case of failure in delicate positions
+    # (useful if the robot fails in a grasp position)
+    def createConstraint(self):
+        self.ps.client.basic.problem.createTransformationR3xSO3Constraint('behind-failure', '', 'ur10e/wrist_3_link',
+                                        [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1],
+                                        [True, True, True, True, True, True,])
+        self.ps.setConstantRightHandSide('behind-failure', False)
+        self.ps.addNumericalConstraints('config-projector', ['behind-failure'])
 
     def wd(self, o):
         return wrap_delete(o, self.ps.client.basic._tools)
 
+    def localizePart(self):
+        q1 = self.ri.getCurrentConfig(self.qref)
+        new_q_init = self.ri.getObjectPose(q1)
+        norm = sqrt(sum([e*e for e in new_q_init[-4:]]))
+        new_q_init[-4:] = [e/norm for e in new_q_init[-4:]]
+        self.qref = new_q_init
+        return new_q_init
+
     def generateValidConfigForHandle(self, handle, qinit, qguesses = [],
-                                     NrandomConfig=10, isClogged=None, step=3):
-        if isClogged is None:
-            isClogged = lambda x : False
+                                     NrandomConfig=10, step=3):
         edge = tool_gripper + " > " + handle
         ok = False
         from itertools import chain
         def project_and_validate(e, qrhs, q):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
-            return res and not isClogged(qres) and self.robot.configIsValid(qres), qres
+            return res and not self.isClogged(qres) and self.robot.configIsValid(qres), qres
         qpg, qg = None, None
         res = False
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
@@ -110,8 +129,6 @@ class PathGenerator(object):
     # param qinit: initial configuration of the system,
     # param NrandomConfig: number of trials to generate a pre-grasp
     #                      configuration,
-    # param isClogged: function that checks whether the pregrasp and grasps
-    # are clogged.
     # param step: final state of the motion:
     #              1 -> pregrasp,
     #              2 -> grasps,
@@ -119,17 +136,15 @@ class PathGenerator(object):
     # and going through
     # pregraps, grasp and pregrasp again for a given handle
     def generatePathForHandle(self, handle, qinit=None, NrandomConfig=10,
-                              isClogged=None, step=3):
+                              step=3):
         qinit = self.checkQInit(qinit)
-        if isClogged is None:
-            isClogged = lambda x : False
         # generate configurations
         edge = tool_gripper + " > " + handle
         ok = False
         for nTrial in range(NrandomConfig):
             res, qpg, qg = self.generateValidConfigForHandle\
                (handle=handle, qinit=qinit, qguesses = [qinit],
-                NrandomConfig=NrandomConfig, isClogged=isClogged, step=step)
+                NrandomConfig=NrandomConfig, step=step)
             if not res:
                 continue
             # build path
@@ -156,13 +171,101 @@ class PathGenerator(object):
             return concatenatePaths([p1, p2, p3])
         raise RuntimeError('failed fo compute a path.')
 
-    def goTo(self, qgoal, qinit=None):
+    def planTo(self, qgoal, qinit=None):
         qinit = self.checkQInit(qinit)
         self.inStatePlanner.setEdge("Loop | f")
         p1 = self.inStatePlanner.computePath(qinit, [qgoal],
                                              resetRoadmap = True)
         return p1
 
+    def addPath(self, p, optimizePath=True):
+        pid = self.robot.client.basic.problem.addPath(p)
+        if optimizePath:
+            self.ps.optimizePath(pid)
+        return self.ps.numberPaths()-1
+
+    def setConfig(self, name, q):
+        self.configs[name] = q
+
+    # param isClogged: function that checks whether the pregrasp and grasps
+    # are clogged.
+    def setIsClogged(self, isClogged):
+        if isClogged is None:
+            self.isClogged = lambda x : False
+        else:
+            self.isClogged = isClogged
+        return True
+
+    def planToConfig(self, name, qinit=None):
+        if name not in self.configs:
+            raise RuntimeError(f"{name} has not been set")
+        p = self.planTo(self.configs[name], qinit)
+        pid = self.addPath(p)
+        q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
+        print(f"Path to config: {name}, ID = {pid}")
+        return pid, q_end
+
+    def isHoleDoable(self, hole_id, qinit=None):
+        qinit = self.checkQInit(qinit)
+        handle = 'part/handle_'+str(hole_id)
+        res, qpg, qg = self.generateValidConfigForHandle(handle, qinit=qinit,
+                qguesses = [qinit], NrandomConfig=50)
+        if not res or (qg is not None and not self.robot.isConfigValid(qg)[0]):
+            return False
+        return True
+
+    def planDeburringPathForHole(self, hole_id, qinit=None):
+        qinit = self.checkQInit(qinit)
+        if not self.isHoleDoable(hole_id, qinit):
+            print(f"Hole {hole_id} is not doable")
+            return None, None
+        handle = 'part/handle_'+str(hole_id)
+        try:
+            p = self.generatePathForHandle(handle, qinit, 50)
+        except RuntimeError:
+            print(f"Failed to generate path for hole {hole_id}")
+            return None, None
+        if p:
+            pid = self.addPath(p)
+        q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
+        print(f"Path for hole: {hole_id}, ID = {pid}")
+        return pid, q_end
+
+    def planDeburringPaths(self, hole_ids, qinit=None):
+        qi = self.checkQInit(qinit)
+        path_ids = []
+        for hole_id in hole_ids:
+            pid, qi = self.planDeburringPathForHole(hole_id, qi)
+            if pid is not None:
+                path_ids.append(pid)
+        if len(path_ids) == 0:
+            return path_ids, None
+        q_end = self.ps.configAtParam(path_ids[-1], self.ps.pathLength(path_ids[-1]))
+        return path_ids, q_end
+
+    def planBackwardsAfterFailure(self,qinit=None):
+        qinit = self.checkQInit(qinit)
+        # Get current transform of wrist
+        t = self.robot.getCurrentTransformation('ur10e/wrist_3_joint')
+        trans = [t[i][3] for i in range(3)]
+        rot_matrix = [t[i][:3] for i in range(3)]
+        quat = list(R.from_matrix(rot_matrix).as_quat())
+        # Set back 10cm
+        wrist_x = np.matmul(np.array(rot_matrix), np.array([0,0,1]))
+        new_trans = list(np.array(trans) - 0.1 * wrist_x)
+        # Set the right hand side of the existing 'behind-failure' constraint
+        self.ps.setRightHandSideByName('behind-failure', new_trans+quat)
+        res, qgoal, err = self.ps.applyConstraints(qi)
+        if not res:
+            raise RuntimeError("Failed to project configuration")
+        p = self.planTo(qgoal, qinit=qi)
+        pid = self.addPath(p)
+        return pid
+
+    def generateRotatingMotion(self, hole_id, q_init=None):
+        qinit = self.checkQInit(qinit)
+        p = self.generatePathForHandle('part/handle_'+str(hole_id), qinit, 50,
+                                       step = 2)
 
 class RosInterface(object):
     nodeId = 0
