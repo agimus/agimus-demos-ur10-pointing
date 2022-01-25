@@ -1,7 +1,7 @@
 <robot name="ur10e">
   <gripper name="gripper" clearance="0.08">
-    <position xyz="0.0 0.0 0.27" xyzw="0 -0.7071068 0 0.7071068 "/>
-    <link name="ee_link"/>
+    <position xyz="0 0 0" xyzw="0 -0.7071068 0 0.7071068 "/>
+    <link name="drill_tip_tip_link"/>
 </gripper>
 
   <disable_collisions link1="shoulder_link"
