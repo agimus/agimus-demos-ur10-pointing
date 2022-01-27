@@ -34,6 +34,7 @@ from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import RosInterface, concatenatePaths
 from hpp.gepetto import PathPlayer
+from agimus_hpp.plugin import Client as AgimusHppClient
 import random
 
 class PartPlaque:
@@ -211,9 +212,9 @@ q_calib = [1.5707,
 
 from tools_hpp import RosInterface
 ri = None
-# ri = RosInterface(robot)
-# q_init = ri.getCurrentConfig(q0)
-q_init = q0 #robot.getCurrentConfig()
+ri = RosInterface(robot)
+q_init = ri.getCurrentConfig(q0)
+# q_init = q0 #robot.getCurrentConfig()
 from tools_hpp import PathGenerator
 pg = PathGenerator(ps, graph, ri, q_init)
 pg.inStatePlanner.setEdge('Loop | f')
@@ -305,25 +306,29 @@ while not res:
     except:
         print("Failed to generate path to localization. Generating new localization configuration")
 
-q3 = pg.localizePart()
+# q3 = pg.localizePart()
 
-# from agimus_hpp.plugin import Client as AgimusHppClient
+loadServerPlugin('corbaserver', 'agimus-hpp.so')
+cl = AgimusHppClient()
+pcl = cl.server.getPointCloud()
+pcl.setDistanceBounds(0.3,1.)
+point_on_plaque = [0.115, -0.7, 0.]
+plaque_normal = [0.,0.,1.]
 
-# loadServerPlugin('corbaserver', 'agimus-hpp.so')
-# cl = AgimusHppClient()
-# pcl = cl.server.getPointCloud()
-# pcl.setDistanceBounds(0.3,1.)
-# pcl.initializeRosNode('agimus_hpp_pcl', False)
+pcl.setObjectPlan('part/plaque_link', point_on_plaque, plaque_normal, 0.01)
+pcl.initializeRosNode('agimus_hpp_pcl', False)
 
-# def getPointCloud(timeout=30):
-#     print(f"Getting point cloud ... (timeout is {timeout})")
-#     res = pcl.getPointCloud('part/base_link', '/camera/depth/color/points',
-#                 'ur10e/camera_depth_optical_frame', .01,
-#                 ri.getCurrentConfig(q3), timeout)
-#     if res:
-#         print("Success")
-#     else:
-#         print("Failure")
+def getPointCloud(res=0.1, qi=q_init, timeout=30):
+    print(f"Getting point cloud ... (timeout is {timeout})")
+    res = pcl.getPointCloud('part/base_link', '/camera/depth/color/points',
+                'ur10e/camera_depth_optical_frame', res,
+                ri.getCurrentConfig(qi), timeout)
+    if res:
+        print("Success")
+    else:
+        print("Failure")
+
+# getPointCloud(res=0.1)
 
 ## Compute paths for holes.
 # demo_holes = range(NB_holes_total)
@@ -331,10 +336,6 @@ q3 = pg.localizePart()
 # pid, q = pg.planDeburringPathForHole(28, qinit=q2)
 # pid, qend = pg.planToConfig("home", qinit=q4)
 
-
-
 # TODO
 # - tester grasp avec rotation libre
-# - détecter les trous en collision DONE
 # - ajouter nuage de points octree
-# - prendre une vidéo de la démo

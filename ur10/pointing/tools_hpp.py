@@ -176,7 +176,10 @@ class PathGenerator(object):
         self.inStatePlanner.setEdge("Loop | f")
         p1 = self.inStatePlanner.computePath(qinit, [qgoal],
                                              resetRoadmap = True)
-        return p1
+        pid = self.addPath(p1)
+        q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
+        print(f"Path to config, ID = {pid}")
+        return pid, q_end
 
     def addPath(self, p, optimizePath=True):
         pid = self.robot.client.basic.problem.addPath(p)
@@ -199,11 +202,10 @@ class PathGenerator(object):
     def planToConfig(self, name, qinit=None):
         if name not in self.configs:
             raise RuntimeError(f"{name} has not been set")
-        p = self.planTo(self.configs[name], qinit)
-        pid = self.addPath(p)
-        q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
-        print(f"Path to config: {name}, ID = {pid}")
-        return pid, q_end
+        # p = self.planTo(self.configs[name], qinit)
+        # pid = self.addPath(p)
+        # q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
+        return self.planTo(self.configs[name])
 
     def isHoleDoable(self, hole_id, qinit=None):
         qinit = self.checkQInit(qinit)
