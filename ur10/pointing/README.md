@@ -39,6 +39,7 @@ Camera mount: https://cad.onshape.com/documents/e21ee279b60811091f599ced/w/b0798
 Drill Tip mount: https://cad.onshape.com/documents/c03aa227492bc9ee7d6bcfaf/w/85e5617ae64ca6b7c1ea8b43/e/44cc71f7db254f57f77def39
 
 Wires clamps: https://www.thingiverse.com/thing:3832407
+
 ## Steps to run the demo
 
 
@@ -49,7 +50,7 @@ instructions
 0. in terminal 0
 Run the following command to start realsense with ros
 ```bash
-roslaunch realsense2_camera rs_camera.launch
+roslaunch realsense2_camera rs_camera.launch filters:=pointcloud
 ```
 
 1. in terminal 1
