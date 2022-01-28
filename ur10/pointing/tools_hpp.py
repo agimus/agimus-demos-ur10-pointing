@@ -106,6 +106,41 @@ class PathGenerator(object):
             res = True; break
         return res, qpg, qg
 
+    def generateRotatingMotionForHandle(self, handle, qinit, loopEdge,
+                                        qguesses = [],
+                                        NrandomConfig=10):
+        p0 = self.generatePathForHandle(handle, qinit,
+                                       NrandomConfig=NrandomConfig, step=2)
+        if not p0:
+            print('failed to generate path to grasp')
+            return None
+        qg = p0.end()
+        q = qg[:]
+        q[5] = -3
+        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        if not res:
+            print('Failed to generate first configuration')
+            return None
+        q[5] = 3
+        res, q2, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        if not res:
+            print('Failed to generate second configuration')
+            return None
+        self.inStatePlanner.setEdge(loopEdge)
+        res, p1, msg = self.inStatePlanner.directPath(qg, q1, False)
+        if not res:
+            print('Failed to generate path from grasp to first configuration')
+            return None
+        res, p2, msg = self.inStatePlanner.directPath(q1, q2, False)
+        if not res:
+            print('Failed to generate path from first to second configuration')
+        res, p3, msg = self.inStatePlanner.directPath(q2, qg, False)
+        if not res:
+            print('Failed to generate path from second configuration to grasp')
+        p4 = p0.pathAtRank(1).reverse()
+        res = concatenatePaths([p0, p1, p2, p3, p4])
+        return res
+
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
         from itertools import chain
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
@@ -264,10 +299,6 @@ class PathGenerator(object):
         pid = self.addPath(p)
         return pid
 
-    def generateRotatingMotion(self, hole_id, q_init=None):
-        qinit = self.checkQInit(qinit)
-        p = self.generatePathForHandle('part/handle_'+str(hole_id), qinit, 50,
-                                       step = 2)
 
 class RosInterface(object):
     nodeId = 0

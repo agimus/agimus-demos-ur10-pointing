@@ -26,6 +26,7 @@
 
 import sys, argparse, numpy as np, time, rospy
 from math import pi, sqrt
+from hpp import Transform
 from hpp.corbaserver import loadServerPlugin
 from hpp.corbaserver.manipulation import Robot, \
     createContext, newProblem, ProblemSolver, ConstraintGraph, \
@@ -60,6 +61,24 @@ joint_bounds = {}
 def setRobotJointBounds(which):
     for jn, bound in jointBounds[which]:
         robot.setJointBounds(jn, bound)
+
+## Create specific constraint for a given handle
+#  Rotation is free along x axis.
+#  Note that locked part should be added to loop edge.
+def createFreeRxConstraintForHandle(handle):
+    name = gripper + ' grasps ' + handle
+    handleJoint, jMh = robot.getHandlePositionInJoint(handle)
+    gripperJoint, jMg = robot.getGripperPositionInJoint(gripper)
+    ps.client.basic.problem.createTransformationConstraint2\
+        (name, gripperJoint, handleJoint, jMg, jMh,
+         [True, True, True, False, True, True])
+    # pregrasp
+    shift = 0.13
+    M = Transform(jMg)*Transform([shift,0,0,0,0,0,1])
+    name = gripper + ' pregrasps ' + handle
+    ps.client.basic.problem.createTransformationConstraint2\
+        (name, gripperJoint, handleJoint, M.toTuple(), jMh,
+         [True, True, True, False, True, True])
 
 try:
     import rospy
@@ -152,12 +171,19 @@ q0[r:r+7] = partPose
 all_handles = ps.getAvailable('handle')
 part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
+## Create dedicated constraints for handle_9
+handle = 'part/handle_9'
+gripper = 'ur10e/gripper'
+createFreeRxConstraintForHandle(handle)
+
 graph = ConstraintGraph(robot, 'graph2')
 factory = ConstraintGraphFactory(graph)
 factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
-
+loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
+graph.addConstraints(edge = loopEdge, constraints = Constraints
+                    (numConstraints=['part/root_joint']))
 import math
 def norm(quaternion):
     return math.sqrt(sum([e*e for e in quaternion]))
