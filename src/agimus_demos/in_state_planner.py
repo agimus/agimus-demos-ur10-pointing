@@ -124,7 +124,7 @@ class InStatePlanner:
         sm = self.wd(self.cproblem.getSteeringMethod())
         p = sm.call(qinit, qgoal)
         if not p: return False, None, "Steering method failed"
-        res = False; p1 = None; msg = ""
+        res = p is not None; p1 = p; msg = ""
         if validate:
             pv = self.wd(self.cedge.getPathValidation())
             res, p1, msg = pv.validate(p, False)
