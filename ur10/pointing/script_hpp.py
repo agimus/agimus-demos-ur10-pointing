@@ -312,7 +312,7 @@ def eraseAllPaths(excepted=[]):
         if i not in excepted:
             ps.erasePath(i)
 
-### DEMO
+### DEMOff
 
 v(q_init)
 
@@ -332,19 +332,28 @@ while not res:
     except:
         print("Failed to generate path to localization. Generating new localization configuration")
 
-# q3 = pg.localizePart()
+q_init = pg.localizePart()
+v(q_init)
 
 loadServerPlugin('corbaserver', 'agimus-hpp.so')
 cl = AgimusHppClient()
 pcl = cl.server.getPointCloud()
 pcl.setDistanceBounds(0.3,1.)
-point_on_plaque = [0.115, -0.7, 0.]
-plaque_normal = [0.,0.,1.]
 
-pcl.setObjectPlan('part/plaque_link', point_on_plaque, plaque_normal, 0.01)
+# Get 3 holes on the plaque plan
+hole_1 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_41_link')[:3])
+hole_2 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_39_link')[:3])
+hole_3 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_32_link')[:3])
+# Use them to compute a normal of the plan
+plaque_normal = np.cross(hole_3-hole_1, hole_2-hole_1)
+plaque_normal = plaque_normal / np.linalg.norm(plaque_normal)
+
+pcl.setObjectPlan('universe', hole_1.tolist(), plaque_normal.tolist(), 0.02)
 pcl.initializeRosNode('agimus_hpp_pcl', False)
 
-def getPointCloud(res=0.1, qi=q_init, timeout=30):
+def getPointCloud(res=0.1, qi=None, timeout=30):
+    if qi is None:
+        qi = pg.localizePart()
     print(f"Getting point cloud ... (timeout is {timeout})")
     res = pcl.getPointCloud('part/base_link', '/camera/depth/color/points',
                 'ur10e/camera_depth_optical_frame', res,
@@ -354,14 +363,13 @@ def getPointCloud(res=0.1, qi=q_init, timeout=30):
     else:
         print("Failure")
 
-# getPointCloud(res=0.1)
+q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
+pg.setConfig("pc", q_pointcloud)
+# getPointCloud(res=0.005, qi=q_init)
 
 ## Compute paths for holes.
-# demo_holes = range(NB_holes_total)
-# pids, q4 = pg.planDeburringPaths(demo_holes, qinit=q3)
+NB_holes_to_do = 7
+demo_holes = range(NB_holes_to_do)
+# pids, qend = pg.planDeburringPaths(demo_holes)
 # pid, q = pg.planDeburringPathForHole(28, qinit=q2)
 # pid, qend = pg.planToConfig("home", qinit=q4)
-
-# TODO
-# - tester grasp avec rotation libre
-# - ajouter nuage de points octree

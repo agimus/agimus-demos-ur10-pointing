@@ -32,6 +32,7 @@ from agimus_demos import InStatePlanner
 from hpp.corbaserver import wrap_delete
 from hpp.corbaserver.manipulation import CorbaClient
 from scipy.spatial.transform import Rotation as R
+import numpy as np
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -61,6 +62,7 @@ class PathGenerator(object):
         self.inStatePlanner = InStatePlanner(ps, graph)
         self.configs = {}
         self.isClogged = lambda x : False
+        self.createConstraint()
 
     # Create the constraint used to generate a new configuration
     # behind the current one in case of failure in delicate positions
@@ -255,13 +257,13 @@ class PathGenerator(object):
         qinit = self.checkQInit(qinit)
         if not self.isHoleDoable(hole_id, qinit):
             print(f"Hole {hole_id} is not doable")
-            return None, None
+            return None, qinit
         handle = 'part/handle_'+str(hole_id)
         try:
             p = self.generatePathForHandle(handle, qinit, 50)
         except RuntimeError:
             print(f"Failed to generate path for hole {hole_id}")
-            return None, None
+            return None, qinit
         if p:
             pid = self.addPath(p)
         q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
@@ -292,13 +294,13 @@ class PathGenerator(object):
         new_trans = list(np.array(trans) - 0.1 * wrist_x)
         # Set the right hand side of the existing 'behind-failure' constraint
         self.ps.setRightHandSideByName('behind-failure', new_trans+quat)
-        res, qgoal, err = self.ps.applyConstraints(qi)
+        res, qgoal, err = self.ps.applyConstraints(qinit)
         if not res:
             raise RuntimeError("Failed to project configuration")
-        p = self.planTo(qgoal, qinit=qi)
-        pid = self.addPath(p)
-        return pid
-
+        self.ps.directPath(qinit, qgoal, False)
+        self.ps.optimizePath(self.ps.numberPaths()-1)
+        pid = self.ps.numberPaths()-1
+        return pid, self.ps.configAtParam(pid, self.ps.pathLength(pid))
 
 class RosInterface(object):
     nodeId = 0
