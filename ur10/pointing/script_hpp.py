@@ -304,8 +304,11 @@ def generateLocalizationConfig(qinit, maxIter=1000):
             return q
     raise RuntimeError("Failed to generate target config for localization")
 
+q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
+
 pg.setConfig("home", q_home)
 pg.setConfig("calib", q_calib)
+pg.setConfig("pointcloud", q_pointcloud)
 
 def eraseAllPaths(excepted=[]):
     for i in range(ps.numberPaths()-1,-1,-1):
@@ -319,39 +322,21 @@ v(q_init)
 import time
 time.sleep(2)
 
-pid1, q1 = pg.planToConfig("calib")
-
 # ## Compute a configuration for localization
-res = False
-while not res:
-    try:
-        q_local = generateLocalizationConfig(q_init)
-        pg.setConfig("localization", q_local)
-        pid2, q2 = pg.planToConfig("localization", qinit=q1)
-        res = True
-    except:
-        print("Failed to generate path to localization. Generating new localization configuration")
+def setLocalizationConfig():
+    res = False
+    while not res:
+        try:
+            q_local = generateLocalizationConfig(q_init)
+            pg.setConfig("localization", q_local)
+            pid2, q2 = pg.planToConfig("localization", qinit=q_init)
+            res = True
+        except:
+            print("Failed to generate path to localization. Generating new localization configuration")
 
-q_init = pg.localizePart()
-v(q_init)
-
-loadServerPlugin('corbaserver', 'agimus-hpp.so')
-cl = AgimusHppClient()
-pcl = cl.server.getPointCloud()
-pcl.setDistanceBounds(0.3,1.)
-
-# Get 3 holes on the plaque plan
-hole_1 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_41_link')[:3])
-hole_2 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_39_link')[:3])
-hole_3 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_32_link')[:3])
-# Use them to compute a normal of the plan
-plaque_normal = np.cross(hole_3-hole_1, hole_2-hole_1)
-plaque_normal = plaque_normal / np.linalg.norm(plaque_normal)
-
-pcl.setObjectPlan('universe', hole_1.tolist(), plaque_normal.tolist(), 0.02)
-pcl.initializeRosNode('agimus_hpp_pcl', False)
-
-def getPointCloud(res=0.1, qi=None, timeout=30):
+def getPointCloud(res=0.1, qi=None, margin=0.02, timeout=30, plan=True):
+    if plan:
+        pcl.setObjectPlan('universe', hole_1.tolist(), plaque_normal.tolist(), margin)
     if qi is None:
         qi = pg.localizePart()
     print(f"Getting point cloud ... (timeout is {timeout})")
@@ -359,17 +344,35 @@ def getPointCloud(res=0.1, qi=None, timeout=30):
                 'ur10e/camera_depth_optical_frame', res,
                 ri.getCurrentConfig(qi), timeout)
     if res:
+        graph.initialize()
         print("Success")
     else:
         print("Failure")
 
-q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
-pg.setConfig("pc", q_pointcloud)
-# getPointCloud(res=0.005, qi=q_init)
+loadServerPlugin('corbaserver', 'agimus-hpp.so')
+cl = AgimusHppClient()
+pcl = cl.server.getPointCloud()
+pcl.setDistanceBounds(0.25,1.)
+# Get 3 holes on the plaque plan
+hole_1 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_41_link')[:3])
+hole_2 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_39_link')[:3])
+hole_3 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_32_link')[:3])
+# Use them to compute a normal of the plan
+plaque_normal = np.cross(hole_3-hole_1, hole_2-hole_1)
+plaque_normal = plaque_normal / np.linalg.norm(plaque_normal)
+pcl.initializeRosNode('agimus_hpp_pcl', False)
+
+
+# q_init = pg.localizePart()
+v(q_init)
+# getPointCloud(res=0.005, qi=q_init, margin=0.02)
+
+
+pg.testGraph()
 
 ## Compute paths for holes.
 NB_holes_to_do = 7
 demo_holes = range(NB_holes_to_do)
 # pids, qend = pg.planDeburringPaths(demo_holes)
-# pid, q = pg.planDeburringPathForHole(28, qinit=q2)
+# pid, q = pg.planDeburringPathForHole(28)
 # pid, qend = pg.planToConfig("home", qinit=q4)

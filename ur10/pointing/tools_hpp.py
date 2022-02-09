@@ -62,17 +62,60 @@ class PathGenerator(object):
         self.inStatePlanner = InStatePlanner(ps, graph)
         self.configs = {}
         self.isClogged = lambda x : False
-        self.createConstraint()
+        self.graphValidation = None
+
+    def testGraph(self, verbose=False):
+        cproblem = self.ps.hppcorba.problem.getProblem()
+        cgraph = cproblem.getConstraintGraph()
+        self.graphValidation = self.ps.client.manipulation.problem.createGraphValidation()
+        self.graphValidation.validate(cgraph)
+        if verbose:
+            print(self.graphValidation.str())
 
     # Create the constraint used to generate a new configuration
     # behind the current one in case of failure in delicate positions
     # (useful if the robot fails in a grasp position)
-    def createConstraint(self):
+    def createBackwardConstraint(self):
+        self.ps.client.basic.problem.resetConstraints()
         self.ps.client.basic.problem.createTransformationR3xSO3Constraint('behind-failure', '', 'ur10e/wrist_3_link',
                                         [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1],
                                         [True, True, True, True, True, True,])
         self.ps.setConstantRightHandSide('behind-failure', False)
         self.ps.addNumericalConstraints('config-projector', ['behind-failure'])
+
+    # Generate a configuration with the camera looking
+    # horizontally at the hole at a certain distance
+    # (used to get a point cloud for the hole)
+    def getLookAtHoleConfig(self, hole_id, qinit=None):
+        qinit = self.checkQInit(qinit)
+        self.ps.client.basic.problem.resetConstraints()
+        self.ps.client.basic.problem.createTransformationR3xSO3Constraint(
+                            'look-at-hole-'+str(hole_id),
+                            'ur10e/ref_camera_link',
+                            'part/hole_' + str(hole_id).zfill(2) + '_link',
+                            [0.5, 0, 0, 0.5, -0.5, -0.5, 0.5], [0, 0, 0, 0, 0, 0, 1],
+                            [True, True, True, True, True, True,])
+        self.ps.setConstantRightHandSide('look-at-hole-'+str(hole_id), False)
+        self.ps.addNumericalConstraints('config-projector', ['look-at-hole-'+str(hole_id)])
+        t_part = self.robot.hppcorba.robot.getJointPosition('part/root_joint')
+        self.ps.client.basic.problem.createTransformationConstraint(
+                            'part-fixed',
+                            '',
+                            'part/base_link',
+                            t_part,
+                            [True, True, True, True, True, True,])
+        self.ps.setConstantRightHandSide('part-fixed', False)
+        self.ps.addNumericalConstraints('config-projector', ['part-fixed'])
+        res, qgoal, err = self.ps.applyConstraints(qinit)
+        return res, qgoal, err
+
+    def planLookAtHole(self, hole_id, qinit=None):
+        qinit = self.checkQInit(qinit)
+        res, qgoal, _ = self.getLookAtHoleConfig(hole_id, qinit)
+        if res:
+            return self.planTo(qgoal)
+        else:
+            return None, qinit
 
     def wd(self, o):
         return wrap_delete(o, self.ps.client.basic._tools)
@@ -209,6 +252,8 @@ class PathGenerator(object):
         raise RuntimeError('failed fo compute a path.')
 
     def planTo(self, qgoal, qinit=None):
+        if isinstance(qgoal, str):
+            return self.planToConfig(qgoal)
         qinit = self.checkQInit(qinit)
         self.inStatePlanner.setEdge("Loop | f")
         p1 = self.inStatePlanner.computePath(qinit, [qgoal],
@@ -245,13 +290,23 @@ class PathGenerator(object):
         return self.planTo(self.configs[name])
 
     def isHoleDoable(self, hole_id, qinit=None):
-        qinit = self.checkQInit(qinit)
-        handle = 'part/handle_'+str(hole_id)
-        res, qpg, qg = self.generateValidConfigForHandle(handle, qinit=qinit,
-                qguesses = [qinit], NrandomConfig=50)
-        if not res or (qg is not None and not self.robot.isConfigValid(qg)[0]):
+        if self.graphValidation is None:
+            raise RuntimeError("You should validate the graph first")
+        coll = self.graphValidation.getCollisionsForNode("ur10e/gripper grasps part/handle_"+str(hole_id))
+        if len(coll) == 0:
+            qinit = self.checkQInit(qinit)
+            handle = 'part/handle_'+str(hole_id)
+            res, qpg, qg = self.generateValidConfigForHandle(handle, qinit=qinit,
+                    qguesses = [qinit], NrandomConfig=50)
+            if not res or (qg is not None and not self.robot.isConfigValid(qg)[0]):
+                print("Cannot generate valid grasp config")
+                return False
+            return True
+        else:
+            print("Cannot do hole " + str(hole_id) + " because of the following collisions:")
+            for a,b in coll:
+                print("Collision between", a, "and", b)
             return False
-        return True
 
     def planDeburringPathForHole(self, hole_id, qinit=None):
         qinit = self.checkQInit(qinit)
@@ -292,7 +347,8 @@ class PathGenerator(object):
         # Set back 10cm
         wrist_x = np.matmul(np.array(rot_matrix), np.array([0,0,1]))
         new_trans = list(np.array(trans) - 0.1 * wrist_x)
-        # Set the right hand side of the existing 'behind-failure' constraint
+        # Create and set the right hand side of the y'behind-failure' constraint
+        self.createBackwardConstraint()
         self.ps.setRightHandSideByName('behind-failure', new_trans+quat)
         res, qgoal, err = self.ps.applyConstraints(qinit)
         if not res:
