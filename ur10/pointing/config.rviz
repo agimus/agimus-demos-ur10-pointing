@@ -92,7 +92,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        drill_tip_link:
+        ur10e_tool_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -139,7 +139,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        ur10e_tip_link:
+        ur10e_tool_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -439,7 +439,7 @@ Visualization Manager:
           Value: false
         collision_cylinder:
           Value: false
-        drill_tip_link:
+        ur10e_tool_link:
           Value: false
         ee_link:
           Value: false
@@ -549,7 +549,7 @@ Visualization Manager:
           Value: false
         ur10e_d435_mount_link:
           Value: false
-        ur10e_tip_link:
+        ur10e_tool_link:
           Value: false
         world:
           Value: false
@@ -682,8 +682,7 @@ Visualization Manager:
                                   camera_depth_frame:
                                     camera_depth_optical_frame:
                                       {}
-                              ur10e_tip_link:
-                                drill_tip_link:
+                              ur10e_tool_link:
                                   {}
       Update Interval: 0
       Value: true

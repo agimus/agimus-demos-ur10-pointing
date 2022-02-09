@@ -112,7 +112,7 @@
      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14159265359" />
    </joint>
 
-   <link name="ur10e_tip_link">
+   <link name="ur10e_tool_link">
      <inertial>
        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
        <mass value="0.1"/>
@@ -120,6 +120,7 @@
          iyy="0.001" iyz="0.0"
          izz="0.001" />
      </inertial>
+     <!-- Tool support -->
      <visual>
        <origin xyz="0 0 0" rpy="0 0 0" />
        <geometry>
@@ -135,51 +136,36 @@
          <mesh filename="package://agimus_demos/meshes/ur10e_tip.stl"/>
        </geometry>
      </collision>
+     <!-- wooden spike -->
+     <visual>
+       <origin xyz="0 0 0.113" rpy="0 0 0" />
+       <geometry>
+	 <cylinder radius="0.0015" length="0.25"/>
+       </geometry>
+       <material name="Pine">
+	 <color rgba="0.8 0.65 0.4 1.0"/>
+       </material>
+     </visual>
+     <collision>
+       <origin xyz="0 0 0.113" rpy="0 0 0" />
+       <geometry>
+	 <cylinder radius="0.0015" length="0.25"/>
+       </geometry>
+     </collision>
    </link>
 
-   <joint name="ur10e_tip_joint" type="fixed">
+   <joint name="ur10e_tool_joint" type="fixed">
      <parent link="ur10e_d435_mount_link"/>
-     <child link="ur10e_tip_link" />
+     <child link="ur10e_tool_link" />
      <origin xyz="$(arg tip_offset_x) $(arg tip_offset_y) 0.0" rpy="0.0 0.0 0.0" />
    </joint>
 
-   <link name="drill_tip_link">
-   <inertial>
-     <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
-     <mass value="0.1"/>
-     <inertia ixx="0.001" ixy="0.0" ixz="0.0"
-       iyy="0.001" iyz="0.0"
-       izz="0.001" />
-   </inertial>
-   <visual>
-     <origin xyz="0 0 0.113" rpy="0 0 0" />
-     <geometry>
-       <cylinder radius="0.0015" length="0.25"/>
-     </geometry>
-     <material name="Pine">
-       <color rgba="0.8 0.65 0.4 1.0"/>
-     </material>
-   </visual>
-   <collision>
-     <origin xyz="0 0 0.113" rpy="0 0 0" />
-     <geometry>
-       <cylinder radius="0.0015" length="0.25"/>
-     </geometry>
-   </collision>
-  </link>
-
-  <joint name="drill_tip_joint" type="fixed">
-     <parent link="ur10e_tip_link" />
-     <child link = "drill_tip_link" />
-     <origin xyz="0.0 0.0 0.00" rpy="0.0 0.0 0.0" />
-  </joint>
-
-   <link name="drill_tip_tip_link">
+   <link name="ur10e_tooltip_link">
    </link>
 
-  <joint name="drill_tip_tip_joint" type="fixed">
-     <parent link="drill_tip_link" />
-     <child link = "drill_tip_tip_link" />
+  <joint name="ur10e_tooltip_joint" type="fixed">
+     <parent link="ur10e_tool_link" />
+     <child link = "ur10e_tooltip_link" />
      <origin xyz="0.0 0.0 $(arg tip_offset_z)" rpy="0.0 0.0 -${pi/2.0}" />
   </joint>
 
