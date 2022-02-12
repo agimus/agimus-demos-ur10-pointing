@@ -15,6 +15,7 @@ INTEL_REPO=https://github.com/IntelRealSense
 FLORENT_REPO=https://github.com/florent-lamiraux
 PAL_REPO=https://github.com/pal-robotics
 GEPETTO_GITLAB_REPO=https://gitlab.laas.fr/gepetto
+ROB4FAM_GITLAB_REPO=https://gitlab.laas.fr/rob4fam
 INRIA_GITLAB_REPO=https://gitlab.inria.fr/rainbow
 PYTHON_EXECUTABLE=/usr/bin/python3
 
@@ -281,7 +282,7 @@ agimus-demo_extraflags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 agimus-doc_branch=master
 agimus-doc_repository=${AGIMUS_REPO}
 
-gerard-bauzil_branch=master
+gerard-bauzil_branch=devel
 gerard-bauzil_repository=${GEPETTO_GITLAB_REPO}
 
 dynamic-graph_branch=master
@@ -375,7 +376,7 @@ image_pipeline_repository= https://github.com/ros-perception
 image_pipeline_branch=noetic
 image_pipeline_extra_flags=
 
-react_inria_repository=${INRIA_GITLAB_REPO}
+react_inria_repository=${ROB4FAM_GITLAB_REPO}
 react_inria_branch=master
 react_inria_extra_flags=
 
@@ -383,7 +384,7 @@ react_inria_extra_flags=
 ##################################
 # {{{ High-level targets
 
-all: realsense-ros.install realsense_gazebo_plugin.install\
+all: realsense_gazebo_plugin.install\
 	rgbd_launch.install visp_auto_tracker.install \
 	visp_camera_calibration.install visp_hand2eye_calibration.install \
 	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
@@ -391,7 +392,7 @@ all: realsense-ros.install realsense_gazebo_plugin.install\
 	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
 	agimus-hpp.install agimus.install agimus-vision.install \
 	agimus-demos.install rviz_camera_stream.install rviz_lighting.install \
-	Universal_Robots_ROS_Driver.install
+	Universal_Robots_ROS_Driver.install react_inria.install
 
 # For test on gepgitlab, install robot packages first
 test-ci: example-robot-data.install  hpp-environments.install \
@@ -1182,6 +1183,14 @@ ur_robot_driver.install: Universal_Robots_Client_Library.install \
 
 Universal_Robots_ROS_Driver.install: controller_stopper.install \
 	ur_calibration.install ur_dashboard_msgs.install ur_robot_driver.install
+
+react_inria.checkout:
+	if [ -d react_inria ]; then \
+		echo "react_inria already checkout out."; \
+	else \
+		git clone ${GIT_QUIET} --recursive -b ${react_inria_branch} https://oauth2:glpat-LUsL1Gx9_xMFqWALBvP_@gitlab.laas.fr/rob4fam/react_inria.git; \
+	fi \
+
 
 # }}}
 
