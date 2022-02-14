@@ -171,19 +171,21 @@ q0[r:r+7] = partPose
 all_handles = ps.getAvailable('handle')
 part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
-## Create dedicated constraints for handle_9
-handle = 'part/handle_9'
+## Create dedicated constraints for handle_5
+handle = 'part/handle_5'
 gripper = 'ur10e/gripper'
-createFreeRxConstraintForHandle(handle)
+if handle in ps.getAvailable('handle'):
+    createFreeRxConstraintForHandle(handle)
 
 graph = ConstraintGraph(robot, 'graph2')
 factory = ConstraintGraphFactory(graph)
 factory.setGrippers(["ur10e/gripper",])
 factory.setObjects(["part",], [part_handles], [[]])
 factory.generate()
-loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
-graph.addConstraints(edge = loopEdge, constraints = Constraints
-                    (numConstraints=['part/root_joint']))
+if handle in ps.getAvailable('handle'):
+    loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
+    graph.addConstraints(edge = loopEdge, constraints = Constraints
+        (numConstraints=['part/root_joint']))
 import math
 def norm(quaternion):
     return math.sqrt(sum([e*e for e in quaternion]))
