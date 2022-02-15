@@ -31,6 +31,14 @@ from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
 
 
+## Hand-eye calibration
+#
+#  This class provides methods to generate configurations  where the robot
+#  camera looks at the center of a Chessboard in order to perform hand eye
+#  calibration.
+#
+#  To play the paths on the robot and collect data, see play_path.py in this
+#  directory.
 class Calibration(Parent):
     chessboardCenter = (0, 0, 1.41)
     # to aim at the center of the plaque with tubes, use
@@ -117,6 +125,19 @@ class Calibration(Parent):
         configs = self.orderConfigurations(configs)
         self.visitConfigurations(configs)
 
+
+## Hand eye calibration
+#
+# This class provides methods to perform hand eye calibration of the UR10
+# robot by
+#   - aligning the tooltip with a hole via an offset of the gripper
+#     position in the end effector frame,
+#   - recording the offset together with the part pose in the camera frame.
+#
+# Tooltip alignment is performed using the GUI started with command
+#    rosrun agimus rqt_tooltip_calibration
+class TooltipCalibration(object):
+    pass
 
 def computeCameraPose(mMe, eMc, eMc_measured):
     # we wish to compute a new position mMe_new of ref_camera_link in
