@@ -3,7 +3,7 @@
 These instructions are meant to help run the demo in simulation or an a real
 robot.
 
-## Before running the demo on the real robot
+## Turning the robot on
 
 1. Turn the robot on, click on the red button in the lower left part of the
    tablet, click on "ON", verify that the two first steps on the screen turn
@@ -23,14 +23,14 @@ to point the ROS_MASTER_URI, HPP_HOST, ROS_IP to the right configuration.
     Netmask  : 255.255.255.0
     Gateway  : 192.168.56.1
 
-7. In the docker add --privileged parameter to enable running realsense camera in docker image
+7. This needs to be done only once: In the docker add --privileged parameter to enable running realsense camera in docker image
 For example:
 docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged --net=host gitlab.laas.fr:4567/rob4fam/docker/ur10-pointing:5
 
 Copy the files https://github.com/IntelRealSense/librealsense/blob/master/config/99-realsense-libusb.rules to /etc/udev/rules.d/ before connecting the camera
 
 
-## 3D models
+## 3D models (this needs to be done only once)
 
 For Onshape, an account is needed before downloading stl file
 
@@ -42,35 +42,15 @@ Wires clamps: https://www.thingiverse.com/thing:3832407
 
 ## Steps to run the demo
 
-
 Open several tabs in a terminal, go to directory
 `/root/catkin_ws/src/agimus-demos/ur10/pointing` and type the following
 instructions
 
-0. in terminal 0
-Run the following command to start realsense with ros
-```bash
-roslaunch realsense2_camera rs_camera.launch filters:=pointcloud
-```
+0. Follow the instructions in `README-localization.md` to launch the camera node and the localizer node.
+
+### Launch the demo
 
 1. in terminal 1
-```bash
-hppcorbaserver
-```
-
-2. in terminal 2
-```bash
-ipython -i script_hpp.py
-```
-
-3. in terminal 3
-```bash
-gepetto-gui
-```
-
-### Generate a trajectory from the initial configuration
-
-4. in terminal 4
 
 In simulation:
 ```bash
@@ -82,6 +62,8 @@ On the robot instead:
 roslaunch ur_robot_driver ur10e_bringup.launch robot_ip:=192.168.56.5 robot_description_file:=$DEVEL_HPP_DIR/install/share/agimus_demos/launch/ur10_pointing_load_ur10e.launch
 ```
 
+If this fails, with the error message `Could not get fresh data package from robot`, turn off and on the robot by clicking on the green button in the lower left of the tablet, then on `OFF`, then `ON` then `START` and try to run the robot bringup again.
+
 After ROS is launched successfully, press the "play" icon in the tablet
 and select "Play from beginning Robot Program". In the terminal you should
 read
@@ -89,42 +71,64 @@ read
 [ INFO] [1634638700.530389390]: Robot connected to reverse interface. Ready to receive control commands.
 ```
 
-After press "play", open new terminal at /agimus-demos/ur10/pointing, run the script stop-controllers.py to stop the conflicting controllers.
-
-5. in terminal 2
-```python
-from tools_hpp import PathGenerator, RosInterface
-
-ri = RosInterface(robot)
-pg = PathGenerator(ps, graph)
-pg.inStatePlanner.setEdge('Loop | f')
-q_init = ri.getCurrentConfig(q0)
-p = pg.generatePathForHandle('part/handle_1', q_init, NrandomConfig=100)
-pid = ps.client.basic.problem.addPath(p)
-ps.optimizePath(pid)
+2. After press "play", open new terminal (terminal 2) at `/agimus-demos/ur10/pointing` and run:
+```bash
+python stop-controllers.py
 ```
 
-6. in terminal 5
+3. in terminal 2:
 ```bash
 roslaunch ./demo.launch simulation:=true
 ```
-or
+or on the real robot:
 ```bash
 roslaunch ./demo.launch
 ```
 On the robot, after the file is run, the robot should have a lock sound of the joint.
 
-7. in terminal 6
+### Generate a path and execute it
+
+4. In terminal 3
+```bash
+hppcorbaserver
+```
+
+5. In terminal 4
+```bash
+gepetto-gui
+```
+
+6. In terminal 5
+```bash
+ipython -i script_hpp.py
+```
+
+7. in terminal 5, generate a path, for example:
+```python
+pid, q = pg.planDeburringPathForHole(1)
+```
+
+8. In gepetto-gui (terminal 4), verify that the path looks ok.
+
+9. Play the path: in a new terminal (terminal 6), run
+```bash
+rosrun agimus rqt_path_execution
+```
+then select the path id and click `execute path`. If you choose level 3, the robot will stop along the path and you will have to click `execute next step` each time.
+
+### Record the traces
+
+9. in terminal 7
 ``` bash
 rostopic pub /hpp/target/position dynamic_graph_bridge_msgs/Vector [0,0,0,0,0,0]
 ```
 
-8. in terminal 7
+10. in terminal 8
 ``` bash
 rostopic pub /hpp/target/velocity dynamic_graph_bridge_msgs/Vector [0,0,0,0,0,0]
 ```
 
-9. in terminal 8
+11. in terminal 9
 ```bash
 rosrun dynamic_graph_bridge run_command
 ```
@@ -154,15 +158,9 @@ robot.addTrace('ur_dynamic', 'position')
 robot.startTracer()
 ```
 
+12. Play the path using rqt_path_execution (step 8.)
 
-10. in terminal 6
-stop rostopic pub commands in terminal 6 and 7, then
-```bash
-rosrun agimus rqt_path_execution
-```
-then select path 2 and type execute path.
-
-11. in terminal 8, once the path is executed;
+13. in terminal 9, once the path is executed:
 ```
 python
 robot.stopTracer()
