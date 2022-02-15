@@ -33,11 +33,7 @@ from hpp.corbaserver.manipulation import Robot, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
-from tools_hpp import RosInterface, concatenatePaths
-from hpp.gepetto import PathPlayer
-from tools_hpp import RosInterface
-from tools_hpp import PathGenerator
-import random
+from tools_hpp import RosInterface, PathGenerator, eraseAllPaths
 
 UseAprilTagPlank = False
 useFOV = False
@@ -158,7 +154,6 @@ q_calib = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.707106
 ## PointCloud position : the part should fit the field of view
 q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
 
-
 def norm(quaternion):
     return sqrt(sum([e*e for e in quaternion]))
 
@@ -186,17 +181,20 @@ def createConstraintGraph():
     all_handles = ps.getAvailable('handle')
     part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
-    ## Create dedicated constraints for handle_5
-    handle = 'part/handle_5'
-    if handle in ps.getAvailable('handle'):
+    ## Create dedicated constraints for the rotating motion while grasping
+    for handle in all_handles:
         createFreeRxConstraintForHandle(handle)
+
+    # handle = 'part/handle_05'
+    # if handle in ps.getAvailable('handle'):
+    #     createFreeRxConstraintForHandle(handle)
 
     graph = ConstraintGraph(robot, 'graph2')
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["ur10e/gripper",])
     factory.setObjects(["part",], [part_handles], [[]])
     factory.generate()
-    if handle in ps.getAvailable('handle'):
+    for handle in all_handles:
         loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
         graph.addConstraints(edge = loopEdge, constraints = Constraints
             (numConstraints=['part/root_joint']))
@@ -239,7 +237,7 @@ ri = None
 ri = RosInterface(robot)
 q_init = ri.getCurrentConfig(q0)
 # q_init = q0 #robot.getCurrentConfig()
-pg = PathGenerator(ps, graph, ri, q_init)
+pg = PathGenerator(ps, graph, ri, v, q_init)
 pg.inStatePlanner.setEdge('Loop | f')
 pg.testGraph()
 NB_holes = 5 * 7
@@ -291,10 +289,6 @@ try:
 except:
     print("Did you launch the GUI?")
 
-def eraseAllPaths(excepted=[]):
-    for i in range(ps.numberPaths()-1,-1,-1):
-        if i not in excepted:
-            ps.erasePath(i)
 
 ### DEMO
 
@@ -315,9 +309,3 @@ def doDemo():
     NB_holes_to_do = 7
     demo_holes = range(NB_holes_to_do)
     pids, qend = pg.planDeburringPaths(demo_holes)
-
-# TODO
-# - fix filtering point cloud (3 points)
-# - changer noms des handles
-# - contraintes pour rotating motion sur toutes les handles
-# - fonction sauver données pour calibration
