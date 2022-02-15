@@ -35,8 +35,12 @@ from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import RosInterface, concatenatePaths
 from hpp.gepetto import PathPlayer
-from agimus_hpp.plugin import Client as AgimusHppClient
+from tools_hpp import RosInterface
+from tools_hpp import PathGenerator
 import random
+
+UseAprilTagPlank = False
+useFOV = False
 
 class PartPlaque:
     urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
@@ -61,24 +65,6 @@ joint_bounds = {}
 def setRobotJointBounds(which):
     for jn, bound in jointBounds[which]:
         robot.setJointBounds(jn, bound)
-
-## Create specific constraint for a given handle
-#  Rotation is free along x axis.
-#  Note that locked part should be added to loop edge.
-def createFreeRxConstraintForHandle(handle):
-    name = gripper + ' grasps ' + handle
-    handleJoint, jMh = robot.getHandlePositionInJoint(handle)
-    gripperJoint, jMg = robot.getGripperPositionInJoint(gripper)
-    ps.client.basic.problem.createTransformationConstraint2\
-        (name, gripperJoint, handleJoint, jMg, jMh,
-         [True, True, True, False, True, True])
-    # pregrasp
-    shift = 0.13
-    M = Transform(jMg)*Transform([shift,0,0,0,0,0,1])
-    name = gripper + ' pregrasps ' + handle
-    ps.client.basic.problem.createTransformationConstraint2\
-        (name, gripperJoint, handleJoint, M.toTuple(), jMh,
-         [True, True, True, False, True, True])
 
 try:
     import rospy
@@ -142,9 +128,10 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
 ## Load P72
 #[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
-Part = PartPlaque
-# Part = AprilTagPlank
-
+if UseAprilTagPlank:
+    Part = AprilTagPlank
+else:
+    Part = PartPlaque
 vf.loadRobotModel (Part, "part")
 robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
 print("Part loaded")
@@ -156,106 +143,115 @@ partPose = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
-q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
 # set the joint match with real robot
 q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
-# q0[:3] = [0, -pi/2, pi/2]
 r = robot.rankInConfiguration['part/root_joint']
-# q0[r:r+7] = [0.0, -1.3, 0.8, 0, 0 ,1, 0]
-q0[r:r+7] = partPose
-# Initial configuration of AprilTagPlank
-# q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
+if UseAprilTagPlank:
+    # Initial configuration of AprilTagPlank
+    q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
+else:
+    q0[r:r+7] = partPose
+## Home configuration
+q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
+## Calibration configuration: the part should be wholly visible
+q_calib = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
+## PointCloud position : the part should fit the field of view
+q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
 
+
+def norm(quaternion):
+    return sqrt(sum([e*e for e in quaternion]))
+
+gripper = 'ur10e/gripper'
+## Create specific constraint for a given handle
+#  Rotation is free along x axis.
+#  Note that locked part should be added to loop edge.
+def createFreeRxConstraintForHandle(handle):
+    name = gripper + ' grasps ' + handle
+    handleJoint, jMh = robot.getHandlePositionInJoint(handle)
+    gripperJoint, jMg = robot.getGripperPositionInJoint(gripper)
+    ps.client.basic.problem.createTransformationConstraint2\
+        (name, gripperJoint, handleJoint, jMg, jMh,
+         [True, True, True, False, True, True])
+    # pregrasp
+    shift = 0.13
+    M = Transform(jMg)*Transform([shift,0,0,0,0,0,1])
+    name = gripper + ' pregrasps ' + handle
+    ps.client.basic.problem.createTransformationConstraint2\
+        (name, gripperJoint, handleJoint, M.toTuple(), jMh,
+         [True, True, True, False, True, True])
 
 ## Build constraint graph
-all_handles = ps.getAvailable('handle')
-part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
+def createConstraintGraph():
+    all_handles = ps.getAvailable('handle')
+    part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
-## Create dedicated constraints for handle_5
-handle = 'part/handle_5'
-gripper = 'ur10e/gripper'
-if handle in ps.getAvailable('handle'):
-    createFreeRxConstraintForHandle(handle)
+    ## Create dedicated constraints for handle_5
+    handle = 'part/handle_5'
+    if handle in ps.getAvailable('handle'):
+        createFreeRxConstraintForHandle(handle)
 
-graph = ConstraintGraph(robot, 'graph2')
-factory = ConstraintGraphFactory(graph)
-factory.setGrippers(["ur10e/gripper",])
-factory.setObjects(["part",], [part_handles], [[]])
-factory.generate()
-if handle in ps.getAvailable('handle'):
-    loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
-    graph.addConstraints(edge = loopEdge, constraints = Constraints
-        (numConstraints=['part/root_joint']))
-import math
-def norm(quaternion):
-    return math.sqrt(sum([e*e for e in quaternion]))
+    graph = ConstraintGraph(robot, 'graph2')
+    factory = ConstraintGraphFactory(graph)
+    factory.setGrippers(["ur10e/gripper",])
+    factory.setObjects(["part",], [part_handles], [[]])
+    factory.generate()
+    if handle in ps.getAvailable('handle'):
+        loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
+        graph.addConstraints(edge = loopEdge, constraints = Constraints
+            (numConstraints=['part/root_joint']))
 
-n = norm([-0.576, -0.002, 0.025, 0.817])
-ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
-                                  [-0.126, -0.611, 1.209, -0.576/n, -0.002/n, 0.025/n, 0.817/n],
-                                  [True, True, True, True, True, True,])
-graph.createNode(['look-at-part'])
-graph.createEdge('free', 'look-at-part', 'go-look-at-part', 1, 'free')
-graph.createEdge('look-at-part', 'free', 'stop-looking-at-part', 1, 'free')
+    n = norm([-0.576, -0.002, 0.025, 0.817])
+    ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
+                                    [-0.126, -0.611, 1.209, -0.576/n, -0.002/n, 0.025/n, 0.817/n],
+                                    [True, True, True, True, True, True,])
+    graph.createNode(['look-at-part'])
+    graph.createEdge('free', 'look-at-part', 'go-look-at-part', 1, 'free')
+    graph.createEdge('look-at-part', 'free', 'stop-looking-at-part', 1, 'free')
 
-graph.addConstraints(node='look-at-part',
-                     constraints = Constraints(numConstraints=['look-at-part']))
+    graph.addConstraints(node='look-at-part',
+                        constraints = Constraints(numConstraints=['look-at-part']))
+    ps.createTransformationConstraint('placement/complement', '','part/base_link',
+                                    [0,0,0,0, 0, 0, 1],
+                                    [True, True, True, True, True, True,])
+    ps.setConstantRightHandSide('placement/complement', False)
+    graph.addConstraints(edge='go-look-at-part',
+                        constraints = Constraints(numConstraints=\
+                                                ['placement/complement']))
+    graph.addConstraints(edge='stop-looking-at-part',
+                        constraints = Constraints(numConstraints=\
+                                                ['placement/complement']))
+    sm = SecurityMargins(ps, factory, ["ur10e", "part"])
+    sm.setSecurityMarginBetween("ur10e", "part", 0.01)
+    sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
+    sm.defaultMargin = 0.01
+    sm.apply()
+    graph.initialize()
+    # Set weights of levelset edges to 0
+    for e in graph.edges.keys():
+        if e[-3:] == "_ls" and graph.getWeight(e) != -1:
+            graph.setWeight(e, 0)
+    return graph
 
-ps.createTransformationConstraint('placement/complement', '','part/base_link',
-                                  [0,0,0,0, 0, 0, 1],
-                                  [True, True, True, True, True, True,])
-ps.setConstantRightHandSide('placement/complement', False)
-graph.addConstraints(edge='go-look-at-part',
-                     constraints = Constraints(numConstraints=\
-                                               ['placement/complement']))
-graph.addConstraints(edge='stop-looking-at-part',
-                     constraints = Constraints(numConstraints=\
-                                               ['placement/complement']))
+graph = createConstraintGraph()
 
-sm = SecurityMargins(ps, factory, ["ur10e", "part"])
-sm.setSecurityMarginBetween("ur10e", "part", 0.01)
-sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
-sm.defaultMargin = 0.01
-sm.apply()
-graph.initialize()
-# Set weights of levelset edges to 0
-for e in graph.edges.keys():
-    if e[-3:] == "_ls" and graph.getWeight(e) != -1:
-        graph.setWeight(e, 0)
-
-## Calibration configuration: the part should be wholly visible
-q_calib = [1.5707,
- -3,
- 2.5,
- -2.8,
- -1.57,
- 0.0,
- 1.3,
- 0.0,
- 0.0,
- 0.0,
- 0.0,
- -0.7071067811865476,
- 0.7071067811865476]
-
-from tools_hpp import RosInterface
 ri = None
 ri = RosInterface(robot)
 q_init = ri.getCurrentConfig(q0)
 # q_init = q0 #robot.getCurrentConfig()
-from tools_hpp import PathGenerator
 pg = PathGenerator(ps, graph, ri, q_init)
 pg.inStatePlanner.setEdge('Loop | f')
-holes_n = 5
-holes_m = 7
-NB_holes = holes_n * holes_m
+pg.testGraph()
+NB_holes = 5 * 7
 NB_holes_total = 44
 hidden_holes = [0,2,10,11,12,14,16,24,33]
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 pg.setIsClogged(None)
 ps.setTimeOutPathPlanning(10)
+pg.setConfig("home", q_home)
+pg.setConfig("calib", q_calib)
+pg.setConfig("pointcloud", q_pointcloud)
 
-useFOV = False
 if useFOV:
     def configHPPtoFOV(q):
         return q[:6] + q[-7:]
@@ -295,86 +291,33 @@ try:
 except:
     print("Did you launch the GUI?")
 
-def generateLocalizationConfig(qinit, maxIter=1000):
-    for _ in range(maxIter):
-        q = robot.shootRandomConfig()
-        res, q, e = graph.generateTargetConfig('go-look-at-part', qinit, q)
-        if not res:
-            continue
-        res = robot.isConfigValid(q)
-        if res:
-            return q
-    raise RuntimeError("Failed to generate target config for localization")
-
-q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
-
-pg.setConfig("home", q_home)
-pg.setConfig("calib", q_calib)
-pg.setConfig("pointcloud", q_pointcloud)
-
 def eraseAllPaths(excepted=[]):
     for i in range(ps.numberPaths()-1,-1,-1):
         if i not in excepted:
             ps.erasePath(i)
 
-### DEMOff
+### DEMO
 
-v(q_init)
+def getDoableHoles():
+    doableHoles = []
+    non_doableHoles = []
+    pg.testGraph()
+    for i in range(NB_holes_total):
+        if pg.isHoleDoable(i):
+            doableHoles.append(i)
+        else:
+            non_doableHoles.append(i)
+    print("Doable holes : ", doableHoles)
+    print("Non doable holes : ", non_doableHoles)
+    return doableHoles, non_doableHoles
 
-import time
-time.sleep(2)
+def doDemo():
+    NB_holes_to_do = 7
+    demo_holes = range(NB_holes_to_do)
+    pids, qend = pg.planDeburringPaths(demo_holes)
 
-# ## Compute a configuration for localization
-def setLocalizationConfig():
-    res = False
-    while not res:
-        try:
-            q_local = generateLocalizationConfig(q_init)
-            pg.setConfig("localization", q_local)
-            pid2, q2 = pg.planToConfig("localization", qinit=q_init)
-            res = True
-        except:
-            print("Failed to generate path to localization. Generating new localization configuration")
-
-def getPointCloud(res=0.1, qi=None, margin=0.02, timeout=30, plan=True):
-    if plan:
-        pcl.setObjectPlan('universe', hole_1.tolist(), plaque_normal.tolist(), margin)
-    if qi is None:
-        qi = pg.localizePart()
-    print(f"Getting point cloud ... (timeout is {timeout})")
-    res = pcl.getPointCloud('part/base_link', '/camera/depth/color/points',
-                'ur10e/camera_depth_optical_frame', res,
-                ri.getCurrentConfig(qi), timeout)
-    if res:
-        graph.initialize()
-        print("Success")
-    else:
-        print("Failure")
-
-loadServerPlugin('corbaserver', 'agimus-hpp.so')
-cl = AgimusHppClient()
-pcl = cl.server.getPointCloud()
-pcl.setDistanceBounds(0.25,1.)
-# Get 3 holes on the plaque plan
-hole_1 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_41_link')[:3])
-hole_2 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_39_link')[:3])
-hole_3 = np.array(robot.hppcorba.robot.getJointPosition('part/hole_32_link')[:3])
-# Use them to compute a normal of the plan
-plaque_normal = np.cross(hole_3-hole_1, hole_2-hole_1)
-plaque_normal = plaque_normal / np.linalg.norm(plaque_normal)
-pcl.initializeRosNode('agimus_hpp_pcl', False)
-
-
-# q_init = pg.localizePart()
-v(q_init)
-# getPointCloud(res=0.005, qi=q_init, margin=0.02)
-
-
-pg.testGraph()
-
-## Compute paths for holes.
-NB_holes_to_do = 7
-demo_holes = range(NB_holes_to_do)
-# pids, qend = pg.planDeburringPaths(demo_holes)
-# pid, q = pg.planDeburringPathForHole(28)
-# pid, qend = pg.planToConfig("home", qinit=q4)
+# TODO
+# - fix filtering point cloud (3 points)
+# - changer noms des handles
+# - contraintes pour rotating motion sur toutes les handles
+# - fonction sauver données pour calibration

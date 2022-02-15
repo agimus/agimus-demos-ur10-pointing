@@ -25,14 +25,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
-from math import sqrt
+from math import sqrt, pi
 import hpp_idl
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 from agimus_demos import InStatePlanner
 from hpp.corbaserver import wrap_delete
-from hpp.corbaserver.manipulation import CorbaClient
-from scipy.spatial.transform import Rotation as R
+from hpp.corbaserver import loadServerPlugin
+from agimus_hpp.plugin import Client as AgimusHppClient
 import numpy as np
+from scipy.spatial.transform import Rotation as R
+
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -63,6 +65,46 @@ class PathGenerator(object):
         self.configs = {}
         self.isClogged = lambda x : False
         self.graphValidation = None
+        self.setPointCloud()
+
+    def setPointCloud(self, lower_distance=0.25, upper_distance=1):
+        loadServerPlugin('corbaserver', 'agimus-hpp.so')
+        cl = AgimusHppClient()
+        self.pcl = cl.server.getPointCloud()
+        self.pcl.setDistanceBounds(lower_distance,upper_distance)
+        self.pcl.initializeRosNode('agimus_hpp_pcl', False)
+
+    def setObjectPlan(self):
+        # Get 3 holes on the plaque plan, in the object frame (part/root_joint)
+        hole_1 = self.robot.getHandlePositionInJoint('part/handle_40')[1]
+        hole_2 = self.robot.getHandlePositionInJoint('part/handle_06')[1]
+        hole_3 = self.robot.getHandlePositionInJoint('part/handle_31')[1]
+        self.pcl.setObjectPlan(hole_1, hole_2, hole_3)
+
+    def setObjectPlanMargin(self, margin):
+        self.pcl.setObjectPlanMargin(margin)
+
+    def buildPointCloud(self, res=0.005, qi=None, margin=0.015, timeout=30,
+                  plan=True, newPointCloud=True):
+        qi = self.checkQInit(qi)
+        self.robot.setCurrentConfig(qi)
+        if plan:
+            self.setObjectPlan()
+            self.setObjectPlanMargin(margin)
+        else:
+            self.pcl.removeObjectPlan()
+        print(f"Getting point cloud ... (timeout is {timeout})")
+        result = self.pcl.buildPointCloud('part/base_link', '/camera/depth/color/points',
+                        'ur10e/camera_depth_optical_frame', res,
+                        qi, timeout, newPointCloud)
+        if result:
+            self.graph.initialize()
+            self.testGraph()
+            print("Success")
+            return True
+        else:
+            print("Failure")
+            return False
 
     def testGraph(self, verbose=False):
         cproblem = self.ps.hppcorba.problem.getProblem()
@@ -86,17 +128,9 @@ class PathGenerator(object):
     # Generate a configuration with the camera looking
     # horizontally at the hole at a certain distance
     # (used to get a point cloud for the hole)
-    def getLookAtHoleConfig(self, hole_id, qinit=None):
+    def getLookAtHoleConfig(self, hole_id, qinit=None, distance=0.5):
         qinit = self.checkQInit(qinit)
         self.ps.client.basic.problem.resetConstraints()
-        self.ps.client.basic.problem.createTransformationR3xSO3Constraint(
-                            'look-at-hole-'+str(hole_id),
-                            'ur10e/ref_camera_link',
-                            'part/hole_' + str(hole_id).zfill(2) + '_link',
-                            [0.5, 0, 0, 0.5, -0.5, -0.5, 0.5], [0, 0, 0, 0, 0, 0, 1],
-                            [True, True, True, True, True, True,])
-        self.ps.setConstantRightHandSide('look-at-hole-'+str(hole_id), False)
-        self.ps.addNumericalConstraints('config-projector', ['look-at-hole-'+str(hole_id)])
         t_part = self.robot.hppcorba.robot.getJointPosition('part/root_joint')
         self.ps.client.basic.problem.createTransformationConstraint(
                             'part-fixed',
@@ -106,12 +140,20 @@ class PathGenerator(object):
                             [True, True, True, True, True, True,])
         self.ps.setConstantRightHandSide('part-fixed', False)
         self.ps.addNumericalConstraints('config-projector', ['part-fixed'])
+        self.ps.client.basic.problem.createTransformationR3xSO3Constraint(
+                            'look-at-hole-'+str(hole_id),
+                            'ur10e/ref_camera_link',
+                            'part/hole_' + str(hole_id).zfill(2) + '_link',
+                            [distance, 0, 0, 0.5, -0.5, -0.5, 0.5], [0, 0, 0, 0, 0, 0, 1],
+                            [True, True, True, True, True, True,])
+        self.ps.setConstantRightHandSide('look-at-hole-'+str(hole_id), False)
+        self.ps.addNumericalConstraints('config-projector', ['look-at-hole-'+str(hole_id)])
         res, qgoal, err = self.ps.applyConstraints(qinit)
         return res, qgoal, err
 
-    def planLookAtHole(self, hole_id, qinit=None):
+    def planLookAtHole(self, hole_id, qinit=None, distance=0.5):
         qinit = self.checkQInit(qinit)
-        res, qgoal, _ = self.getLookAtHoleConfig(hole_id, qinit)
+        res, qgoal, _ = self.getLookAtHoleConfig(hole_id, qinit, distance)
         if res:
             return self.planTo(qgoal)
         else:
@@ -161,29 +203,56 @@ class PathGenerator(object):
             return None
         qg = p0.end()
         q = qg[:]
-        q[5] = -3
+        q[5] = -pi
+        configs = []
         res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
         if not res:
             print('Failed to generate first configuration')
             return None
-        q[5] = 3
-        res, q2, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        configs.append(q1[:])
+        q[5] = -pi/2
+        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        if not res:
+            print('Failed to generate first configuration')
+            return None
+        configs.append(q1[:])
+        q[5] = 0
+        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        if not res:
+            print('Failed to generate first configuration')
+            return None
+        configs.append(q1[:])
+        q[5] = pi/2
+        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
+        if not res:
+            print('Failed to generate first configuration')
+            return None
+        configs.append(q1[:])
+        q[5] = pi
+        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
         if not res:
             print('Failed to generate second configuration')
             return None
+        configs.append(q1[:])
         self.inStatePlanner.setEdge(loopEdge)
-        res, p1, msg = self.inStatePlanner.directPath(qg, q1, False)
-        if not res:
-            print('Failed to generate path from grasp to first configuration')
-            return None
-        res, p2, msg = self.inStatePlanner.directPath(q1, q2, False)
-        if not res:
-            print('Failed to generate path from first to second configuration')
-        res, p3, msg = self.inStatePlanner.directPath(q2, qg, False)
-        if not res:
-            print('Failed to generate path from second configuration to grasp')
-        p4 = p0.pathAtRank(1).reverse()
-        res = concatenatePaths([p0, p1, p2, p3, p4])
+
+        paths = []
+        qi = qg
+        for q1 in configs+[qg]:
+            res, p1, msg = self.inStatePlanner.directPath(qi, q1, False)
+            if not res:
+                print(f'Failed to generate path from {qi} to {q1}')
+                return None
+            qi = q1[:]
+            paths.append(p1)
+        # res, p2, msg = self.inStatePlanner.directPath(q1, q2, False)
+        # if not res:
+        #     print('Failed to generate path from first to second configuration')
+        # res, p3, msg = self.inStatePlanner.directPath(q2, qg, False)
+        # if not res:
+        #     print('Failed to generate path from second configuration to grasp')
+        p_end = p0.pathAtRank(1).reverse()
+        res = concatenatePaths([p0] + paths + [p_end])
         return res
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
@@ -202,6 +271,29 @@ class PathGenerator(object):
             else:
                 return self.ri.getCurrentConfig(self.qref)
         return qinit
+
+    def generateLocalizationConfig(self, qinit, maxIter=1000):
+        for _ in range(maxIter):
+            q = self.robot.shootRandomConfig()
+            res, q, e = self.graph.generateTargetConfig('go-look-at-part', qinit, q)
+            if not res:
+                continue
+            res = self.robot.isConfigValid(q)
+            if res:
+                return q
+        raise RuntimeError("Failed to generate target config for localization")
+
+    def setLocalizationConfig(self):
+        res = False
+        while not res:
+            try:
+                q_local = self.generateLocalizationConfig(qinit=self.q_ref)
+                self.setConfig("localization", q_local)
+                pid2, q2 = self.planToConfig("localization", qinit=self.q_ref)
+                res = True
+            except:
+                print("Failed to generate path to localization. Generating new localization configuration")
+
 
     # Generate a path from an initial configuration to a grasp
     #
@@ -337,7 +429,7 @@ class PathGenerator(object):
         q_end = self.ps.configAtParam(path_ids[-1], self.ps.pathLength(path_ids[-1]))
         return path_ids, q_end
 
-    def planBackwardsAfterFailure(self,qinit=None):
+    def planBackwardsAfterFailure(self, qinit=None, distance=0.1):
         qinit = self.checkQInit(qinit)
         # Get current transform of wrist
         t = self.robot.getCurrentTransformation('ur10e/wrist_3_joint')
@@ -346,7 +438,7 @@ class PathGenerator(object):
         quat = list(R.from_matrix(rot_matrix).as_quat())
         # Set back 10cm
         wrist_x = np.matmul(np.array(rot_matrix), np.array([0,0,1]))
-        new_trans = list(np.array(trans) - 0.1 * wrist_x)
+        new_trans = list(np.array(trans) - distance * wrist_x)
         # Create and set the right hand side of the y'behind-failure' constraint
         self.createBackwardConstraint()
         self.ps.setRightHandSideByName('behind-failure', new_trans+quat)
@@ -358,12 +450,16 @@ class PathGenerator(object):
         pid = self.ps.numberPaths()-1
         return pid, self.ps.configAtParam(pid, self.ps.pathLength(pid))
 
+import tf2_ros, rospy
+
 class RosInterface(object):
     nodeId = 0
     def __init__(self, robot):
         self.robot = robot
         self.robotPrefix = robot.robotNames[0] + "/"
         initRosNode()
+        self.tfBuffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tfBuffer)
 
     def getCurrentConfig(self, q0, timeout=5.):
         from sensor_msgs.msg import JointState
@@ -387,11 +483,6 @@ class RosInterface(object):
         # the object should be placed wrt to the robot, as this is what the
         # sensor tells us.
         # Get pose of object wrt to the camera using TF
-        import tf2_ros, rospy
-
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
-
         cameraFrame = self.robot.opticalFrame
         qres = q0[:]
 
@@ -400,7 +491,7 @@ class RosInterface(object):
             wMc = XYZQUATToSE3(self.robot.hppcorba.robot.getJointsPosition\
                                (q0, [self.robotPrefix + cameraFrame])[0])
             try:
-                _cMo = tfBuffer.lookup_transform(cameraFrame, objectFrame,
+                _cMo = self.tfBuffer.lookup_transform(cameraFrame, objectFrame,
                         rospy.Time(), rospy.Duration(timeout))
                 _cMo = _cMo.transform
                 # renormalize quaternion
