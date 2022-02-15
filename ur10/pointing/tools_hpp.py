@@ -34,7 +34,14 @@ from hpp.corbaserver import loadServerPlugin
 from agimus_hpp.plugin import Client as AgimusHppClient
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import tf2_ros, rospy
+from hpp.gepetto import PathPlayer
+from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String
 
+def eraseAllPaths(excepted=[]):
+    for i in range(ps.numberPaths()-1,-1,-1):
+        if i not in excepted:
+            ps.erasePath(i)
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -51,12 +58,20 @@ def initRosNode():
     if not rosNodeStarted:
         rospy.init_node("hpp", disable_signals=True)
 
+def isYes(res):
+    YES = ['y', 'yes']
+    for y in YES:
+        if y in res.lower():
+            return True
+    return False
+
 class PathGenerator(object):
-    def __init__(self, ps, graph, ri=None, qref=None):
+    def __init__(self, ps, graph, ri=None, v=None, qref=None):
         self.ps = ps
         self.robot = ps.robot
         self.graph = graph
         self.ri = ri
+        self.v = v
         self.qref = qref # this configuration stores the default pose of the part
         # store corba object corresponding to constraint graph
         self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
@@ -450,7 +465,34 @@ class PathGenerator(object):
         pid = self.ps.numberPaths()-1
         return pid, self.ps.configAtParam(pid, self.ps.pathLength(pid))
 
-import tf2_ros, rospy
+    def setPublishers(self):
+        PathExecutionTopic = "/agimus/start_path"
+        StepByStepParam = "/agimus/step_by_step"
+        StepTopic = "/agimus/step"
+        self.step_publisher = rospy.Publisher(
+            StepTopic, EmptyMsg, queue_size=1)
+        self.path_execution_publisher = rospy.Publisher(
+            PathExecutionTopic, UInt32, queue_size=1)
+
+    def planAndExecute(self, goal):
+        pid, q = self.planTo(goal)
+        res = input("Ready to visualize path ?")
+        self.pp(pid)
+        res = input("Execute path ? (y)es, (s)tep, (n)o ")
+        if isYes(res):
+            self.path_execution_publisher.publish(pid)
+
+    def demo(self, qinit=None):
+        qinit = self.checkQInit(qinit)
+        if self.v is None:
+            print("Please provide a viewer")
+            return
+        self.pp = PathPlayer(self.v)
+        # Go to calibration config
+        res = input("Go to calib? (y/n) : ")
+        if isYes(res):
+            self.planAndExecute("calib")
+
 
 class RosInterface(object):
     nodeId = 0
