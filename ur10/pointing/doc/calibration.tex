@@ -53,7 +53,7 @@ We denote by
 \item $\hat{\transf{c}{o}}^i\in SE(3)$ the pose of the part in the camera frame measured by the part localization software when the robot is in configuration $\conf_i$,
 \item $^{o}\hole\in\reals^3$, the position of the hole in the part frame,
 \item $\hat{\transf{c}{h}}^i = \hat{\transf{c}{o}}^i\, ^{o}\hole\in\reals^3$ the position of the hole in the camera frame, as measured by the localisation software,
-\item $^{e}\tool$, the position of the tooltip in the end-effector frame,
+\item $^{e}\tool$, the nominal position of the tooltip in the end-effector frame (without offset applied),
 \item $^{e}\hat{\Delta}_i$ the offset applied to align the tooltip with the hole in configuration $\conf_i$, expressed in the end-effector frame.
 \end{itemize}
 
@@ -76,10 +76,10 @@ The Jacobian of this equation with respect to $\transf{c}{e}$ is:
 %%     0 & 0\end{array}\right)
 %%     \left(\begin{array}{c} ^e\tool + ^{e}\hat{\Delta}_i\\ 1\end{array}\right)\\
 %%       &=& R\cross{\angvel}(^e\tool + ^{e}\hat{\Delta}_i) + R\linvel\\
-%%       \left(\begin{array}{c}R \\ -R\cross{^e\tool + ^{e}\hat{\Delta}_i}\end{array}\right)&&
+%%       \left(\begin{array}{cc}R & 0 \\ 0 & -R\cross{^e\tool + ^{e}\hat{\Delta}_i}\end{array}\right)&&
 %% \end{eqnarray*}
 $$
-J = \left(\begin{array}{c} ^{c}R_{e} \\ -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_i}\end{array}\right)
+J = \left(\begin{array}{cc} ^{c}R_{e} & 0 \\ 0 & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_i}\end{array}\right)
 $$
 \subsection{Position of the tooltip in the end effector frame}
 
