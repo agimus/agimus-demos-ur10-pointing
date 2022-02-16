@@ -70,6 +70,9 @@ install(DIRECTORY talos tiago urdf srdf meshes worlds
   PATTERN "*.launch" EXCLUDE
 )
 
+INSTALL(FILES plugin.xml
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
 install(PROGRAMS
   scripts/gazebo_object_to_tf.py
   scripts/visual_tag_initializer.py
@@ -78,4 +81,5 @@ install(PROGRAMS
   scripts/group_of_tags.py
   scripts/publishwmc.py
   scripts/publish_camera_extrinsics.py
+  scripts/rqt_tooltip_calibration
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
