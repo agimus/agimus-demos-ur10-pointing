@@ -24,12 +24,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from script_hpp import *
+import numpy as np
 import eigenpy, pinocchio, hpp.rostools, hppfcl, numpy as np
 from agimus_demos.calibration import Calibration as Parent
 from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
-
 
 ## Hand-eye calibration
 #
@@ -125,19 +124,6 @@ class Calibration(Parent):
         configs = self.orderConfigurations(configs)
         self.visitConfigurations(configs)
 
-
-## Hand eye calibration
-#
-# This class provides methods to perform hand eye calibration of the UR10
-# robot by
-#   - aligning the tooltip with a hole via an offset of the gripper
-#     position in the end effector frame,
-#   - recording the offset together with the part pose in the camera frame.
-#
-# Tooltip alignment is performed using the GUI started with command
-#    rosrun agimus rqt_tooltip_calibration
-class TooltipCalibration(object):
-    pass
 
 def computeCameraPose(mMe, eMc, eMc_measured):
     # we wish to compute a new position mMe_new of ref_camera_link in
