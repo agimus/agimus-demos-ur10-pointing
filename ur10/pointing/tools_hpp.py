@@ -267,7 +267,7 @@ class PathGenerator(object):
         # if not res:
         #     print('Failed to generate path from second configuration to grasp')
         p_end = p0.pathAtRank(1).reverse()
-        res = concatenatePaths([p0] + paths + [p_end])
+        res = [p0] + paths + [p_end]
         return res
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
