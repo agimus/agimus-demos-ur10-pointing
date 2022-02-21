@@ -78,8 +78,6 @@ class TooltipCalibration(Plugin):
     objectFrame = 'part/base_link'
     objectFrameMeas = 'part/base_link_measured'
     endEffectorFrame = 'ur10e_d435_mount_link'
-    # Frame in which the offsets are applied
-    offsetFrame = 'ur10e_tool_link'
     tooltipFrame = 'ur10e_tooltip_link'
     objectName = 'part'
 
@@ -204,11 +202,7 @@ class TooltipCalibration(Plugin):
                 (trans,rot) = self._tfListener.lookupTransform\
                     (self.endEffectorFrame, self.tooltipFrame, rospy.Time(0))
                 self.et = np.array(trans)
-                # Get transformation to express offsets in end-effector frame
-                (trans,rot) = self._tfListener.lookupTransform\
-                    (self.endEffectorFrame, self.offsetFrame, rospy.Time(0))
                 readFrame = True
-                self.Roffset = rot
                 self.computeHolePosition()
             except (tf.LookupException, tf.ConnectivityException,
                     tf.ExtrapolationException):
@@ -393,7 +387,7 @@ class TooltipCalibration(Plugin):
     def computeValueAndJacobian(self):
         for i, m in enumerate(self.measurements):
             self.value[i:i+3] = self.cMe.act(self.et +
-                np.matmul(self.Roffset,m['offsets'])) - m['cMo'].act(self.oh)
+                m['offsets'] - m['cMo'].act(self.oh)
             self.jacobian[i+0:i+3,0:3] = self.cMe.rotation
             self.jacobian[i+3:i+6,3:6] = -np.matmul(self.cMe.rotation,
-                cross(self.et + np.matmul(self.Roffset,m['offsets'])))
+                cross(self.et + m['offsets'])
