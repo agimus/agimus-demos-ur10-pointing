@@ -15,7 +15,7 @@ ol = ObjectLocalization('part/base_link_measuredwrt_world_ol')
 ol.trigger(robot.device.control.time)
 
 def getSignal(handle_id):
-    f = FeaturePose('pregrasp___gripper___part/handle_' + str(handle_id) + '_feature')
+    f = FeaturePose('pregrasp___ur10e/gripper___part/handle_' + str(handle_id) + '_feature')
     s = f.signal("jaMfa")
     return s
 

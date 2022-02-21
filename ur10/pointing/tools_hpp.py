@@ -37,6 +37,7 @@ from scipy.spatial.transform import Rotation as R
 import tf2_ros, rospy
 from hpp.gepetto import PathPlayer
 from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String
+import time
 
 def eraseAllPaths(excepted=[]):
     for i in range(ps.numberPaths()-1,-1,-1):
@@ -267,7 +268,7 @@ class PathGenerator(object):
         # if not res:
         #     print('Failed to generate path from second configuration to grasp')
         p_end = p0.pathAtRank(1).reverse()
-        res = concatenatePaths([p0] + paths + [p_end])
+        res = [p0] + paths + [p_end]
         return res
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
@@ -466,33 +467,132 @@ class PathGenerator(object):
         return pid, self.ps.configAtParam(pid, self.ps.pathLength(pid))
 
     def setPublishers(self):
+        # Topic to publish which path to execute
         PathExecutionTopic = "/agimus/start_path"
-        StepByStepParam = "/agimus/step_by_step"
+        self.path_execution_publisher = rospy.Publisher(
+                PathExecutionTopic, UInt32, queue_size=1)
+
+        # Topic publishing the status of the path execution
+        StatusRunningTopic = "/agimus/status/running"
+        self.path_ready = False
+        rospy.Subscriber (StatusRunningTopic,
+                    Bool, self.callback_statusRunningTopics)
+
+        # Parameter setting the level of steps for the path execution
+        self.StepByStepParam = "/agimus/step_by_step"
+
+        # Topic publishing the execution of the next step
         StepTopic = "/agimus/step"
         self.step_publisher = rospy.Publisher(
             StepTopic, EmptyMsg, queue_size=1)
-        self.path_execution_publisher = rospy.Publisher(
-            PathExecutionTopic, UInt32, queue_size=1)
 
-    def planAndExecute(self, goal):
-        pid, q = self.planTo(goal)
+        # Topic publishing the status of the steps execution
+        StatusWaitStepByStepTopic = "/agimus/status/is_waiting_for_step_by_step"
+        self.step_ready = False
+
+        self.subs_status_stepbystep = rospy.Subscriber (StatusWaitStepByStepTopic,
+                    Bool, self.callback_statusStepByStep)
+
+    def callback_statusStepByStep(self, msg):
+        self.step_ready = msg.data
+
+    def callback_statusRunningTopics(self, msg):
+        self.path_ready = not msg.data
+
+    def demo_execute(self, pid):
+        # Set step level parameter to zero
+        rospy.set_param(self.StepByStepParam, 0)
+        # Execute path
+        self.path_execution_publisher.publish(pid)
+        # Wait for path to finish
+        while not self.path_ready: #TODO
+            time.sleept(0.5)
+        return True
+
+    def demo_executeWithSteps(self, pid):
+        rospy.set_param(self.StepByStepParam, 3)
+        while not self.path_ready: #TODO
+            res = input("Execute next step ? (y)es, (n)o, (q)uit : ")
+            if 'q' in res.lower():
+                return False
+            if 'n' in res.lower():
+                return True
+            # Execute next step
+            self.step_publisher.publish()
+            # Wait for step to finish
+            while not self.step_ready:
+                time.sleep(0.5)
+        return True
+
+    # Returns two booleans
+    # If the first is True, then continue with the demo, if False stop
+    # If the second is True, recompute the path
+    def demo_askExecute(self, pid):
         res = input("Ready to visualize path ?")
         self.pp(pid)
-        res = input("Execute path ? (y)es, (s)tep, (n)o ")
+        res = input("Execute path ? (y)es, (s)tep, (r)eplan, (c)ontinue, (q)uit : ")
         if isYes(res):
-            self.path_execution_publisher.publish(pid)
+            # Execute the path
+            return self.demo_execute(pid=pid), False
+        if 's' in res.lower():
+            # Execute the path with step level = 3
+            return self.demo_executeWithSteps(pid=pid), False
+        if 'r' in res.lower():
+            # Clear the roadmap and plan again
+            self.ps.clearRoadmap()
+            return True, True
+        if 'c' in res.lower():
+            # Don't execute path but continue with demo
+            return True, False
+        if 'q' in res.lower():
+            # Quit demo
+            return False, False
 
-    def demo(self, qinit=None):
+    def demo_planAndExecute(self, goal):
+        pid, _ = self.planTo(goal)
+        keep_going, recompute =  self.demo_askExecute(pid)
+        if not keep_going:
+            return False
+        if recompute:
+            return self.demo_planAndExecute(goal)
+
+    def demo_buildPointCloud(self, newPointCloud=True):
+        res = input("Get point cloud ?")
+        self.demo_buildPointCloud()
+        res = input("Keep point cloud ? (y)es, get (n)ew point cloud : ")
+        if 'n' in res.lower():
+            return self.demo_buildPointCloud(newPointCloud=newPointCloud)
+        return True
+
+    def demo(self, qinit=None, nb_holes=44):
         qinit = self.checkQInit(qinit)
         if self.v is None:
             print("Please provide a viewer")
             return
         self.pp = PathPlayer(self.v)
         # Go to calibration config
-        res = input("Go to calib? (y/n) : ")
+        res = input("Go to calib? (y)es, (n)o : ")
         if isYes(res):
-            self.planAndExecute("calib")
-
+            success = self.demo_planAndExecute(pid)
+            if not success:
+                return False
+            input("Now is the time to use INRIA's localizer calibration")
+        # Go to point cloud config
+        self.localizePart()
+        res = input("Go to point cloud aquisition ? (y)es, (n)o : ")
+        if isYes(res):
+            success = self.demo_planAndExecute(pid)
+            if not success:
+                return False
+            self.demo_buildPointCloud()
+        # Go to points
+        path_ids, q_end = self.planDeburringPaths(nb_holes)
+        for pid in path_ids:
+            success, _ = self.demo_askExecute(pid)
+            if not success:
+                return False
+        return True
+            
 
 class RosInterface(object):
     nodeId = 0

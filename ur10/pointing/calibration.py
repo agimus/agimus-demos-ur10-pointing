@@ -24,13 +24,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from script_hpp import *
+import numpy as np
 import eigenpy, pinocchio, hpp.rostools, hppfcl, numpy as np
 from agimus_demos.calibration import Calibration as Parent
 from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
 
-
+## Hand-eye calibration
+#
+#  This class provides methods to generate configurations  where the robot
+#  camera looks at the center of a Chessboard in order to perform hand eye
+#  calibration.
+#
+#  To play the paths on the robot and collect data, see play_path.py in this
+#  directory.
 class Calibration(Parent):
     chessboardCenter = (0, 0, 1.41)
     # to aim at the center of the plaque with tubes, use

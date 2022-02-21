@@ -52,3 +52,6 @@ if(pybind11_FOUND)
   install(TARGETS pytsp
     DESTINATION ${PYTHON_SITELIB}/agimus_demos)
 endif()
+
+install(FILES rqt_agimus/tooltip_calibration.py
+    DESTINATION ${PYTHON_SITELIB}/rqt_agimus)
