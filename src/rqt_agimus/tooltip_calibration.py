@@ -342,6 +342,9 @@ class TooltipCalibration(Plugin):
         oMl = tfToSE3(trans, rot)
         # Get position of hole in part frame
         self.oh = oMl.act(lh)
+        if self._verbose:
+            print(f'self.oh={self.oh}')
+
 
     def parseLine(self, line, i):
         # Check that line starts with joint_states
@@ -379,10 +382,32 @@ class TooltipCalibration(Plugin):
         self.jacobian = np.zeros(6*3*len(self.measurements))
         self.jacobian.resize(3*len(self.measurements), 6)
         self.computeValueAndJacobian()
+        # Compute pose of camera in end-effector frame
         for i in range(20):
             print(f'squared error = {sum(self.value*self.value)}')
             nu = -np.matmul(np.linalg.pinv(self.jacobian),self.value)
             self.cMe = integration(self.cMe, nu)
+        # Compute position of tooltip in camera frame
+        if len(self.measurements) == 0: return
+        s = 0
+        for m in self.measurements:
+            s += m['cMo'].act(self.oh)
+        ch = s/len(self.measurements)
+        self.eMc = self.cMe.inverse()
+        self.eh = self.eMc.act(ch)
+        print(f"""   <xacro:arg name="tip_offset_x" default="{self.eh[0]}"/>
+   <xacro:arg name="tip_offset_y" default="{self.eh[1]}"/>
+   <xacro:arg name="tip_offset_z" default="{self.eh[2]}"/>
+        """)
+        rpy = pinocchio.rpy.matrixToRpy(self.eMc.rotation)
+        xyz = self.eMc.translation
+        print(f"""    <joint name="ref_camera_joint" type="fixed">
+     <parent link="ur10e_d435_mount_link" />
+     <child link = "ref_camera_link" />
+     <origin xyz="{xyz[0]} {xyz[1]} {xyz[2]}"
+	     rpy="{rpy[0]} {rpy[1]} {rpy[2]}"/>
+   </joint>
+        """)
 
     def computeValueAndJacobian(self):
         for i, m in enumerate(self.measurements):
