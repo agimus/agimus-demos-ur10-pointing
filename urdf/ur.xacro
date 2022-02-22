@@ -23,9 +23,9 @@
    <xacro:arg name="safety_k_position" default="20"/>
 
    <!-- Offset of the tip link (obtained by calibration) -->
-   <xacro:arg name="tip_offset_x" default="-0.001"/>
-   <xacro:arg name="tip_offset_y" default="0.004"/>
-   <xacro:arg name="tip_offset_z" default="0.241"/>
+   <xacro:arg name="tip_offset_x" default="0"/>
+   <xacro:arg name="tip_offset_y" default="0"/>
+   <xacro:arg name="tip_offset_z" default="0"/>
 
    <!-- arm -->
    <xacro:ur_robot
@@ -211,7 +211,7 @@
   <joint name="ur10e_tooltip_joint" type="fixed">
      <parent link="ur10e_tool_link" />
      <child link = "ur10e_tooltip_link" />
-     <origin xyz="0.0 0.0 $(arg tip_offset_z)" rpy="0.0 0.0 -${pi/2.0}" />
+     <origin xyz="0.0 0.0 ${0.24 + $(arg tip_offset_z)}" rpy="0.0 0.0 0.0" />
   </joint>
 
    <link name="ref_camera_link">

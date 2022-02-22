@@ -1,6 +1,6 @@
 <robot name="ur10e">
   <gripper name="gripper" clearance="0.08">
-    <position xyz="0 0 0" xyzw="0 -0.7071068 0 0.7071068 "/>
+    <position xyz="0 0 0" xyzw="0.5  0.5  0.5 -0.5"/>
     <link name="ur10e_tooltip_link"/>
 </gripper>
 
