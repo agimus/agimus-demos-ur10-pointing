@@ -1211,6 +1211,9 @@ ros_control.configure_nodep:
 	mkdir -p ${SRC_DIR}/$(@:.configure_nodep=)/transmission_interface/${BUILD_FOLDER}; \
 	cd ${SRC_DIR}/$(@:.configure_nodep=)/transmission_interface/${BUILD_FOLDER}; \
 	cmake -DCMAKE_INSTALL_PREFIX=${DEVEL_HPP_DIR}/install -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${$(@:.configure_nodep=)_extra_flags} ..;\
+	mkdir -p ${SRC_DIR}/$(@:.configure_nodep=)/controller_manager/${BUILD_FOLDER}; \
+	cd ${SRC_DIR}/$(@:.configure_nodep=)/controller_manager/${BUILD_FOLDER}; \
+	cmake -DCMAKE_INSTALL_PREFIX=${DEVEL_HPP_DIR}/install -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${$(@:.configure_nodep=)_extra_flags} ..;\
 
 ros_control.install_nodep:ros_control.configure_nodep
 	cd ${SRC_DIR}/$(@:.install_nodep=)/controller_manager_msgs/${BUILD_FOLDER};\
@@ -1224,6 +1227,8 @@ ros_control.install_nodep:ros_control.configure_nodep
 	cd ${SRC_DIR}/$(@:.install_nodep=)/joint_limits_interface/${BUILD_FOLDER};\
 	make install;\
 	cd ${SRC_DIR}/$(@:.install_nodep=)/transmission_interface/${BUILD_FOLDER};\
+	make install;\
+	cd ${SRC_DIR}/$(@:.install_nodep=)/controller_manager/${BUILD_FOLDER};\
 	make install;\
 
 
@@ -1239,6 +1244,8 @@ ros_control.install:ros_control.configure
 	cd ${SRC_DIR}/$(@:.install=)/joint_limits_interface/${BUILD_FOLDER};\
 	make install;\
 	cd ${SRC_DIR}/$(@:.install=)/transmission_interface/${BUILD_FOLDER};\
+	make install;\
+	cd ${SRC_DIR}/$(@:.install=)/controller_manager/${BUILD_FOLDER};\
 	make install;\
 
 # }}}
