@@ -39,11 +39,6 @@ from hpp.gepetto import PathPlayer
 from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String
 import time
 
-def eraseAllPaths(excepted=[]):
-    for i in range(ps.numberPaths()-1,-1,-1):
-        if i not in excepted:
-            ps.erasePath(i)
-
 def concatenatePaths(paths):
     if len(paths) == 0: return None
     p = paths[0].asVector()
@@ -121,6 +116,11 @@ class PathGenerator(object):
         else:
             print("Failure")
             return False
+
+    def eraseAllPaths(self, excepted=[]):
+        for i in range(self.ps.numberPaths()-1,-1,-1):
+            if i not in excepted:
+                self.ps.erasePath(i)
 
     def testGraph(self, verbose=False):
         cproblem = self.ps.hppcorba.problem.getProblem()
@@ -269,7 +269,12 @@ class PathGenerator(object):
         #     print('Failed to generate path from second configuration to grasp')
         p_end = p0.pathAtRank(1).reverse()
         res = [p0] + paths + [p_end]
-        return res
+
+        path_ids = []
+        for p in res:
+            pid = self.addPath(p.asVector())
+            path_ids.append(pid)
+        return path_ids
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
         from itertools import chain
@@ -403,7 +408,7 @@ class PathGenerator(object):
         coll = self.graphValidation.getCollisionsForNode("ur10e/gripper grasps part/handle_"+str(hole_id))
         if len(coll) == 0:
             qinit = self.checkQInit(qinit)
-            handle = 'part/handle_'+str(hole_id)
+            handle = 'part/handle_'+str(hole_id).zfill(2)
             res, qpg, qg = self.generateValidConfigForHandle(handle, qinit=qinit,
                     qguesses = [qinit], NrandomConfig=50)
             if not res or (qg is not None and not self.robot.isConfigValid(qg)[0]):
@@ -421,7 +426,7 @@ class PathGenerator(object):
         if not self.isHoleDoable(hole_id, qinit):
             print(f"Hole {hole_id} is not doable")
             return None, qinit
-        handle = 'part/handle_'+str(hole_id)
+        handle = 'part/handle_'+str(hole_id).zfill(2)
         try:
             p = self.generatePathForHandle(handle, qinit, 50)
         except RuntimeError:
@@ -573,7 +578,7 @@ class PathGenerator(object):
         # Go to calibration config
         res = input("Go to calib? (y)es, (n)o : ")
         if isYes(res):
-            success = self.demo_planAndExecute(pid)
+            success = self.demo_planAndExecute("calib")
             if not success:
                 return False
             input("Now is the time to use INRIA's localizer calibration")
@@ -581,7 +586,7 @@ class PathGenerator(object):
         self.localizePart()
         res = input("Go to point cloud aquisition ? (y)es, (n)o : ")
         if isYes(res):
-            success = self.demo_planAndExecute(pid)
+            success = self.demo_planAndExecute("pointcloud")
             if not success:
                 return False
             self.demo_buildPointCloud()

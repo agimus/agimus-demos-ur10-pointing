@@ -9,13 +9,13 @@ from pinocchio import SE3
 R = np.matrix([[0,0,-1],[0,1,0],[1,0,0]])
 # x = up
 # y = towards the left (when looking at the part from the gripper)
-x = SE3(R, np.array([0,0,0]))
+x = SE3(R, np.array([0.0045,-0.0035,-0.001]))
 
-ol = ObjectLocalization('part/base_link_measuredwrt_world_ol')
-ol.trigger(robot.device.control.time)
+# ol = ObjectLocalization('part/base_link_measuredwrt_world_ol')
+# ol.trigger(robot.device.control.time)
 
 def getSignal(handle_id):
-    f = FeaturePose('pregrasp___ur10e/gripper___part/handle_' + str(handle_id) + '_feature')
+    f = FeaturePose('pregrasp___ur10e/gripper___part/handle_' + str(handle_id).zfill(2) + '_feature')
     s = f.signal("jaMfa")
     return s
 
@@ -26,3 +26,5 @@ def changejaMfa(handle_id, x):
 #changejaMfa(5,x)
 for i in range(44):
     changejaMfa(i, x)
+
+# supervisor.sots['Loop | 0-5'] = supervisor.sots['ur10e/gripper > part/handle_05 | f_12']

@@ -33,7 +33,7 @@ from hpp.corbaserver.manipulation import Robot, \
     ConstraintGraphFactory, Rule, Constraints, CorbaClient, SecurityMargins
 from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
-from tools_hpp import RosInterface, PathGenerator, eraseAllPaths
+from tools_hpp import RosInterface, PathGenerator
 
 UseAprilTagPlank = False
 useFOV = False
@@ -181,14 +181,6 @@ def createConstraintGraph():
     all_handles = ps.getAvailable('handle')
     part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
 
-    ## Create dedicated constraints for the rotating motion while grasping
-    for handle in all_handles:
-        createFreeRxConstraintForHandle(handle)
-
-    # handle = 'part/handle_05'
-    # if handle in ps.getAvailable('handle'):
-    #     createFreeRxConstraintForHandle(handle)
-
     graph = ConstraintGraph(robot, 'graph2')
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["ur10e/gripper",])
@@ -232,6 +224,13 @@ def createConstraintGraph():
     return graph
 
 graph = createConstraintGraph()
+
+try:
+    v = vf.createViewer()
+    v(q0)
+    pp = PathPlayer(v)
+except:
+    print("Did you launch the GUI?")
 
 ri = None
 ri = RosInterface(robot)
@@ -281,14 +280,6 @@ if useFOV:
     isClogged = lambda x : ur10_fov.clogged(x, robot, featuress)
     pg.setIsClogged(isClogged)
     visibleFeatures = lambda x : ur10_fov.visible(x, robot, featuress)
-
-try:
-    v = vf.createViewer()
-    v(q0)
-    pp = PathPlayer(v)
-except:
-    print("Did you launch the GUI?")
-
 
 ### DEMO
 
