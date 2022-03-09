@@ -40,6 +40,7 @@ install(FILES
   agimus_demos/__init__.py
   agimus_demos/calibration.py
   agimus_demos/in_state_planner.py
+  agimus_demos/tools_hpp.py
   DESTINATION ${PYTHON_SITELIB}/agimus_demos
   )
 
