@@ -1,0 +1,18 @@
+demo:
+  robots:
+    ur10e:
+      srdf:
+        package: agimus_demos
+        file: srdf/ur10_robot.srdf
+  objects:
+    part:
+      urdf:
+        package: agimus_demos
+        file: /urdf/plaque-tubes-with-table.urdf
+      srdf:
+        package: agimus_demos
+        file: srdf/plaque-tubes.srdf
+      contacts:
+        []
+  grippers:
+    [ur10e/gripper,]

@@ -151,3 +151,7 @@ repositories:
     type: git
     url: https://github.com/stack-of-tasks/tiago_metapkg_ros_control_sot
     version: master
+  universal_robot:
+    type: git
+    url: https://github.com/ros-industrial/universal_robot
+    version: kinetic-devel

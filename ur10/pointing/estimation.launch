@@ -1,0 +1,41 @@
+<launch>
+  <arg name="output" default="log"/>
+  <!-- Setup vision -->
+  <group ns="vision">
+    <node pkg="agimus_vision" type="tracker_object"
+        output="$(arg output)"
+        name="tracker"
+        >
+        <param name="imageTopic"      value="/camera/color/image_raw" />
+        <param name="cameraInfoTopic" value="/camera/color/camera_info" />
+	<param name="depthImageTopic" value="/camera/depth/image_raw"/>
+	<param name="depthCameraInfoTopic" value="/camera/depth/camera_info"/>
+        <param name="debugDisplay"    value="false" />
+        <param name="broadcastTopic"  value="true" />
+        <param name="broadcastTf"     value="true" />
+        <param name="broadcastTfPostfix" value="_tf" />
+        <param name="objectType" value="apriltag" />
+        <param name="cameraFrame" value="camera_color_optical_frame" />
+    </node>
+
+    <!-- Part -->
+    <node pkg="agimus_demos" type="group_of_tags.py" name="part_tags" args="
+        --child-frame-format 'part/tag36_11_{:0>5d}'
+        --measurement-parent-frame xtion_rgb_optical_frame
+        --group-frame part/base_link
+        --no-description
+        --size 0.0845
+        --tag 1
+        --size 0.0845
+        --tag 6
+        --size 0.0845
+        --tag 15
+        --size 0.0415
+        --tag 100
+        --size 0.0415
+        --tag 101
+        "
+        output="$(arg output)"
+        />
+  </group>
+</launch>

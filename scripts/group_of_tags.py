@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import print_function
 import argparse, rospy, tf2_ros, tf, numpy as np
 from geometry_msgs.msg import TransformStamped
