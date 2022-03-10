@@ -57,10 +57,9 @@ class Table(object):
         self.handles = [name + "/" + h for h in self.__class__.handles]
         self.contacts = [name + "/" + h for h in self.__class__.contacts]
 
-HumanoidRobot.packageName = "talos_data"
-HumanoidRobot.urdfName = "talos"
-HumanoidRobot.urdfSuffix = "_full_v2"
-HumanoidRobot.srdfSuffix = ""
+HumanoidRobot.leftAnkle = "talos/leg_left_6_joint"
+HumanoidRobot.rightAnkle = "talos/leg_right_6_joint"
+HumanoidRobot.srdfString = ""
 
 ## Reduce joint range for security
 def shrinkJointRange (robot, ratio):
@@ -74,20 +73,45 @@ def shrinkJointRange (robot, ratio):
                 M = mean + .5 * ratio * width
                 robot.setJointBounds (j, [m, M])
 
+def getSrdfString():
+    import os
+    package = 'talos_data'
+    rosPackagePath = os.getenv('ROS_PACKAGE_PATH')
+    paths = rosPackagePath.split(':')
+    for p in paths:
+        dir = p + '/' + package
+        if os.path.isdir(dir):
+            filename = dir + '/srdf/pyrene.srdf'
+            if os.path.isfile(filename):
+                with open(filename) as f:
+                    res = f.read()
+                    return res
+    raise IOError('Could not open file ' + 'package://' + package + \
+                  '/srdf/pyrene.srdf')
 
 def makeRobotProblemAndViewerFactory(clients):
+    try:
+        import rospy
+        HumanoidRobot.urdfString = rospy.get_param('robot_description')
+        HumanoidRobot.srdfString = getSrdfString()
+        print("reading URDF from ROS param")
+    except:
+        print("reading generic URDF")
+        HumanoidRobot.urdfFilename = "package://talos_data/urdf/pyrene.urdf"
+        HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
+
     objects = list()
     robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
     robot.leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
+    robot.camera_frame = 'talos/rgbd_rgb_optical_frame'
     robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
     shrinkJointRange (robot, 0.95)
 
     ps = ProblemSolver(robot)
+    ps.selectPathValidation('Progressive', 1e-3)
     ps.setErrorThreshold(1e-3)
     ps.setMaxIterProjection(40)
-    ps.addPathOptimizer("EnforceTransitionSemantic")
-    ps.addPathOptimizer("SimpleTimeParameterization")
 
     vf = ViewerFactory(ps)
 
@@ -160,29 +184,25 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
     return com_constraint, foot_placement, foot_placement_complement
 
 
-# Gaze constraint
-def createGazeConstraint (ps):
+# Gaze constraints
+def createGazeConstraints (ps):
     ps.createPositionConstraint(
-        "gaze",
-        "talos/head_d435_camera_color_optical_frame",
-        "box/root_joint",
+        "look_left_hand",
+        ps.robot.camera_frame,
+        "talos/arm_left_7_joint",
         (0, 0, 0),
-        (0, 0, 0),
+        (0, 0, -0.18),
         (True, True, False),
     )
-    return ["gaze"]
-
-# Gaze cost
-def createGazeCost (ps):
     ps.createPositionConstraint(
-        "gaze_cost",
-        "talos/rgbd_optical_joint",
-        "box/root_joint",
-        (0, 0, 0.4),
+        "look_right_hand",
+        ps.robot.camera_frame,
+        "talos/arm_right_7_joint",
         (0, 0, 0),
-        (False, False, True),
+        (0, 0, -0.18),
+        (True, True, False),
     )
-    return ["gaze_cost"]
+    return ["look_left_hand", "look_right_hand"]
 
 # Constraint of constant yaw of the waist
 def createWaistYawConstraint (ps):

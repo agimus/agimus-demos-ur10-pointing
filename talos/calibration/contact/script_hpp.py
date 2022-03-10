@@ -36,6 +36,7 @@
 
 from csv import reader, writer
 import argparse, numpy as np
+from CORBA import Any, TC_double, TC_long
 from hpp import Transform
 from hpp.corbaserver import loadServerPlugin
 from hpp.corbaserver.manipulation import Constraints, ConstraintGraph, \
@@ -44,8 +45,11 @@ from hpp.corbaserver.manipulation.robot import CorbaClient, HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import \
     ConstraintGraphFactory
+from agimus_demos.tools_hpp import RosInterface
+from hpp_idl.hpp import Error as HppError
 
-from common_hpp import createGripperLockedJoints, createLeftArmLockedJoints, \
+from common_hpp import createGazeConstraints, createGripperLockedJoints, \
+    createLeftArmLockedJoints, \
     createRightArmLockedJoints, createQuasiStaticEquilibriumConstraint, \
     createWaistYawConstraint, defaultContext, makeGraph, \
     makeRobotProblemAndViewerFactory, shrinkJointRange
@@ -89,26 +93,12 @@ def distance (ps, q0, q1) :
     distance = ps.hppcorba.problem.getDistance ()
     return distance.call (q0, q1)
 
-# Gaze constraint
-def createGazeConstraint (ps, whichArm):
-    if whichArm is None:
-        return list()
-    ps.createPositionConstraint(
-        "gaze",
-        "talos/head_d435_camera_color_optical_frame",
-        "talos/arm_" + whichArm + "_7_joint",
-        (0, 0, 0),
-        (0, 0, -0.1),
-        (True, True, False),
-    )
-    return ["gaze"]
-
 # Check that target frame of gaze constraint is not behind the camera
 def validateGazeConstraint (ps, q, whichArm):
     robot = ps.robot
     robot.setCurrentConfig (q)
     Mcamera = Transform(robot.getLinkPosition
-                        ("talos/head_d435_camera_color_optical_frame"))
+                        (ps.robot.camera_frame))
     Mtarget = Transform(robot.getLinkPosition("talos/arm_" + whichArm +
                                               "_7_link"))
     z = (Mcamera.inverse () * Mtarget).translation [2]
@@ -205,18 +195,58 @@ def visitConfigurations (ps, configs):
             pid = ps.numberPaths () - 2
             ps.erasePath (pid)
 
+def goToContact(ri, pg, gripper, handle, q_init):
+    pg.gripper = gripper
+    q_init = ri.getCurrentConfig(q_init, 5., 'talos/leg_left_6_joint')
+    res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
+                                                     q_init)
+    if not res:
+        raise RuntimeError('Failed to project initial configuration')
+    isp = pg.inStatePlanner
+    isp.optimizerTypes = ["EnforceTransitionSemantic",
+                                        "SimpleTimeParameterization"]
+    isp.cproblem.setParameter\
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+    isp.cproblem.setParameter\
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+    isp.cproblem.setParameter\
+        ("SimpleTimeParameterization/order", Any(TC_long, 2))
+    paths = pg.generatePathForHandle(handle, q_init)
+    # First path is already time parameterized
+    # Transform second and third path into PathVector instances to time
+    # parameterize them
+    isp.cproblem.setParameter\
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+    isp.cproblem.setParameter\
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.1))
+    for i, p in enumerate(paths[1:]):
+        path = p.asVector()
+        for optType in isp.optimizerTypes:
+            optimizer = isp.wd(isp.ps.hppcorba.problem.createPathOptimizer\
+                (optType, isp.manipulationProblem))
+            try:
+                optpath = optimizer.optimize(path)
+                # optimize can return path if it couldn't find a better one.
+                # In this case, we have too different client refering to the
+                # same servant.
+                # thus the following code deletes the old client, which
+                # triggers deletion of the servant and the new path points to
+                # nothing...
+                # path = pg.wd(optimizer.optimize(path))
+                from hpp.corbaserver.tools import equals
+                if not equals(path, optpath):
+                    path = isp.wd(optpath)
+                paths[i] = path
+            except HppError as e:
+                print("could not optimize", e)
+    for p in paths:
+        pg.ps.client.basic.problem.addPath(p)
 
-HumanoidRobot.packageName = "talos_data"
-HumanoidRobot.urdfName = "pyrene"
-HumanoidRobot.urdfSuffix = ""
-HumanoidRobot.srdfSuffix = ""
-HumanoidRobot.leftAnkle = "talos/leg_left_6_joint"
-HumanoidRobot.rightAnkle = "talos/leg_right_6_joint"
-
-initConf = [0, 0, 1.095, 0, 0, 0, 1, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0, 0.006761, 0.25847, 0.173046, -0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.25847, -0.173046, 0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+initConf = [0, 0, 1.02, 0, 0, 0, 1, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0, 0.006761, 0.25847, 0.173046, -0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.25847, -0.173046, 0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(None)
 initConf += [.5,0,0,0,0,0,1]
+ri = RosInterface(robot)
 
 left_arm_lock  = createLeftArmLockedJoints (ps)
 right_arm_lock = createRightArmLockedJoints (ps)
@@ -230,33 +260,72 @@ else:
 left_gripper_lock, right_gripper_lock = createGripperLockedJoints (ps, initConf)
 com_constraint, foot_placement, foot_placement_complement = \
     createQuasiStaticEquilibriumConstraint (ps, initConf)
-gaze_constraint = createGazeConstraint (ps,args.arm)
+look_left_hand, look_right_hand = createGazeConstraints(ps)
 
 graph = makeGraph(ps, table)
 
-graph.createNode(["starting_state"])
+# Add other locked joints in the edges.
+for edgename, edgeid in graph.edges.items():
+    if edgename[:7] == "Loop | " and edgename[7] != 'f':
+        graph.addConstraints(
+            edge=edgename, constraints=Constraints(numConstraints=\
+                                                   ['table/root_joint',])
+        )
+# Add gaze and and equilibrium constraints and locked grippers to each node of
+# the graph
+prefixLeft = 'talos/left_gripper'
+prefixRight = 'talos/right_gripper'
+l = len(prefixLeft)
+r = len(prefixRight)
+for nodename, nodeid in graph.nodes.items():
+    graph.addConstraints(
+        node=nodename, constraints=Constraints(numConstraints=\
+            com_constraint + foot_placement + left_gripper_lock + \
+            right_gripper_lock
+            )
+        )
+    if nodename[:l] == prefixLeft:
+        graph.addConstraints(
+            node=nodename, constraints=Constraints(numConstraints=\
+                                                   [look_left_hand,]))
+    if nodename[:r] == prefixRight:
+        graph.addConstraints(
+            node=nodename, constraints=Constraints(numConstraints=\
+                                                   [look_right_hand,]))
+
+# add foot placement complement in each edge.
+for edgename, edgeid in graph.edges.items():
+    graph.addConstraints(
+        edge=edgename,
+        constraints=Constraints(numConstraints=foot_placement_complement),
+    )
+
+# On the real robot, the initial configuration as measured by sensors is very
+# likely not in any state of the graph. State "starting_state" and transition
+# "starting_motion" are aimed at coping with this issue.
+graph.createNode("starting_state")
 graph.createEdge("starting_state", "free", "starting_motion", isInNode="starting_state")
-graph.createEdge("free", "starting_state", "go_to_starting_state", isInNode="starting_state")
-
-# Set constraints
-graph.addConstraints (node = "starting_state", constraints = Constraints (
-    numConstraints = com_constraint + foot_placement + left_gripper_lock +
-    right_gripper_lock
-))
-graph.addConstraints (node = "free", constraints = Constraints (
-    numConstraints = com_constraint + foot_placement + left_gripper_lock +
-    right_gripper_lock + gaze_constraint
-))
-graph.addConstraints (edge = "Loop | f", constraints = Constraints (
-    numConstraints = com_constraint + foot_placement + arm_locked
-))
-
+graph.createEdge(
+    "free",
+    "starting_state",
+    "go_to_starting_state",
+    isInNode="starting_state",
+    weight=0,
+)
+graph.addConstraints(
+    edge="starting_motion",
+    constraints=Constraints(numConstraints=['table/root_joint',]),)
+graph.addConstraints(
+    edge="go_to_starting_state",
+    constraints=Constraints(numConstraints=['table/root_joint',]),
+)
 graph.initialize ()
 
-ps.setParameter("SimpleTimeParameterization/safety", 0.5)
+ps.setParameter("SimpleTimeParameterization/safety", 0.2)
 ps.setParameter("SimpleTimeParameterization/order", 2)
-ps.setParameter("SimpleTimeParameterization/maxAcceleration", .25)
-ps.addPathOptimizer ("RandomShortcut")
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", .1)
+# ps.addPathOptimizer ("RandomShortcut")
+ps.addPathOptimizer ("EnforceTransitionSemantic")
 ps.addPathOptimizer ("SimpleTimeParameterization")
 
 res, q, err = graph.generateTargetConfig ("starting_motion", initConf,
