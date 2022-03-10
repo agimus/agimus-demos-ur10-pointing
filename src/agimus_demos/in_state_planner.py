@@ -42,10 +42,9 @@ class InStatePlanner:
         self.optimizerTypes = []
         self.maxIterPathPlanning = None
         self.timeOutPathPlanning = None
-        self.cedge = None
         self.manipulationProblem = \
             self.wd(self.ps.hppcorba.problem.getProblem())
-        self.crobot = self.manipulationProblem.robot()
+        self.crobot = self.wd(self.manipulationProblem.robot())
         # create a new problem with the robot
         self.cproblem = self.wd(self.ps.hppcorba.problem.createProblem\
                                 (self.crobot))
@@ -58,23 +57,16 @@ class InStatePlanner:
             self.cproblem.addConfigValidation\
                 (self.wd(self.ps.hppcorba.problem.createConfigValidation
                          (cfgval, self.crobot)))
-        # get reference to constraint graph
-        self.cgraph = self.manipulationProblem.getConstraintGraph()
         # Add obstacles to new problem
         for obs in self.ps.getObstacleNames(True,False):
             self.cproblem.addObstacle\
                 (self.wd(self.ps.hppcorba.problem.getObstacle(obs)))
 
-    def _deleteEdge(self):
-        if not self.cedge: return
-        ostr = self.orb.object_to_string(self.cedge)
-        self.ps.client.basic._tools.deleteServant(ostr)
-
     def setEdge(self, edge):
-        # Remove previous server to class Edge
-        self._deleteEdge()
-        self.cedge = self.cgraph.get(self.graph.edges[edge])
-        self.cconstraints = self.cedge.pathConstraint()
+        # get reference to constraint graph
+        cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
+        self.cedge = self.wd(cgraph.get(self.graph.edges[edge]))
+        self.cconstraints = self.wd(self.cedge.pathConstraint())
         self.cproblem.setPathValidation(self.cedge.getPathValidation())
         self.cproblem.setConstraints(self.cconstraints)
         self.cproblem.setSteeringMethod\
@@ -98,7 +90,8 @@ class InStatePlanner:
                                createRoadmap(
                 self.wd(self.cproblem.getDistance()),
                 self.crobot))
-        self.roadmap.constraintGraph(self.cgraph)
+        cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
+        self.roadmap.constraintGraph(cgraph)
         self.planner = self.wd(self.ps.hppcorba.problem.createPathPlanner(
             self.plannerType,
             self.cproblem,
@@ -239,9 +232,11 @@ class InStatePlanner:
         return permutation, solution
 
     def writeRoadmap(self, filename):
+        cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
         self.ps.client.manipulation.problem.writeRoadmap\
-                       (filename, self.roadmap, self.crobot, self.cgraph)
+                       (filename, self.roadmap, self.crobot, cgraph)
 
     def readRoadmap(self, filename):
+        cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
         self.roadmap = self.ps.client.manipulation.problem.readRoadmap\
-                       (filename, self.crobot, self.cgraph)
+                       (filename, self.crobot, cgraph)
