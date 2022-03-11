@@ -5,8 +5,8 @@ repositories:
     version: master
   agimus-demos:
     type: git
-    url: https://github.com/agimus/agimus-demos
-    version: master
+    url: https://github.com/florent-lamiraux/agimus-demos
+    version: talos-calibration
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc
@@ -14,11 +14,11 @@ repositories:
   agimus-hpp:
     type: git
     url: https://github.com/agimus/agimus-hpp
-    version: master
+    version: devel
   agimus-sot:
     type: git
-    url: https://github.com/agimus/agimus-sot.git
-    version: master
+    url: https://github.com/florent-lamiraux/agimus-sot.git
+    version: devel
   agimus-vision:
     type: git
     url: https://github.com/agimus/agimus-vision
@@ -47,10 +47,10 @@ repositories:
     type: git
     url: https://github.com/gepetto/example-robot-data
     version: master
-  gepetto-viewer-corba:
+  gazebo_ros_pkgs:
     type: git
-    url: https://github.com/Gepetto/gepetto-viewer-corba.git
-    version: devel
+    url: https://github.com/pal-robotics-forks/gazebo_ros_pkgs
+    version: master
   gerard-bauzil:
     type: git
     url: https://gitlab.laas.fr/gepetto/gerard-bauzil.git
@@ -89,8 +89,8 @@ repositories:
     version: devel
   hpp-fcl:
     type: git
-    url: https://github.com/humanoid-path-planner/hpp-fcl
-    version: devel
+    url: https://github.com/florent-lamiraux/hpp-fcl
+    version: talos-calibration
   hpp-pinocchio:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-pinocchio
@@ -126,7 +126,7 @@ repositories:
   pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/pinocchio
-    version: v2.6.0
+    version: v2.6.5
   sot-dynamic-pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/sot-dynamic-pinocchio
@@ -135,6 +135,10 @@ repositories:
     type: git
     url: https://github.com/stack-of-tasks/sot-gepetto-viewer
     version: master
+  sot-talos:
+    type: git
+    url: https://github.com/stack-of-tasks/sot-talos
+    version: devel
   sot-tiago:
     type: git
     url: https://github.com/stack-of-tasks/sot-tiago
@@ -142,6 +146,14 @@ repositories:
   sot-tools:
     type: git
     url: https://github.com/stack-of-tasks/sot-tools
+    version: master
+  talos-data:
+    type: git
+    url: https://github.com/stack-of-tasks/talos-data
+    version: devel
+  talos_metapkg_ros_control_sot:
+    type: git
+    url: https://github.com/stack-of-tasks/talos_metapkg_ros_control_sot
     version: master
   tiago_data:
     type: git
