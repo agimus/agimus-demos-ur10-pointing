@@ -47,21 +47,6 @@ ADD_SUBDIRECTORY(ur10)
 add_subdirectory(src)
 add_subdirectory(tests)
 
-# Install talos/calibration/apriltags launch files
-INSTALL(FILES
-  talos/calibration/apriltags/demo.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_calibration_apriltags.launch
-  )
-INSTALL(FILES talos/calibration/apriltags/tracker.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_calibration_apriltags_tracker.launch
-  )
-INSTALL(FILES talos/calibration/apriltags/on_pyrene.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  RENAME talos_calibration_apriltags_on_pyrene.launch
-  )
-
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf meshes worlds
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

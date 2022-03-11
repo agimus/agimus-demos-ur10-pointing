@@ -39,3 +39,21 @@ INSTALL_DEMO_LAUNCH_FILES(camera_calibration
   LAUNCHFILES
   on_pyrene.launch
   )
+
+# Install talos/calibration/apriltags launch files
+FOREACH(file demo tracker on_pyrene)
+  INSTALL(FILES
+    calibration/apriltags/${file}.launch
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    RENAME talos_calibration_apriltags_${file}.launch
+    )
+ENDFOREACH()
+
+# Install talos/calibration/contact launch files
+FOREACH(file bringup_minimal demo simulation world_setup)
+  INSTALL(FILES
+    calibration/contact/${file}.launch
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    RENAME talos_calibration_contact_${file}.launch
+    )
+ENDFOREACH()
