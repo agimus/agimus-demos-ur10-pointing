@@ -29,6 +29,7 @@ from math import sqrt, pi
 import hpp_idl
 from pinocchio import XYZQUATToSE3, SE3ToXYZQUAT
 from agimus_demos import InStatePlanner
+from hpp import Transform
 from hpp.corbaserver import wrap_delete
 from hpp.corbaserver import loadServerPlugin
 from agimus_hpp.plugin import Client as AgimusHppClient
@@ -615,11 +616,18 @@ class RosInterface(object):
         self.tfBuffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.tfBuffer)
 
-    def getCurrentConfig(self, q0, timeout=5.):
+    # Read configuration of robot from joint encoders through ROS
+    # \param q0 latest known configuration used to set other joints like
+    #        object poses.
+    # \param timeout time out for /joint_state message
+    # \param supportFoot in case of a humanoid robot the root joint is
+    #        computed in such a way that the support foot is in the same
+    #        pose a in configuration q0
+    def getCurrentConfig(self, q0, timeout=5., supportFoot = None):
         from sensor_msgs.msg import JointState
         q = q0[:]
         # Acquire robot state
-        msg = rospy.wait_for_message("/joint_states", JointState)
+        msg = rospy.wait_for_message("/joint_states", JointState, timeout)
         for ni, qi in zip(msg.name, msg.position):
             jni = self.robotPrefix + ni
             if self.robot.getJointConfigSize(jni) != 1:
@@ -630,6 +638,19 @@ class RosInterface(object):
                 continue
             assert self.robot.getJointConfigSize(jni) == 1
             q[rk] = qi
+
+        if supportFoot:
+            self.robot.setCurrentConfig(q0)
+            # desired pose of the support foot
+            Msf0 = Transform(self.robot.getJointPosition(supportFoot))
+            self.robot.setCurrentConfig(q)
+            # actual pose of the support foot
+            Msf = Transform(self.robot.getJointPosition(supportFoot))
+            # actual pose of the humanoid root joint
+            rk = self.robot.rankInConfiguration[self.robotPrefix+'root_joint']
+            Mr0 = Transform(q0[rk:rk+7])
+            # desired pose fo the humanoid root joint
+            q[rk:rk+7] = list(Msf0*Msf.inverse()*Mr0)
 
         return q
 
