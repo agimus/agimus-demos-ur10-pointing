@@ -26,6 +26,7 @@
 
 from CORBA import Any, ORB_init, TC_long
 from hpp.corbaserver import wrap_delete
+from hpp_idl.hpp import Error as HppError
 
 class InStatePlanner:
     # Default path planner
@@ -86,16 +87,16 @@ class InStatePlanner:
             setRightHandSideFromConfig(qinit)
         self.cproblem.setInitConfig(qinit)
         self.cproblem.resetGoalConfigs()
-        self.roadmap = self.wd(self.ps.client.manipulation.problem.\
+        self.croadmap = self.wd(self.ps.client.manipulation.problem.\
                                createRoadmap(
                 self.wd(self.cproblem.getDistance()),
                 self.crobot))
         cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
-        self.roadmap.constraintGraph(cgraph)
+        self.croadmap.constraintGraph(cgraph)
         self.planner = self.wd(self.ps.hppcorba.problem.createPathPlanner(
             self.plannerType,
             self.cproblem,
-            self.roadmap))
+            self.croadmap))
         if self.maxIterPathPlanning:
             self.planner.maxIterations(self.maxIterPathPlanning)
         if self.timeOutPathPlanning:
@@ -103,7 +104,7 @@ class InStatePlanner:
         path = self.wd(self.planner.solve())
 
     def createEmptyRoadmap(self):
-        self.roadmap = self.wd(self.ps.hppcorba.problem.createRoadmap(
+        self.croadmap = self.wd(self.ps.hppcorba.problem.createRoadmap(
                 self.wd(self.cproblem.getDistance()),
                 self.crobot))
 
@@ -142,7 +143,7 @@ class InStatePlanner:
         self.planner = self.wd(self.ps.hppcorba.problem.createPathPlanner(
             self.plannerType,
             self.cproblem,
-            self.roadmap))
+            self.croadmap))
         if self.maxIterPathPlanning:
             self.planner.maxIterations(self.maxIterPathPlanning)
         if self.timeOutPathPlanning:
@@ -234,9 +235,9 @@ class InStatePlanner:
     def writeRoadmap(self, filename):
         cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
         self.ps.client.manipulation.problem.writeRoadmap\
-                       (filename, self.roadmap, self.crobot, cgraph)
+                       (filename, self.croadmap, self.crobot, cgraph)
 
     def readRoadmap(self, filename):
         cgraph = self.wd(self.manipulationProblem.getConstraintGraph())
-        self.roadmap = self.ps.client.manipulation.problem.readRoadmap\
+        self.croadmap = self.ps.client.manipulation.problem.readRoadmap\
                        (filename, self.crobot, cgraph)
