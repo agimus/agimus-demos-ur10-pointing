@@ -211,18 +211,18 @@ class TooltipCalibration(Plugin):
 
 
     def xChanged(self, val):
-        self.xValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[0] = 1e-3*val
+        self.xValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[0] = 2e-4*val
         self.setSignalValue()
 
     def yChanged(self, val):
-        self.yValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[1] = 1e-3*val
+        self.yValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[1] = 2e-4*val
         self.setSignalValue()
 
     def zChanged(self, val):
-        self.zValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[2] = 1e-3*val
+        self.zValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[2] = 2e-4*val
         self.setSignalValue()
 
     def handleIdChanged(self, val):
@@ -412,7 +412,7 @@ class TooltipCalibration(Plugin):
     def computeValueAndJacobian(self):
         for i, m in enumerate(self.measurements):
             self.value[i:i+3] = self.cMe.act(self.et +
-                m['offsets'] - m['cMo'].act(self.oh)
+                m['offsets'] - m['cMo'].act(self.oh))
             self.jacobian[i+0:i+3,0:3] = self.cMe.rotation
             self.jacobian[i+3:i+6,3:6] = -np.matmul(self.cMe.rotation,
-                cross(self.et + m['offsets'])
+                cross(self.et + m['offsets']))
