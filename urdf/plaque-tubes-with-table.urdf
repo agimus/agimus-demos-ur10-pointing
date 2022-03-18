@@ -544,6 +544,19 @@
     <origin xyz="0.515 -0.4 0" rpy="0 0 0" />
   </joint>
 
+  <link name="bolt_17_link">
+    <visual>
+        <geometry>
+            <cylinder radius="0.005" length="0.004" />
+        </geometry>
+    </visual>
+  </link>
+  <joint name="to_bolt_17" type="fixed">
+    <parent link="plaque_link" />
+    <child link="bolt_17_link" />
+    <origin xyz="0.515 -0.4 0.002" rpy="0 0 0" />
+  </joint>
+
   <link name="hole_18_link">
     <visual>
         <geometry>
@@ -590,6 +603,19 @@
     <parent link="plaque_link" />
     <child link="hole_20_link" />
     <origin xyz="0.815 -0.4 0" rpy="0 0 0" />
+  </joint>
+
+  <link name="bolt_20_link">
+    <visual>
+        <geometry>
+            <cylinder radius="0.005" length="0.004" />
+        </geometry>
+    </visual>
+  </link>
+  <joint name="to_bolt_20" type="fixed">
+    <parent link="plaque_link" />
+    <child link="bolt_20_link" />
+    <origin xyz="0.815 -0.4 0.002" rpy="0 0 0" />
   </joint>
 
   <link name="hole_21_link">
