@@ -3,7 +3,7 @@
 These instructions are meant to help run the demo in simulation or an a real
 robot.
 
-## Turning the robot on
+## I- Turning the robot on
 
 1. Turn the robot on, click on the red button in the lower left part of the
    tablet, click on "ON", verify that the two first steps on the screen turn
@@ -30,7 +30,7 @@ docker run -it --rm --name ur10e --cap-add NET_ADMIN -v "/dev:/dev" --privileged
 Copy the files https://github.com/IntelRealSense/librealsense/blob/master/config/99-realsense-libusb.rules to /etc/udev/rules.d/ before connecting the camera
 
 
-## 3D models (this needs to be done only once)
+## II- 3D models (this needs to be done only once)
 
 For Onshape, an account is needed before downloading stl file
 
@@ -40,7 +40,7 @@ Drill Tip mount: https://cad.onshape.com/documents/c03aa227492bc9ee7d6bcfaf/w/85
 
 Wires clamps: https://www.thingiverse.com/thing:3832407
 
-## Steps to run the demo
+## III- Steps to run the demo
 
 Open several tabs in a terminal, go to directory
 `/root/catkin_ws/src/agimus-demos/ur10/pointing` and type the following
@@ -48,7 +48,7 @@ instructions
 
 0. Follow the instructions in `README-localization.md` to launch the camera node and the localizer node.
 
-### Launch the demo
+### III-1) Launch the robot driver and controller
 
 1. in terminal 1
 
@@ -86,7 +86,7 @@ roslaunch ./demo.launch
 ```
 On the robot, after the file is run, the robot should have a lock sound of the joint.
 
-### Generate a path and execute it
+### III-2) Launch HPP 
 
 4. In terminal 3
 ```bash
@@ -103,32 +103,50 @@ gepetto-gui
 ipython -i script_hpp.py
 ```
 
-7. in terminal 5, generate a path, for example:
-```python
-pid, q = pg.planDeburringPathForHole(1)
-```
+### III-3) Launch the vision module
 
-8. In gepetto-gui (terminal 4), verify that the path looks ok.
+Follow the instructions in ```README-localization.md``` to launch the INRIA REACT vision node.
 
-9. Play the path: in a new terminal (terminal 6), run
+### III-4) Executing a path
+
+Once a path has been computed using HPP, to execute it, the path ID must be sent through the ros topic "/agimus/start_path". This can also be done one of the following way :
+
+1. With the widhet rqt_path_execution. In a new terminal (terminal 6), run
 ```bash
 rosrun agimus rqt_path_execution
 ```
-then select the path id and click `execute path`. If you choose level 3, the robot will stop along the path and you will have to click `execute next step` each time.
 
-### Record the traces
+In the widget window, you can select the path id. The ```level``` value indicates how much the path will be cut into steps. If ```level=0``` then the path is executed in one step. If ```level>0```, the path is cut into several steps. To execute each step, click ```Execute step``` until the path is completely executed.
 
-9. in terminal 7
+2. In the script terminal (terminal 5), run
+```python
+pg.demo_execute(pid, steps=False)
+```
+
+where pid is the path id. If ```steps=True```, the path will be displayed in the GUI and the script will wait for user input before executing the path.
+
+### III-5) Run the demo
+
+1. In the script terminal (terminal 5), run:
+```python
+pg.demo(hole_list=[1,2,3], steps=True)
+```
+
+The robot will point each hole specified in hole_list, in sequence. If ```steps=True```, then each path computed will be displayed in the GUI and the script will wait for user input before executing each path. If ```steps=False```, the demo will run without interruption. If there is a problem and the robot must be stopped, use either the red emergency button on the pendant, or the button "Trigger event error" in the rqt_path_execution widget.
+
+## IV- Record the traces
+
+1. In terminal 7
 ``` bash
 rostopic pub /hpp/target/position dynamic_graph_bridge_msgs/Vector [0,0,0,0,0,0]
 ```
 
-10. in terminal 8
+2. In terminal 8
 ``` bash
 rostopic pub /hpp/target/velocity dynamic_graph_bridge_msgs/Vector [0,0,0,0,0,0]
 ```
 
-11. in terminal 9
+3. In terminal 9
 ```bash
 rosrun dynamic_graph_bridge run_command
 ```
@@ -158,10 +176,39 @@ robot.addTrace('ur_dynamic', 'position')
 robot.startTracer()
 ```
 
-12. Play the path using rqt_path_execution (step 8.)
+4. Play the path.
 
-13. in terminal 9, once the path is executed:
+5. In terminal 9, once the path is executed:
 ```
 python
 robot.stopTracer()
 ```
+
+## V- Calibrate the end-effector
+
+1. Generate a path to a chosen hole, for example hole 1.  In the script terminal (terminal 5), run:
+```python
+pid, q = pg.planDeburringPathForHole(1)
+```
+
+2. Using the widget rqt_path_execution, with ```level=3```, execute the path step by step until the end-effector is in grasp position.
+
+3. Open the calibration widget. In another terminal, run
+```bash
+rosrun agimus rqt_tooltip_calibration
+```
+
+4. In the calibration widget, select the handle corresponding to the hole (here, 1). Then move the axes x, y, z while observing the position of the tip of the end-effector until it is centered in the hole.
+
+5. Open the file ```agimus-demos/urdf/ur.xacro```. On the lines:
+```xml
+   <!-- Offset of the tip link (obtained by calibration) -->
+   <xacro:arg name="tip_offset_x" default="0.0008"/>
+   <xacro:arg name="tip_offset_y" default="0.0069"/>
+   <xacro:arg name="tip_offset_z" default="-0.0083"/>
+```
+Add the value your obtained from the calibration widget to the existing value on those lines.
+
+6. Reinstall agimus-demos and re-run the demo. Since the URDF description is passed through rosparams, you need to restard eveything, including the UR10 bringup.
+
+7. Compute and execute a new pointing movement to check that the calibration has been correctly applied.
