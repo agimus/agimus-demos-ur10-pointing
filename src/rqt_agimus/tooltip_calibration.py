@@ -78,8 +78,6 @@ class TooltipCalibration(Plugin):
     objectFrame = 'part/base_link'
     objectFrameMeas = 'part/base_link_measured'
     endEffectorFrame = 'ur10e_d435_mount_link'
-    # Frame in which the offsets are applied
-    offsetFrame = 'ur10e_tool_link'
     tooltipFrame = 'ur10e_tooltip_link'
     objectName = 'part'
 
@@ -204,11 +202,7 @@ class TooltipCalibration(Plugin):
                 (trans,rot) = self._tfListener.lookupTransform\
                     (self.endEffectorFrame, self.tooltipFrame, rospy.Time(0))
                 self.et = np.array(trans)
-                # Get transformation to express offsets in end-effector frame
-                (trans,rot) = self._tfListener.lookupTransform\
-                    (self.endEffectorFrame, self.offsetFrame, rospy.Time(0))
                 readFrame = True
-                self.Roffset = rot
                 self.computeHolePosition()
             except (tf.LookupException, tf.ConnectivityException,
                     tf.ExtrapolationException):
@@ -217,18 +211,18 @@ class TooltipCalibration(Plugin):
 
 
     def xChanged(self, val):
-        self.xValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[0] = 1e-3*val
+        self.xValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[0] = 2e-4*val
         self.setSignalValue()
 
     def yChanged(self, val):
-        self.yValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[1] = 1e-3*val
+        self.yValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[1] = 2e-4*val
         self.setSignalValue()
 
     def zChanged(self, val):
-        self.zValue.setText("{:.3f}".format(1e-3*val))
-        self._translation[2] = 1e-3*val
+        self.zValue.setText("{:.4f}".format(2e-4*val))
+        self._translation[2] = 2e-4*val
         self.setSignalValue()
 
     def handleIdChanged(self, val):
@@ -348,6 +342,9 @@ class TooltipCalibration(Plugin):
         oMl = tfToSE3(trans, rot)
         # Get position of hole in part frame
         self.oh = oMl.act(lh)
+        if self._verbose:
+            print(f'self.oh={self.oh}')
+
 
     def parseLine(self, line, i):
         # Check that line starts with joint_states
@@ -385,15 +382,37 @@ class TooltipCalibration(Plugin):
         self.jacobian = np.zeros(6*3*len(self.measurements))
         self.jacobian.resize(3*len(self.measurements), 6)
         self.computeValueAndJacobian()
+        # Compute pose of camera in end-effector frame
         for i in range(20):
             print(f'squared error = {sum(self.value*self.value)}')
             nu = -np.matmul(np.linalg.pinv(self.jacobian),self.value)
             self.cMe = integration(self.cMe, nu)
+        # Compute position of tooltip in camera frame
+        if len(self.measurements) == 0: return
+        s = 0
+        for m in self.measurements:
+            s += m['cMo'].act(self.oh)
+        ch = s/len(self.measurements)
+        self.eMc = self.cMe.inverse()
+        self.eh = self.eMc.act(ch)
+        print(f"""   <xacro:arg name="tip_offset_x" default="{self.eh[0]}"/>
+   <xacro:arg name="tip_offset_y" default="{self.eh[1]}"/>
+   <xacro:arg name="tip_offset_z" default="{self.eh[2]}"/>
+        """)
+        rpy = pinocchio.rpy.matrixToRpy(self.eMc.rotation)
+        xyz = self.eMc.translation
+        print(f"""    <joint name="ref_camera_joint" type="fixed">
+     <parent link="ur10e_d435_mount_link" />
+     <child link = "ref_camera_link" />
+     <origin xyz="{xyz[0]} {xyz[1]} {xyz[2]}"
+	     rpy="{rpy[0]} {rpy[1]} {rpy[2]}"/>
+   </joint>
+        """)
 
     def computeValueAndJacobian(self):
         for i, m in enumerate(self.measurements):
             self.value[i:i+3] = self.cMe.act(self.et +
-                np.matmul(self.Roffset,m['offsets'])) - m['cMo'].act(self.oh)
+                m['offsets'] - m['cMo'].act(self.oh))
             self.jacobian[i+0:i+3,0:3] = self.cMe.rotation
             self.jacobian[i+3:i+6,3:6] = -np.matmul(self.cMe.rotation,
-                cross(self.et + np.matmul(self.Roffset,m['offsets'])))
+                cross(self.et + m['offsets']))

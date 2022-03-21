@@ -36,8 +36,10 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import tf2_ros, rospy
 from hpp.gepetto import PathPlayer
-from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String
+from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String as StringMsg
 import time
+import rosnode
+from react_inria.srv import reset as ResetSrv
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -68,22 +70,31 @@ class PathGenerator(object):
         self.graph = graph
         self.ri = ri
         self.v = v
+        if self.v is not None:
+            self.pp = PathPlayer(v)
         self.qref = qref # this configuration stores the default pose of the part
         # store corba object corresponding to constraint graph
         self.cgraph = ps.hppcorba.problem.getProblem().getConstraintGraph()
         # create Planner to solve path planning problems on manifolds
         self.inStatePlanner = InStatePlanner(ps, graph)
+        self.inStatePlanner.maxIterPathPlanning = 100 #TODO ?
+        self.inStatePlanner.timeOutPathPlanning = 15
         self.configs = {}
         self.isClogged = lambda x : False
         self.graphValidation = None
         self.setPointCloud()
+        self.setPointCloudDistances()
+        self.setPublishersAndSubscribers()
+        self.removePointCloud()
 
-    def setPointCloud(self, lower_distance=0.25, upper_distance=1):
+    def setPointCloud(self):
         loadServerPlugin('corbaserver', 'agimus-hpp.so')
         cl = AgimusHppClient()
         self.pcl = cl.server.getPointCloud()
-        self.pcl.setDistanceBounds(lower_distance,upper_distance)
         self.pcl.initializeRosNode('agimus_hpp_pcl', False)
+
+    def setPointCloudDistances(self, lower_distance=0.3, upper_distance=1):
+        self.pcl.setDistanceBounds(lower_distance,upper_distance)
 
     def setObjectPlan(self):
         # Get 3 holes on the plaque plan, in the object frame (part/root_joint)
@@ -96,8 +107,8 @@ class PathGenerator(object):
         self.pcl.setObjectPlanMargin(margin)
 
     def buildPointCloud(self, res=0.005, qi=None, margin=0.015, timeout=30,
-                  plan=True, newPointCloud=True):
-        qi = self.checkQInit(qi)
+                  plan=True, new=True):
+        qi = self.localizePart()
         self.robot.setCurrentConfig(qi)
         if plan:
             self.setObjectPlan()
@@ -107,7 +118,7 @@ class PathGenerator(object):
         print(f"Getting point cloud ... (timeout is {timeout})")
         result = self.pcl.buildPointCloud('part/base_link', '/camera/depth/color/points',
                         'ur10e/camera_depth_optical_frame', res,
-                        qi, timeout, newPointCloud)
+                        qi, timeout, new)
         if result:
             self.graph.initialize()
             self.testGraph()
@@ -179,15 +190,38 @@ class PathGenerator(object):
         return wrap_delete(o, self.ps.client.basic._tools)
 
     def localizePart(self):
+        self.resetVision()
         q1 = self.ri.getCurrentConfig(self.qref)
-        new_q_init = self.ri.getObjectPose(q1)
+        ok = False
+        try:
+            new_q_init = self.ri.getObjectPose(q1, timeout=2)
+            ok = True
+        except RuntimeError as e:
+            self.resetVision()
+        if not ok:
+            try:
+                time.sleep(0.5)
+                new_q_init = self.ri.getObjectPose(q1, timeout=2)
+                ok = True
+            except RuntimeError as e:
+                self.resetVisionHard()
+        if not ok:
+            time.sleep(0.5)
+            new_q_init = self.ri.getObjectPose(q1, timeout=2)
         norm = sqrt(sum([e*e for e in new_q_init[-4:]]))
         new_q_init[-4:] = [e/norm for e in new_q_init[-4:]]
         self.qref = new_q_init
+        if self.v is not None:
+            self.v(new_q_init)
         return new_q_init
 
+    def setTablePose(self, qref):
+        q = self.qref[:]
+        q[-4:] = qref[-4:]
+        return q
+
     def generateValidConfigForHandle(self, handle, qinit, qguesses = [],
-                                     NrandomConfig=10, step=3):
+                                     NrandomConfig=50, step=3):
         edge = tool_gripper + " > " + handle
         ok = False
         from itertools import chain
@@ -276,7 +310,7 @@ class PathGenerator(object):
             path_ids.append(pid)
         return path_ids
 
-    def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=10):
+    def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=50):
         from itertools import chain
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
                                       for _ in range(NrandomConfig))):
@@ -285,7 +319,7 @@ class PathGenerator(object):
                 return True, qres
         return False, None
 
-    def checkQInit(self, qinit):
+    def checkQInit(self, qinit=None):
         if qinit is None:
             if self.ri is None or self.qref is None:
                 raise ValueError('ri and qref must be defined')
@@ -328,7 +362,7 @@ class PathGenerator(object):
     #              3 -> back to pregrap.
     # and going through
     # pregraps, grasp and pregrasp again for a given handle
-    def generatePathForHandle(self, handle, qinit=None, NrandomConfig=10,
+    def generatePathForHandle(self, handle, qinit=None, NrandomConfig=100,
                               step=3):
         qinit = self.checkQInit(qinit)
         # generate configurations
@@ -403,6 +437,8 @@ class PathGenerator(object):
         return self.planTo(self.configs[name])
 
     def isHoleDoable(self, hole_id, qinit=None):
+        if hole_id in [17,20]:
+            return False
         if self.graphValidation is None:
             raise RuntimeError("You should validate the graph first")
         coll = self.graphValidation.getCollisionsForNode("ur10e/gripper grasps part/handle_"+str(hole_id))
@@ -410,7 +446,7 @@ class PathGenerator(object):
             qinit = self.checkQInit(qinit)
             handle = 'part/handle_'+str(hole_id).zfill(2)
             res, qpg, qg = self.generateValidConfigForHandle(handle, qinit=qinit,
-                    qguesses = [qinit], NrandomConfig=50)
+                    qguesses = [qinit], NrandomConfig=100)
             if not res or (qg is not None and not self.robot.isConfigValid(qg)[0]):
                 print("Cannot generate valid grasp config")
                 return False
@@ -421,15 +457,15 @@ class PathGenerator(object):
                 print("Collision between", a, "and", b)
             return False
 
-    def planDeburringPathForHole(self, hole_id, qinit=None):
+    def planDeburringPathForHole(self, hole_id, qinit=None, NrandomConfig=50):
         qinit = self.checkQInit(qinit)
         if not self.isHoleDoable(hole_id, qinit):
             print(f"Hole {hole_id} is not doable")
             return None, qinit
         handle = 'part/handle_'+str(hole_id).zfill(2)
         try:
-            p = self.generatePathForHandle(handle, qinit, 50)
-        except RuntimeError:
+            p = self.generatePathForHandle(handle, qinit, NrandomConfig)
+        except:
             print(f"Failed to generate path for hole {hole_id}")
             return None, qinit
         if p:
@@ -471,7 +507,7 @@ class PathGenerator(object):
         pid = self.ps.numberPaths()-1
         return pid, self.ps.configAtParam(pid, self.ps.pathLength(pid))
 
-    def setPublishers(self):
+    def setPublishersAndSubscribers(self):
         # Topic to publish which path to execute
         PathExecutionTopic = "/agimus/start_path"
         self.path_execution_publisher = rospy.Publisher(
@@ -482,6 +518,21 @@ class PathGenerator(object):
         self.path_ready = False
         rospy.Subscriber (StatusRunningTopic,
                     Bool, self.callback_statusRunningTopics)
+
+        # Topic publishing when a path has finished being executed
+        PathSuccessTopic = "/agimus/status/path_success"
+        self.path_success = False
+        rospy.Subscriber (PathSuccessTopic, EmptyMsg, self.callback_pathSuccess)
+
+        # Topic publishing in case of failed execution of the path
+        PathFailedTopic = "/agimus/status/path_failed"
+        self.path_failed = False
+        rospy.Subscriber (PathFailedTopic, StringMsg, self.callback_pathFailed)
+
+        # Topic publishing in case of failed localization of the part
+        LocalizationFailedTopic = "/agimus/status/localization_failed"
+        self.localization_failed = False
+        rospy.Subscriber (LocalizationFailedTopic, StringMsg, self.callback_localizationFailed)
 
         # Parameter setting the level of steps for the path execution
         self.StepByStepParam = "/agimus/step_by_step"
@@ -498,106 +549,257 @@ class PathGenerator(object):
         self.subs_status_stepbystep = rospy.Subscriber (StatusWaitStepByStepTopic,
                     Bool, self.callback_statusStepByStep)
 
+    def callback_pathSuccess(self, msg):
+        self.path_success = True
+
+    def callback_pathFailed(self, msg):
+        self.path_failed = True
+
+    def callback_localizationFailed(self, msg):
+        self.localization_failed = True
+
     def callback_statusStepByStep(self, msg):
         self.step_ready = msg.data
 
     def callback_statusRunningTopics(self, msg):
-        self.path_ready = not msg.data
+        self.path_running = msg.data
 
-    def demo_execute(self, pid):
+    def removePointCloud(self):
+        self.pcl.removeOctree('part/base_link')
+
+    def planToPregrasp(self, handle_id, qinit=None):
+        qinit = self.checkQInit(qinit)
+        try:
+            p = self.generatePathForHandle('part/handle_'+str(handle_id).zfill(2), qinit, step=1)
+        except Exception as e:
+            print(e)
+            return None, qinit
+        pid = self.addPath(p)
+        q_end = self.ps.configAtParam(pid, self.ps.pathLength(pid))
+        return pid, q_end
+
+    def demo_execute(self, pid, max_nb=10, steps=True, visualize=True):
+        if self.ps.pathLength(pid) < 0.3:
+            return True
+        res = self.step(pid, steps, visualize=visualize)
+        if not res:
+            return False
+        print(f"    executing path {pid}")
         # Set step level parameter to zero
         rospy.set_param(self.StepByStepParam, 0)
+        self.path_success = False
+        self.path_failed = False
+        self.localization_failed = False
         # Execute path
         self.path_execution_publisher.publish(pid)
-        # Wait for path to finish
-        while not self.path_ready: #TODO
-            time.sleept(0.5)
-        return True
-
-    def demo_executeWithSteps(self, pid):
-        rospy.set_param(self.StepByStepParam, 3)
-        while not self.path_ready: #TODO
-            res = input("Execute next step ? (y)es, (n)o, (q)uit : ")
-            if 'q' in res.lower():
+        while not self.path_success:
+            # Wait for path to finish
+            if self.localization_failed:
                 return False
-            if 'n' in res.lower():
-                return True
-            # Execute next step
-            self.step_publisher.publish()
-            # Wait for step to finish
-            while not self.step_ready:
-                time.sleep(0.5)
+            if self.path_failed:
+                if max_nb < 0:
+                    print("Failed to play path")
+                    return False
+                # print("Retrying...")
+                time.sleep(0.2)
+                return self.demo_execute(pid, max_nb=max_nb-1, steps=False)
+            time.sleep(0.1)
         return True
 
-    # Returns two booleans
-    # If the first is True, then continue with the demo, if False stop
-    # If the second is True, recompute the path
-    def demo_askExecute(self, pid):
-        res = input("Ready to visualize path ?")
-        self.pp(pid)
-        res = input("Execute path ? (y)es, (s)tep, (r)eplan, (c)ontinue, (q)uit : ")
-        if isYes(res):
-            # Execute the path
-            return self.demo_execute(pid=pid), False
-        if 's' in res.lower():
-            # Execute the path with step level = 3
-            return self.demo_executeWithSteps(pid=pid), False
-        if 'r' in res.lower():
-            # Clear the roadmap and plan again
-            self.ps.clearRoadmap()
-            return True, True
-        if 'c' in res.lower():
-            # Don't execute path but continue with demo
-            return True, False
-        if 'q' in res.lower():
-            # Quit demo
-            return False, False
-
-    def demo_planAndExecute(self, goal):
-        pid, _ = self.planTo(goal)
-        keep_going, recompute =  self.demo_askExecute(pid)
-        if not keep_going:
-            return False
-        if recompute:
-            return self.demo_planAndExecute(goal)
-
-    def demo_buildPointCloud(self, newPointCloud=True):
-        res = input("Get point cloud ?")
-        self.demo_buildPointCloud()
-        res = input("Keep point cloud ? (y)es, get (n)ew point cloud : ")
-        if 'n' in res.lower():
-            return self.demo_buildPointCloud(newPointCloud=newPointCloud)
-        return True
-
-    def demo(self, qinit=None, nb_holes=44):
+    def demo_planAndExecute(self, goal, qinit=None):
         qinit = self.checkQInit(qinit)
-        if self.v is None:
-            print("Please provide a viewer")
-            return
-        self.pp = PathPlayer(self.v)
-        # Go to calibration config
-        res = input("Go to calib? (y)es, (n)o : ")
-        if isYes(res):
-            success = self.demo_planAndExecute("calib")
-            if not success:
+        pid, _ = self.planTo(goal, qinit=qinit)
+        self.demo_execute(pid)
+
+    def demo_pointcloud(self, configs=[], steps=False):
+        for qpc in configs:
+            print("Going to PC acquisition config...")
+            try:
+                pid, _ = self.planTo(qpc)
+            except Exception as e:
+                print(e)
                 return False
-            input("Now is the time to use INRIA's localizer calibration")
-        # Go to point cloud config
-        self.localizePart()
-        res = input("Go to point cloud aquisition ? (y)es, (n)o : ")
-        if isYes(res):
-            success = self.demo_planAndExecute("pointcloud")
-            if not success:
+            try:
+                res = self.demo_execute(pid, steps=steps)
+                if not res:
+                    raise RuntimeError("Failed to demo_execute")
+            except Exception as e:
+                print(e)
+                self.resetVision()
+                res = self.demo_execute(pid, steps=steps)
+            if not res:
                 return False
-            self.demo_buildPointCloud()
-        # Go to points
-        path_ids, q_end = self.planDeburringPaths(nb_holes)
-        for pid in path_ids:
-            success, _ = self.demo_askExecute(pid)
-            if not success:
-                return False
+            self.buildPointCloud(new=False)
         return True
-            
+
+    def checkNeedVisionReset(self, config):
+        res, msg = self.robot.isConfigValid(config)
+        if not res:
+            if 'Joint part/root_joint' in msg and 'value out of range' in msg:
+                return True
+            if 'Collision between object ur10e/support_link' in msg and 'part/' in msg:
+                return True
+        return False
+
+    def resetVision(self):
+        print("Resetting localizer")
+        rospy.wait_for_service('/reset_from_robot_position')
+        self.reset_vision_client = rospy.ServiceProxy('/reset_from_robot_position', ResetSrv)
+        res = self.reset_vision_client()
+        if not res:
+            raise RuntimeError("Could not reset vision from robot position")
+        return True
+
+    def resetVisionHard(self):
+        rosnode.kill_nodes(['/react_camera_localizer'])
+        rospy.wait_for_service('/reset_from_robot_position')
+        return True
+
+    def demo_handle_pointcloud(self, handles=[], qinit=None, steps=False):
+        qinit = self.checkQInit(qinit)
+        qi = qinit[:]
+        ok = False
+        for handle in handles:
+            self.resetVision()
+            print(f"\nPlanning point cloud acquisition in front of handle {handle}...")
+            res, qpg, _ = self.generateValidConfigForHandle(
+                'part/handle_'+str(handle).zfill(2),
+                qinit = qi,
+                qguesses = [qi],
+                step = 1,
+                NrandomConfig=50)
+            if res:
+                self.demo_pointcloud([qpg], steps=steps)
+                qi = qpg[:]
+                ok = True
+            else:
+                print("Failed.")
+                print(res)
+                print(qpg)
+        return ok
+
+    def demo_calib(self, steps=False):
+        print("Going to calibration config 0...")
+        try:
+            pid, _ = self.planTo("calib")
+        except Exception as e:
+            print(e)
+            return False
+        res = self.demo_execute(pid, steps=steps)
+        if not res:
+            return False
+        self.localizePart()
+        print("Object localized")
+        if steps:
+            res = input("Place or move obstacle NOW")
+        self.buildPointCloud(new=True)
+        return True
+
+    def step(self, pid, steps=True, visualize=True):
+        if steps:
+            if visualize:
+                self.pp(pid)
+            res = input("Execute ? (Y/n/reshow)")
+            if 'r' in res.lower():
+                return self.step(pid, steps=steps, visualize=True)
+            if 'n' in res.lower():
+                return False
+            else:
+                return True
+        return True
+
+    def demo_goToHolePointCloud(self, hole_id, steps=False, pointcloud=True):
+        qinit = self.checkQInit()
+        if not self.isHoleDoable(hole_id, qinit):
+            print(f"Hole {hole_id} is not doable")
+            return None, qinit
+        print(f"\nGoing to hole {hole_id}")
+        for i in range(3):
+            try:
+                print("Planning pregrasp")
+                pid, _ = self.planToPregrasp(hole_id)
+                if pid is not None:
+                    break
+            except:
+                return False
+        if pid is None:
+            print(f"Failed to do hole {hole_id}")
+            return True
+        res = self.demo_execute(pid, steps=steps)
+        if pointcloud:
+            self.buildPointCloud(new=False)
+        print("Executing pointing task...")
+        try:
+            pid, _ = self.planDeburringPathForHole(hole_id)
+            if pid is None:
+                return False
+        except:
+            return False
+        return self.demo_execute(pid, steps=steps)
+
+    def demo_goToHole(self, hole_id, steps=False, NbTries=3):
+        i = 0
+        while True:
+            print(f"\nGoing to hole {hole_id}, try {i}")
+            try:
+                pid, _ = self.planDeburringPathForHole(hole_id)
+                if pid is not None:
+                    try:
+                        res = self.demo_execute(pid, steps=steps)
+                        if not res:
+                            raise RuntimeError("Failed to demo_execute")
+                    except Exception as e:
+                        print(e)
+                        self.resetVision()
+                        res = self.demo_execute(pid, steps=steps)
+                    return res
+                else:
+                    i += 1
+                    if i > NbTries:
+                        return None
+            except:
+                i += 1
+                if i > NbTries:
+                    return None
+
+    def demo(self, hole_list=[7,8,9,42,43,13], pointcloud_handles=[1,5,19,15],
+                steps=False, getPCatPreGrasp=False, execute=True):
+        self.removePointCloud()
+        res = self.demo_calib(steps=steps)
+        if not res:
+            print("Could not do calib.")
+            return False
+
+        res = self.demo_pointcloud(configs=["pointcloud", "pointcloud2"], steps=steps)
+        # if not getPCatPreGrasp:
+        #     res = self.demo_handle_pointcloud(handles=pointcloud_handles, steps=steps)
+        if not res:
+            print("Could not do point cloud acquisition.")
+            return False
+
+        for hole_id in hole_list:
+            self.resetVision()
+            if getPCatPreGrasp:
+                res = self.demo_goToHolePointCloud(hole_id, steps=steps)
+            else:
+                res = self.demo_goToHolePointCloud(hole_id, steps=steps, pointcloud=False)
+            time.sleep(0.2)
+
+        print("\nGoing to calibration config...")
+        for i in range(3):
+            try:
+                pid, _ = self.planTo("calib")
+            except Exception as e :
+                print(e)
+                continue
+            if pid is not None:
+                break
+        if pid is None:
+            print("Failed to go back to calib")
+            return False
+        res = self.demo_execute(pid, steps=steps)
+        print("Demo done.")
+        return True
 
 class RosInterface(object):
     nodeId = 0
