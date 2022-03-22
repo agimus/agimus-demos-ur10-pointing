@@ -129,7 +129,7 @@ if UseAprilTagPlank:
 else:
     Part = PartPlaque
 vf.loadRobotModel (Part, "part")
-robot.setJointBounds('part/root_joint', [-2, 2, -2, 2, -2, 2])
+robot.setJointBounds('part/root_joint', [1, 1.5, -0.5, 0.5, -0.5, 0.5])
 print("Part loaded")
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
@@ -153,6 +153,11 @@ q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.57
 q_calib = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
 ## PointCloud position : the part should fit the field of view
 q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
+q_pointcloud2 = [1.480271816253662, -1.4792188129820762, 2.403522316609518, -0.9397409719279786, 1.503467082977295, -3.152398173009054, 1.166362251685465, 0.18398354959470994, -0.040275835859414855, -0.011115686791169354, 0.00903223476857969, -0.701584375075136, 0.7124424361958492]
+q_pc1 = [1.4802236557006836, -2.7792393169798792, 2.6035669485675257, 0.06014220296826167, 1.5035147666931152, -3.1523261705981653, 1.1430909403610665, 0.22893782415973665, -0.04789935128099243, -0.0033794390562739483, 0.008636413673842097, -0.6985826418521135, 0.7154692755481825]
+q_pc2 = [1.480247974395752, -2.7792188129820765, 2.6035461584674278, -0.13980153024707037, 1.5035266876220703, -3.1523383299456995, 1.1138463304333714, 0.23051956151197342, -0.040682700437678854, -0.00938303410217683, 0.013303913345295534, -0.7001874363145009, 0.7137734364544993]
+
+
 
 def norm(quaternion):
     return sqrt(sum([e*e for e in quaternion]))
@@ -212,7 +217,7 @@ def createConstraintGraph():
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
-    sm.setSecurityMarginBetween("ur10e", "part", 0.01)
+    sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
     sm.defaultMargin = 0.01
     sm.apply()
@@ -248,6 +253,9 @@ ps.setTimeOutPathPlanning(10)
 pg.setConfig("home", q_home)
 pg.setConfig("calib", q_calib)
 pg.setConfig("pointcloud", q_pointcloud)
+pg.setConfig("pointcloud2", q_pointcloud2)
+pg.setConfig("pointcloud_bas", q_pc1)
+pg.setConfig("pointcloud_haut", q_pc2)
 
 if useFOV:
     def configHPPtoFOV(q):
@@ -300,3 +308,6 @@ def doDemo():
     NB_holes_to_do = 7
     demo_holes = range(NB_holes_to_do)
     pids, qend = pg.planDeburringPaths(demo_holes)
+
+holist = [7,8,9,42,43,13]
+v(q_init)

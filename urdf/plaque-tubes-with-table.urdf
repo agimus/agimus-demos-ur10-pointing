@@ -188,32 +188,32 @@
     <visual>
       <origin xyz="0 0 .725"/>
       <geometry>
-        <box size="0.8 0.8 .01"/>
+        <box size="1.2 0.40 .05"/>
       </geometry>
       <material name="blue">
         <color rgba="0 0 1 1"/>
       </material>
     </visual>
     <visual>
-      <origin xyz=".39 .39 .36"/>
+      <origin xyz=".59 .19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </visual>
     <visual>
-      <origin xyz="-.39 .39 .36"/>
+      <origin xyz="-.59 .19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </visual>
     <visual>
-      <origin xyz="-.39 -.39 .36"/>
+      <origin xyz="-.59 -.19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </visual>
     <visual>
-      <origin xyz=".39 -.39 .36"/>
+      <origin xyz=".59 -.19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
@@ -222,29 +222,29 @@
     <collision>
       <origin xyz="0 0 .725"/>
       <geometry>
-        <box size="0.84 .84 .01"/>
+        <box size="1.10 .42 .05"/>
       </geometry>
     </collision>
     <collision>
-      <origin xyz=".39 .39 .36"/>
+      <origin xyz=".59 .19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </collision>
     <collision>
-      <origin xyz="-.39 .39 .36"/>
+      <origin xyz="-.59 .19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </collision>
     <collision>
-      <origin xyz="-.39 -.39 .36"/>
+      <origin xyz="-.59 -.19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
     </collision>
     <collision>
-      <origin xyz=".39 -.39 .36"/>
+      <origin xyz=".59 -.19 .36"/>
       <geometry>
         <box size=".02 .02 .72"/>
       </geometry>
@@ -544,6 +544,19 @@
     <origin xyz="0.515 -0.4 0" rpy="0 0 0" />
   </joint>
 
+  <link name="bolt_17_link">
+    <visual>
+        <geometry>
+            <cylinder radius="0.005" length="0.004" />
+        </geometry>
+    </visual>
+  </link>
+  <joint name="to_bolt_17" type="fixed">
+    <parent link="plaque_link" />
+    <child link="bolt_17_link" />
+    <origin xyz="0.515 -0.4 0.002" rpy="0 0 0" />
+  </joint>
+
   <link name="hole_18_link">
     <visual>
         <geometry>
@@ -590,6 +603,19 @@
     <parent link="plaque_link" />
     <child link="hole_20_link" />
     <origin xyz="0.815 -0.4 0" rpy="0 0 0" />
+  </joint>
+
+  <link name="bolt_20_link">
+    <visual>
+        <geometry>
+            <cylinder radius="0.005" length="0.004" />
+        </geometry>
+    </visual>
+  </link>
+  <joint name="to_bolt_20" type="fixed">
+    <parent link="plaque_link" />
+    <child link="bolt_20_link" />
+    <origin xyz="0.815 -0.4 0.002" rpy="0 0 0" />
   </joint>
 
   <link name="hole_21_link">

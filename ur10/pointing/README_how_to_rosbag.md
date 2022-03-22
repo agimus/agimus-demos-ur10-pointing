@@ -54,8 +54,9 @@ p_id is then the ID of the global path.
 
 7. In terminal 6, start recording the needed topics:
 ```bash
-rosbag record --split --size=1024 /camera/color/image_raw /camera/color/camera_info /camera/depth/camera_info /camera/depth/image_rect_raw /tf /tf_static /pose /camera/extrinsics/depth_to_color
+rosbag record --split --size=1024 /camera/color/image_raw /camera/color/camera_info /camera/depth/camera_info /camera/depth/image_rect_raw /tf /tf_static /pose /camera/extrinsics/depth_to_color /camera/aligned_depth_to_color/camera_info /camera/aligned_depth_to_color/image_raw
 ```
+
 This will generate rosbags of 1GB each (the `--size` argumet lets you define the maximum size).
 
 8. In terminal 7:
