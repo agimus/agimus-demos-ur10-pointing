@@ -27,16 +27,17 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool
       libccd-dev ros-melodic-octomap ros-melodic-resource-retriever ros-melodic-srdfdom libltdl-dev python-omniorb python-matplotlib python-scipy libxml2 \
       libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev ros-melodic-polled-camera \
       ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm \
-      robotpkg-py27-qt5-gepetto-viewer-corba robotpkg-py27-qt5-hpp-gui \
-      robotpkg-py27-qt5-hpp-plot robotpkg-pyrene-motions \
-      robotpkg-talos-simulation oxygen-icon-theme \
+      robotpkg-qt5-osgqt robotpkg-openscenegraph ffmpeg libpythonqt-qt5-common-dev libpythonqt-qtall-qt5-common-dev libpythonqt-qt5-python2-dev \
+      libpythonqt-qtall-qt5-python2-dev qtbase5-dev libtinyxml-dev mesa-common-dev libglvnd-dev libgl1-mesa-dev omniorb-nameserver omniorb-idl omniidl-python \
+      robotpkg-qt5-qgv robotpkg-pyrene-motions robotpkg-talos-simulation oxygen-icon-theme \
       mesa-utils net-tools novnc terminator firefox \
       x11-apps tigervnc-standalone-server tigervnc-xorg-extension xfce4 \
-      ipython emacs pybind11-dev  doxygen openssh-client
+      ipython emacs pybind11-dev  doxygen openssh-client gdb gnuplot
 
 RUN git config --global url."https://github.com/".insteadOf git://github.com/
 RUN mkdir -p ~/catkin_ws/src
 WORKDIR /root/catkin_ws
+ENV CMAKE_PREFIX_PATH=/opt/openrobots
 RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=ON
 
 RUN mkdir ~/.vnc \
@@ -44,7 +45,6 @@ RUN mkdir ~/.vnc \
  && chmod +x ~/.vnc/xstartup
 
 COPY passwd /root/.vnc/passwd
-COPY launch-gepetto-gui.sh /root/catkin_ws/install/bin/gepetto-gui
 
 COPY ./pal_tiago.repos src/pal_tiago.repos
 RUN cd src && vcs-import --recursive --input pal_tiago.repos
@@ -52,20 +52,20 @@ RUN cd src && vcs-import --recursive --input pal_tiago.repos
 RUN . /opt/ros/melodic/setup.sh && catkin build
 
 COPY ./gepetto_tiago.repos src/gepetto_tiago.repos
-RUN cd src && vcs-import --recursive --input gepetto_tiago.repos
-
-COPY ./patches src/patches
-COPY ./patches/apply.sh src/apply_patches.sh
-RUN cd src/ && bash apply_patches.sh
-
-RUN . install/setup.sh && catkin build -j 1
-
-# Clone manually rob4fam-models
-COPY rob4fam-models src/rob4fam-models
-RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4fam/rob4fam-models.git
-RUN catkin build rob4fam-models
-
 COPY config.sh /root/config.sh
 RUN echo "source ~/config.sh" >> ~/.bashrc
 
-# vim: ft=dockerfile
+COPY ./patches src/patches
+COPY ./patches/apply.sh src/apply_patches.sh
+
+# RUN cd src && vcs-import --recursive --input gepetto_tiago.repos
+# RUN cd src/ && bash apply_patches.sh
+
+# RUN . /root/config.sh && cd src && catkin build -j 1
+
+# # Clone manually rob4fam-models
+# COPY rob4fam-models src/rob4fam-models
+# RUN git -C src/rob4fam-models remote set-url origin https://gitlab.laas.fr/rob4fam/rob4fam-models.git
+# RUN catkin build rob4fam-models
+
+# # vim: ft=dockerfile
