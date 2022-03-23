@@ -45,7 +45,7 @@ from hpp.corbaserver.manipulation.robot import CorbaClient, HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import \
     ConstraintGraphFactory
-from agimus_demos.tools_hpp import RosInterface
+from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
 from common_hpp import createGazeConstraints, createGripperLockedJoints, \
@@ -205,42 +205,40 @@ def goToContact(ri, pg, gripper, handle, q_init):
     isp = pg.inStatePlanner
     isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
-    isp.cproblem.setParameter\
+    isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
-    isp.cproblem.setParameter\
+    isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
-    isp.cproblem.setParameter\
+    isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathForHandle(handle, q_init)
     # First path is already time parameterized
     # Transform second and third path into PathVector instances to time
     # parameterize them
-    isp.cproblem.setParameter\
+    isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
-    isp.cproblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.1))
+    isp.manipulationProblem.setParameter\
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+    finalPaths = [paths[0],]
     for i, p in enumerate(paths[1:]):
         path = p.asVector()
         for optType in isp.optimizerTypes:
             optimizer = isp.wd(isp.ps.hppcorba.problem.createPathOptimizer\
                 (optType, isp.manipulationProblem))
-            try:
-                optpath = optimizer.optimize(path)
-                # optimize can return path if it couldn't find a better one.
-                # In this case, we have too different client refering to the
-                # same servant.
-                # thus the following code deletes the old client, which
-                # triggers deletion of the servant and the new path points to
-                # nothing...
-                # path = pg.wd(optimizer.optimize(path))
-                from hpp.corbaserver.tools import equals
-                if not equals(path, optpath):
-                    path = isp.wd(optpath)
-                paths[i] = path
-            except HppError as e:
-                print("could not optimize", e)
-    for p in paths:
-        pg.ps.client.basic.problem.addPath(p)
+            optpath = optimizer.optimize(path)
+            # optimize can return path if it couldn't find a better one.
+            # In this case, we have too different client refering to the
+            # same servant.
+            # thus the following code deletes the old client, which
+            # triggers deletion of the servant and the new path points to
+            # nothing...
+            # path = pg.wd(optimizer.optimize(path))
+            from hpp.corbaserver.tools import equals
+            if not equals(path, optpath):
+                path = isp.wd(optpath)
+        finalPaths.append(path)
+    pg.ps.client.basic.problem.addPath(finalPaths[0])
+    pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[1:]))
 
 initConf = [0, 0, 1.02, 0, 0, 0, 1, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0, 0.006761, 0.25847, 0.173046, -0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.25847, -0.173046, 0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
