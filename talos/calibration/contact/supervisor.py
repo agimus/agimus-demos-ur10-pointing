@@ -47,7 +47,7 @@ def addContactDetection(supervisor, factory):
     for name in ["wrist_left_ft_link", "wrist_right_ft_link"]:
         if not robot.dynamic.hasSignal(name):
             robot.dynamic.createOpPoint(name, name)
-    for gripper in factory.grippers:
+    for ig, gripper in enumerate(factory.grippers):
         if gripper == 'talos/left_gripper':
             wrenchSignalName = 'forceLARM'
             ftLinkName = "wrist_left_ft_link"
@@ -56,12 +56,11 @@ def addContactDetection(supervisor, factory):
             ftLinkName = "wrist_right_ft_link"
         else:
             raise RuntimeError('Unexpected gripper name: ' + gripper)
-        for handle in factory.handles:
+        for ih, handle in enumerate(factory.handles):
             edgeName = '{} > {} | f_12'.format(gripper, handle)
             name = 'pregrasp___{}___{}'.format(gripper, handle)
             task = Task(name + '_task')
             feature = FeaturePose(name + '_feature')
-            task.clear()
             ca = ContactAdmittance(name + '_contact')
             plug(feature.error, ca.errorIn)
             plug(feature.jacobian, ca.jacobianIn)
@@ -70,7 +69,12 @@ def addContactDetection(supervisor, factory):
             ca.threshold.value = 20
             ca.wrenchDes.value = np.array([0,0,30,0,0,0])
             ca.stiffness.value = 100 * np.identity(6)
+            task.clear()
             task.add(ca.name)
+            # Add task in transition that releases the contact
+            edgeBack = '{} < {} | {}-{}_21'.format(gripper, handle, ig, ih)
+            supervisor.sots[edgeBack] = supervisor.sots[edgeName]
+
 
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
