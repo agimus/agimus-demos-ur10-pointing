@@ -47,6 +47,7 @@ def wd(o):
 class Table(object):
     contacts = ["top"]
     handles = ["contact_01", "contact_02", "contact_03", "contact_04"]
+    handles = ["contact_01"]
     rootJointType = "freeflyer"
     urdfFilename = "package://gerard_bauzil/urdf/rolling_table.urdf"
     srdfFilename = "package://agimus_demos/srdf/rolling_table_calibration_contact.srdf"
