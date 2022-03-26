@@ -18,6 +18,9 @@
   <author email="jmirabel@laas.fr">Joseph Mirabel</author> 
   <author email="anicolin@laas.fr">Alexis Nicolin</author> 
 
+  <depend>dynamic-graph-python</depend>
+  <depend>dynamic_graph_bridge</depend>
+
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>roslaunch</exec_depend>
 

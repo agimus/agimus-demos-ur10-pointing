@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(agimus_demos)
+
+set(CXX_DISABLE_WERROR TRUE)
+
+set(PROJECT_NAME agimus_demos)
+set(PROJECT_DESCRIPTION "Demonstration of Agimus with various robots")
+set(PROJECT_URL "https://github.com/agimus/agimus-demos")
+set(PROJECT_USE_CMAKE_EXPORT TRUE)
+
+include(cmake/base.cmake)
+include(cmake/test.cmake)
+include(cmake/python.cmake)
+
+compute_project_args(PROJECT_ARGS LANGUAGES CXX)
+project(${PROJECT_NAME} ${PROJECT_ARGS})
+
+add_project_dependency (dynamic-graph-python 4 REQUIRED)
+add_project_dependency (dynamic_graph_bridge 3 REQUIRED)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -9,7 +25,6 @@ project(agimus_demos)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roslaunch
-  robot_state_publisher
 )
 
 catkin_package(
