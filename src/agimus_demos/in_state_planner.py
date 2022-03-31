@@ -152,6 +152,10 @@ class InStatePlanner:
            None:
             self.planner.stopWhenProblemIsSolved(True)
         path = self.wd(self.planner.solve())
+        path = self.optimizePath(path)
+        return path
+
+    def optimizePath(self, path):
         for optType in self.optimizerTypes:
             optimizer = self.wd(self.ps.hppcorba.problem.createPathOptimizer\
                 (optType, self.manipulationProblem))
