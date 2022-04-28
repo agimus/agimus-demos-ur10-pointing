@@ -196,21 +196,32 @@ class PathGenerator(object):
         from itertools import chain
         def project_and_validate(e, qrhs, q):
             res, qres, err = self.graph.generateTargetConfig (e, qrhs, q)
+            if not res:
+                self.status = "failed to project configuration"
+                return False, None
             # validate configuration with edge path validation
             cgraph = self.wd(self.cproblem.getConstraintGraph())
             cedge = self.wd(cgraph.get(self.graph.edges[e]))
             cvalidation = self.wd(cedge.getPathValidation())
             valid, msg = cvalidation.validateConfiguration(qres)
-            return res and not self.isClogged(qres) and valid, qres
+            if not valid:
+                self.status = "failed to validate configuration: " + msg
+            clogged = self.isClogged(qres)
+            if clogged:
+                self.status = "configuration is clogged"
+            return res and not clogged and valid, qres
         qpg, qg = None, None
         res = False
         for qrand in chain(qguesses, (self.robot.shootRandomConfig()
                                       for _ in range(NrandomConfig))):
             res1, qpg = project_and_validate (edge+" | f_01", qinit, qrand)
-            if not res1: continue
+            if not res1:
+                self.status += " at step 1."
+                continue
             if step >= 2:
                 res2, qg = project_and_validate(edge+" | f_12", qpg, qpg)
                 if not res2:
+                    self.status += " at step 2."
                     continue
             else:
                 res2 = True
