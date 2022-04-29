@@ -140,28 +140,44 @@ def makeGraph(ps, table):
     sm.setSecurityMarginBetween("talos", "talos", 0)
     sm.defaultMargin = 0.01
     sm.apply()
-    # deactivate collision checking between end-effector and table between
+    # deactivate collision checking between fingertips and table between
     # pregrasp and grasp
     cproblem = wd(ps.client.basic.problem.getProblem())
     cgraph = wd(cproblem.getConstraintGraph())
     for ig, g in enumerate(factory.grippers):
         joint, _ = robot.getGripperPositionInJoint(g)
+        if joint[10:14] == 'left':
+            side = 'left'
+        elif joint[10:15] == 'right':
+            side = 'right'
+        else:
+            raise RuntimeError('Failed to recognize wrist joint "{}"'.\
+                               format(joint))
         for ih, h in enumerate(factory.handles):
             name = "{} > {} | f_12".format(g,h)
             cedge = wd(cgraph.get(graph.edges[name]))
-            cedge.setSecurityMarginForPair(robot.jointNames.index(joint)+1,
-                robot.jointNames.index(table.name + '/root_joint')+1,
-                float('-inf'))
+            for i in range(1,4):
+                fingertip = "talos/gripper_{}_fingertip_{}_joint".format\
+                            (side, i)
+                cedge.setSecurityMarginForPair(robot.jointNames.index(fingertip)
+                    +1, robot.jointNames.index(table.name + '/root_joint')+1,
+                    float('-inf'))
             name = "Loop | {}-{}".format(ig,ih)
             cedge = wd(cgraph.get(graph.edges[name]))
-            cedge.setSecurityMarginForPair(robot.jointNames.index(joint)+1,
-                robot.jointNames.index(table.name + '/root_joint')+1,
-                float('-inf'))
+            for i in range(1,4):
+                fingertip = "talos/gripper_{}_fingertip_{}_joint".format\
+                            (side, i)
+                cedge.setSecurityMarginForPair(robot.jointNames.index(fingertip)
+                    +1, robot.jointNames.index(table.name + '/root_joint')+1,
+                    float('-inf'))
             name = "{} < {} | {}-{}_21".format(g, h, ig,ih)
             cedge = wd(cgraph.get(graph.edges[name]))
-            cedge.setSecurityMarginForPair(robot.jointNames.index(joint)+1,
-                robot.jointNames.index(table.name + '/root_joint')+1,
-                float('-inf'))
+            for i in range(1,4):
+                fingertip = "talos/gripper_{}_fingertip_{}_joint".format\
+                            (side, i)
+                cedge.setSecurityMarginForPair(robot.jointNames.index(fingertip)
+                    +1, robot.jointNames.index(table.name + '/root_joint')+1,
+                    float('-inf'))
     return graph
 
 
