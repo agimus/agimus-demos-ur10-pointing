@@ -34,7 +34,6 @@ from hpp.corbaserver.manipulation import Rule
 from dynamic_graph.sot.core.task import Task
 from dynamic_graph.sot.core.feature_pose import FeaturePose
 from agimus_sot.sot import ContactAdmittance
-from agimus_demos.sot import ContactSimulation
 
 def hpTasks(sotrobot):
     from agimus_sot.task import COM, Foot
@@ -45,12 +44,6 @@ def hpTasks(sotrobot):
     return com + lf + rf
 
 def addContactDetection(supervisor, factory):
-    for name in ["left", "right"]:
-        cs = ContactSimulation("contact_simulation_{}".format(name))
-        opName = "arm_{}_7_joint".format(name)
-        if not robot.dynamic.hasSignal(opName):
-            robot.dynamic.createOpPoint(opName, opName)
-        plug(robot.dynamic.signal(opName), cs.signal('wristPose'))
     for name in ["wrist_left_ft_link", "wrist_right_ft_link"]:
         if not robot.dynamic.hasSignal(name):
             robot.dynamic.createOpPoint(name, name)
@@ -58,11 +51,9 @@ def addContactDetection(supervisor, factory):
         if gripper == 'talos/left_gripper':
             wrenchSignalName = 'forceLARM'
             ftLinkName = "wrist_left_ft_link"
-            cs = ContactSimulation("contact_simulation_left")
         elif gripper == 'talos/right_gripper':
             wrenchSignalName = 'forceRARM'
             ftLinkName = "wrist_right_ft_link"
-            cs = ContactSimulation("contact_simulation_wrist")
         else:
             raise RuntimeError('Unexpected gripper name: ' + gripper)
         for ih, handle in enumerate(factory.handles):
@@ -73,8 +64,7 @@ def addContactDetection(supervisor, factory):
             ca = ContactAdmittance(name + '_contact')
             plug(feature.error, ca.errorIn)
             plug(feature.jacobian, ca.jacobianIn)
-            #plug(robot.device.signal(wrenchSignalName), ca.wrench)
-            plug(cs.signal('wrench'), ca.wrench)
+            plug(robot.device.signal(wrenchSignalName), ca.wrench)
             plug(robot.dynamic.signal('J'+ftLinkName), ca.ftJacobian)
             ca.threshold.value = 20
             ca.wrenchDes.value = np.array([0,0,30,0,0,0])
