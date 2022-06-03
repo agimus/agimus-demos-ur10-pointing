@@ -16,3 +16,6 @@ export CMAKE_PREFIX_PATH=$INSTALL_HPP_DIR:$ROBOTPKG:$ROS:/usr
 if [ -f "${INSTALL_HPP_DIR}/etc/hpp-tools/bashrc" ]; then
     source "${INSTALL_HPP_DIR}/etc/hpp-tools/bashrc"
 fi
+
+export CC=/usr/lib/ccache/gcc
+export CXX=/usr/lib/ccache/g++

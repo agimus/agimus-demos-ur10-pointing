@@ -2,11 +2,11 @@ repositories:
   agimus:
     type: git
     url: https://github.com/agimus/agimus.git
-    version: master
+    version: devel
   agimus-demos:
     type: git
-    url: https://github.com/longhathuc/agimus-demos
-    version: ur10-pointing
+    url: https://github.com/agimus/agimus-demos
+    version: devel
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc
@@ -17,12 +17,12 @@ repositories:
     version: devel
   agimus-sot:
     type: git
-    url: https://github.com/florent-lamiraux/agimus-sot.git
+    url: https://github.com/agimus/agimus-sot.git
     version: devel
   agimus-vision:
     type: git
     url: https://github.com/agimus/agimus-vision
-    version: master
+    version: devel
   agimus_sot_msgs:
     type: git
     url: https://github.com/agimus/agimus_sot_msgs
@@ -30,7 +30,7 @@ repositories:
   dynamic-graph:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph
-    version: 8d3641ba676094c9d973335ed0457dcde98e81ba
+    version: master
   dynamic-graph-python:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph-python
@@ -43,6 +43,10 @@ repositories:
     type: git
     url: https://github.com/stack-of-tasks/dynamic_graph_bridge_msgs
     version: master
+  gepetto-viewer:
+    type: git
+    url: https://github.com/Gepetto/gepetto-viewer.git
+    version: devel
   gepetto-viewer-corba:
     type: git
     url: https://github.com/Gepetto/gepetto-viewer-corba.git
@@ -62,7 +66,7 @@ repositories:
   hpp-core:
     type: git
     url: https://github.com/florent-lamiraux/hpp-core
-    version: ab36b3b0d5fc6466585878f559d340e0b36ed720
+    version: devel
   hpp-environments:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-environments
@@ -85,8 +89,8 @@ repositories:
     version: devel
   hpp-fcl:
     type: git
-    url: https://github.com/humanoid-path-planner/hpp-fcl
-    version: devel
+    url: https://github.com/florent-lamiraux/hpp-fcl
+    version: react
   hpp-pinocchio:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-pinocchio
@@ -122,15 +126,11 @@ repositories:
   pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/pinocchio
-    version: v2.6.0
+    version: v2.6.5
   sot-dynamic-pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/sot-dynamic-pinocchio
     version: devel
-  sot-gepetto-viewer:
-    type: git
-    url: https://github.com/stack-of-tasks/sot-gepetto-viewer
-    version: master
   sot-tools:
     type: git
     url: https://github.com/stack-of-tasks/sot-tools
