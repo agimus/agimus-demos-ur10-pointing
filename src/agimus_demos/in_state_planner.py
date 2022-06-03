@@ -64,7 +64,7 @@ class InStatePlanner:
         # Set steering method in problem
         self.cproblem.setSteeringMethod\
             (self.ps.hppcorba.problem.createSteeringMethod\
-             ("Graph-Straight", self.cproblem))
+             ("Straight", self.cproblem))
         # Set path projector in problem
         if self.pathProjectorType:
             self.cproblem.setPathProjector\
