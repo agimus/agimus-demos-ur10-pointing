@@ -359,22 +359,31 @@ class PathGenerator(object):
                 NrandomConfig=NrandomConfig, step=step)
             if not res:
                 continue
+            print("Pregrasp configuration found :", qpg)
+            print("Goal configuration found     :", qg)
             # build path
             # from qinit to pregrasp
             self.inStatePlanner.setEdge(edge + " | f_01")
             try:
                 p1 = self.inStatePlanner.computePath(qinit, [qpg],
                                                      resetRoadmap = True)
-            except hpp_idl.hpp.Error as exc:
+            except:
+                print("Error in ComputePath : ",sys.exc_info())
                 p1 = None
-            if not p1: continue
+            if not p1:
+                print("Planning to pregrasp failed.")
+                continue
             if step < 2:
                 return [p1,]
+            print("Planning to pregrasp succeed.")
             # from pregrasp to grasp
             self.inStatePlanner.setEdge(edge + " | f_12")
             res, p2, msg = self.inStatePlanner.directPath(qpg, qg, True)
             if not res: p2 = None
-            if not p2: continue
+            if not p2:
+                print("Planning from pregrasp failed.")
+                continue
+            print("Planning from pregrasp succeed.")
             # Return concatenation
             if step < 3:
                 return [p1, p2]
