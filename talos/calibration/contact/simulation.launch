@@ -1,18 +1,20 @@
 <launch>
   <arg name="debug" default="false"/>
+  <arg name="pal_simulator" default="false"/>
   <!-- Load the environment -->
   <group ns="gazebo">
     <node name="spawn_table" pkg="gazebo_ros" type="spawn_model"
       args="-file $(find gerard_bauzil)/urdf/rolling_table.urdf -urdf
       -x 0.5 -y 0. -z 0. -Y 0.
-      -model table" />
+      -model table" unless="$(arg pal_simulator)"/>
 
     <node pkg="tf" type="static_transform_publisher"
         name="odom_to_world"
         args="0 0 0 0 0 0 1 world odom 100" />
   </group>
 
-  <include file="$(find talos_gazebo)/launch/talos_gazebo.launch" >
+  <include file="$(find talos_gazebo)/launch/talos_gazebo.launch"
+	   unless="$(arg pal_simulator)">
     <!-- Gazebo args:
          -u: paused
     -->
@@ -69,5 +71,9 @@
       -J torso_2_joint 	        0.006761
       "/>
     <!---0.017683184544140064, 0.012418080940971276, 0.06250270795619342, 0.997810857702132,-->
+  </include>
+  <include file="$(find talos_pal_physics_simulator)/launch/talos_pal_physics_simulator_with_actuators.launch"
+	   if="$(arg pal_simulator)">
+    <arg name="world" value="$(find agimus_demos)/worlds/rolling_table.world"/>
   </include>
 </launch>
