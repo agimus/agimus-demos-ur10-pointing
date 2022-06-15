@@ -111,14 +111,6 @@ repositories:
     type: git
     url: https://github.com/pal-robotics/simple_models_robot.git
     version: 0.0.23
-  slam_gmapping:
-    type: git
-    url: https://github.com/ros-perception/slam_gmapping.git
-    version: 1.3.10
-  teleop_tools:
-    type: git
-    url: https://github.com/pal-robotics-forks/teleop_tools.git
-    version: 0.3.2
   tf_lookup:
     type: git
     url: https://github.com/pal-robotics/tf_lookup.git
