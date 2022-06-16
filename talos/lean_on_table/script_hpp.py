@@ -50,8 +50,8 @@ from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
 from common_hpp import createGazeConstraints, createGripperLockedJoints, \
-    createQuasiStaticEquilibriumConstraint, \
-    createWaistYawConstraint, defaultContext, makeGraph, \
+    createQuasiStaticEquilibriumConstraint, setGaussianShooter,\
+    createWaistYawConstraint, defaultContext, makeGraph, shootRandomArmConfig,\
     makeRobotProblemAndViewerFactory, shrinkJointRange
 
 loadServerPlugin (defaultContext, "manipulation-corba.so")
@@ -246,7 +246,7 @@ robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(None)
 # Pose of the table
 initConf += [1.2,0,0,0,0,0,1]
 # Pose of the box
-initConf += [1.2,0,0.8325,0,sqrt(2)/2,0,sqrt(2)/2]
+initConf += [1.0,0,0.8325,0,sqrt(2)/2,0,sqrt(2)/2]
 
 #ri = RosInterface(robot)
 
@@ -265,33 +265,67 @@ res, q, err = graph.generateTargetConfig ("starting_motion", initConf,
 if not res:
     raise RuntimeError ('Failed to project initial configuration')
 
-configs1 = readConfigsInFile('lean-on-left-arm.csv')
+# configs1 = readConfigsInFile('lean-on-left-arm.csv')
 configs = list()
 
 # Read waypoint configurations in files
-leanConfigs = readConfigsInFile('lean-on-left-arm.csv')
-pregraspConfigs = readConfigsInFile('pregrasp-lean-on-left-arm.csv')
+# leanConfigs = readConfigsInFile('data/lean-on-left-arm.csv')
+# pregraspConfigs = readConfigsInFile('data/pregrasp-lean-on-left-arm.csv')
 
 from agimus_demos import InStatePlanner
 planner = InStatePlanner(ps, graph)
 planner.maxIterPathPlanning = 500
 
-# for q0, q1 in zip(leanConfigs, pregraspConfigs):
-#     planner.setEdge('Loop | f')
-#     p0 = None
-#     try:
-#         p0 = planner.computePath(initConf, [q0])
-#     except:
-#         print("Failed to compute path between {} and {}".format(initConf,q0))
-#         print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
-#     if not p0: continue
-#     ps.client.basic.problem.addPath(p0)
-#     planner.setEdge('Loop | contact_on_left_arm')
-#     p1 = None
-#     try:
-#         p1 = planner.computePath(q0, [q1])
-#     except:
-#         print("Failed to compute path between {} and {}".format(q0,q1))
-#         print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
-#     if not p1: continue
-#     ps.client.basic.problem.addPath(concatenatePaths([p0, p1]))
+# Generate waypoints
+leanConfigs = list()
+pregraspConfigs = list()
+#setGaussianShooter(ps, table, objects, initConf, .2)
+finished = False
+while not finished:
+    for i in range(100):
+        q = robot.shootRandomConfig()
+        if i==0: q = initConf
+        res, q1, err = graph.generateTargetConfig("go_to_left_contact",
+                                                  initConf, q)
+        if not res: continue
+        res, msg = robot.isConfigValid(q1)
+        if not res:
+            continue
+    if not res: continue
+    print("Found q1.")
+    leanConfigs.append(q1)
+    for i in range(2000):
+        q = shootRandomArmConfig(robot, 'right', q1)
+        if i==0: q = q1
+        res, q2, err = graph.generateTargetConfig("get_box", q1, q)
+        if not res:
+            continue
+        res, msg = robot.isConfigValid(q2)
+        if not res:
+            print("q2 in collision: " + msg)
+            continue
+    if not res: continue
+    print("Found q2")
+    pregraspConfigs.append(q2)
+    finished = res
+
+
+for q0, q1 in zip(leanConfigs, pregraspConfigs):
+    planner.setEdge('Loop | f')
+    p0 = None
+    try:
+        p0 = planner.computePath(initConf, [q0])
+    except:
+        print("Failed to compute path between {} and {}".format(initConf,q0))
+        print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
+    if not p0: continue
+    ps.client.basic.problem.addPath(p0)
+    planner.setEdge('Loop | contact_on_left_arm')
+    p1 = None
+    try:
+        p1 = planner.computePath(q0, [q1])
+    except:
+        print("Failed to compute path between {} and {}".format(q0,q1))
+        print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
+    if not p1: continue
+    ps.client.basic.problem.addPath(concatenatePaths([p0, p1]))
