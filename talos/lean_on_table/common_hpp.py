@@ -308,6 +308,18 @@ def createGripperLockedJoints (ps, q):
 
     return leftGripperLock, rightGripperLock
 
+# Create table and box locked joints
+# only for easily generating pictures
+def createTableAndBoxLockedJoints(ps, q):
+    constraints = list()
+    for n in ["table/root_joint", "box/root_joint"]:
+        s = ps.robot.getJointConfigSize(n)
+        r = ps.robot.rankInConfiguration[n]
+        ps.createLockedJoint(n, n, q[r : r + s])
+        ps.setConstantRightHandSide(n, True)
+        constraints.append(n)
+    return constraints
+
 # Create locked joint for left wrist
 def createLeftWristLockJoint(ps, value):
     n = 'talos/arm_left_7_joint'
