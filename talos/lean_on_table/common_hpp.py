@@ -342,12 +342,12 @@ def createObjectLockedJoint (ps, obj, q):
 def setGaussianShooter (ps, table, objects, q_mean, sigma):
     robot = ps.robot
     # Set Gaussian configuration shooter.
-    robot.setCurrentConfig(q_mean)
+    ps.setParameter('ConfigurationShooter/Gaussian/center',q_mean)
     # Set variance to 0.1 for all degrees of freedom
     u = robot.getNumberDof() * [sigma]
     # Set variance to 0.05 for robot free floating base
     rank = robot.rankInVelocity[robot.displayName + "/root_joint"]
-    u[rank : rank + 6] = 6 * [0.0]
+    u[rank : rank + 6] = 6 * [.5*sigma]
     # Set variance to 0.05 for box
     rank = robot.rankInVelocity[objects[0].name + "/root_joint"]
     u[rank : rank + 6] = 6 * [0.0]
