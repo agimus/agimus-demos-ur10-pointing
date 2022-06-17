@@ -44,7 +44,7 @@ v(q_init)
 
 from agimus_demos.tools_hpp import PathGenerator
 pg = PathGenerator(ps,graph)
-pg.inStatePlanner.maxIterPathPlanning = 1000
+pg.inStatePlanner.maxIterPathPlanning = 100
 goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', q_init)
 
 ```
