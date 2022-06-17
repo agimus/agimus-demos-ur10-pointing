@@ -49,10 +49,11 @@ from hpp.corbaserver.manipulation.constraint_graph_factory import \
 from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
-from common_hpp import createGazeConstraints, createGripperLockedJoints, \
-    createQuasiStaticEquilibriumConstraint, setGaussianShooter,\
-    createWaistYawConstraint, defaultContext, makeGraph, shootRandomArmConfig,\
-    makeRobotProblemAndViewerFactory, shrinkJointRange
+from agimus_demos.talos.tools_hpp import setGaussianShooter, defaultContext,\
+    shootRandomArmConfig
+
+from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph,\
+    makeRobotProblemAndViewerFactory
 
 loadServerPlugin (defaultContext, "manipulation-corba.so")
 
@@ -279,7 +280,7 @@ planner.maxIterPathPlanning = 500
 # Generate waypoints
 leanConfigs = list()
 pregraspConfigs = list()
-#setGaussianShooter(ps, table, objects, initConf, .2)
+#setGaussianShooter(ps, objects, initConf, .2)
 finished = False
 while not finished:
     for i in range(100):

@@ -32,17 +32,12 @@ import json
 from hpp import Quaternion
 from hpp.corbaserver import wrap_delete, Client
 from hpp.corbaserver.manipulation import ConstraintGraph, ProblemSolver, Rule, \
-    SecurityMargins
+    SecurityMargins, Constraints
 from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import \
     ConstraintGraphFactory
-
-defaultContext = "corbaserver"
-client = Client()
-
-def wd(o):
-    return wrap_delete(o, client._tools)
+from agimus_demos.talos.tools_hpp import wd, shrinkJointRange, getSrdfString
 
 class Table(object):
     contacts = ["top"]
@@ -62,34 +57,6 @@ HumanoidRobot.leftAnkle = "talos/leg_left_6_joint"
 HumanoidRobot.rightAnkle = "talos/leg_right_6_joint"
 HumanoidRobot.srdfString = ""
 
-## Reduce joint range for security
-def shrinkJointRange (robot, ratio):
-    for j in robot.jointNames:
-        if j [:6] == "talos/" and j [:13] != "talos/gripper":
-            bounds = robot.getJointBounds (j)
-            if len (bounds) == 2:
-                width = bounds [1] - bounds [0]
-                mean = .5 * (bounds [1] + bounds [0])
-                m = mean - .5 * ratio * width
-                M = mean + .5 * ratio * width
-                robot.setJointBounds (j, [m, M])
-
-def getSrdfString():
-    import os
-    package = 'talos_data'
-    rosPackagePath = os.getenv('ROS_PACKAGE_PATH')
-    paths = rosPackagePath.split(':')
-    for p in paths:
-        dir = p + '/' + package
-        if os.path.isdir(dir):
-            filename = dir + '/srdf/pyrene.srdf'
-            if os.path.isfile(filename):
-                with open(filename) as f:
-                    res = f.read()
-                    return res
-    raise IOError('Could not open file ' + 'package://' + package + \
-                  '/srdf/pyrene.srdf')
-
 def makeRobotProblemAndViewerFactory(clients):
     try:
         import rospy
@@ -105,7 +72,11 @@ def makeRobotProblemAndViewerFactory(clients):
     robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
     robot.leftAnkle = "talos/leg_left_6_joint"
     robot.rightAnkle = "talos/leg_right_6_joint"
-    robot.camera_frame = 'talos/rgbd_rgb_optical_frame'
+    camera_frame = 'talos/head_d435_camera_color_optical_frame'
+    if not camera_frame in robot.getAllJointNames():
+        print("Warning: the robot loaded does not have any 'talos/head_d435_camera_color_optical_frame'. Assuming camera frame is 'talos/rgbd_rgb_optical_frame'")
+        camera_frame = 'talos/rgbd_rgb_optical_frame'
+    robot.camera_frame = camera_frame
     robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
     shrinkJointRange (robot, 0.95)
 
@@ -180,14 +151,6 @@ def makeGraph(ps, table):
                     float('-inf'))
     return graph
 
-
-def shootConfig(robot, q, i):
-    """
-    Shoot a random config if i > 0, return input configuration otherwise
-    """
-    return q if i == 0 else robot.shootRandomConfig()
-
-
 def createQuasiStaticEquilibriumConstraint (ps, q) :
     robot = ps.robot
     ps.addPartialCom("talos", ["talos/root_joint"])
@@ -199,120 +162,3 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
     foot_placement = ["balance/pose-left-foot", "balance/pose-right-foot"]
     foot_placement_complement = []
     return com_constraint, foot_placement, foot_placement_complement
-
-
-# Gaze constraints
-def createGazeConstraints (ps):
-    ps.createPositionConstraint(
-        "look_left_hand",
-        ps.robot.camera_frame,
-        "talos/arm_left_7_joint",
-        (0, 0, 0),
-        (0, 0, -0.18),
-        (True, True, False),
-    )
-    ps.createPositionConstraint(
-        "look_right_hand",
-        ps.robot.camera_frame,
-        "talos/arm_right_7_joint",
-        (0, 0, 0),
-        (0, 0, -0.18),
-        (True, True, False),
-    )
-    return ["look_left_hand", "look_right_hand"]
-
-# Constraint of constant yaw of the waist
-def createWaistYawConstraint (ps):
-    ps.createOrientationConstraint(
-        "waist_yaw", "", "talos/root_joint", (0, 0, 0, 1), [True, True, True]
-    )
-    ps.setConstantRightHandSide("waist_yaw", False)
-    return ["waist_yaw"]
-
-# Create locked joint for left arm
-def createLeftArmLockedJoints (ps):
-    left_arm_lock = list()
-    for n in ps.robot.jointNames:
-        if n.startswith("talos/arm_left"):
-            ps.createLockedJoint(n, n, [0])
-            ps.setConstantRightHandSide(n, False)
-            left_arm_lock.append(n)
-    return left_arm_lock
-
-# Create locked joint for right arm
-def createRightArmLockedJoints (ps):
-    right_arm_lock = list()
-    for n in ps.robot.jointNames:
-        if n.startswith("talos/arm_right"):
-            ps.createLockedJoint(n, n, [0])
-            ps.setConstantRightHandSide(n, False)
-            right_arm_lock.append(n)
-    return right_arm_lock
-
-# Create locked joint for grippers
-def createGripperLockedJoints (ps, q):
-    left_gripper_lock = list()
-    right_gripper_lock = list()
-    for n in ps.robot.jointNames:
-        s = ps.robot.getJointConfigSize(n)
-        r = ps.robot.rankInConfiguration[n]
-        if n.startswith("talos/gripper_right"):
-            ps.createLockedJoint(n, n, q[r : r + s])
-            ps.setConstantRightHandSide(n, True)
-            right_gripper_lock.append(n)
-        elif n.startswith("talos/gripper_left"):
-            ps.createLockedJoint(n, n, q[r : r + s])
-            ps.setConstantRightHandSide(n, True)
-            left_gripper_lock.append(n)
-
-    return left_gripper_lock, right_gripper_lock
-
-# Create locked joint for grippers and table
-def createTableLockedJoint (ps, table, q):
-    name = table.name + "/root_joint"
-    s = ps.robot.getJointConfigSize(name)
-    r = ps.robot.rankInConfiguration[name]
-    table_lock = [name]
-    ps.createLockedJoint(name, name, q[r : r + s])
-    ps.setConstantRightHandSide(name, False)
-    return table_lock
-
-# Set Gaussian shooter around input configuration with input variance
-def setGaussianShooter (ps, table, objects, q_mean, sigma):
-    robot = ps.robot
-    # Set Gaussian configuration shooter.
-    robot.setCurrentConfig(q_mean)
-    # Set variance to 0.1 for all degrees of freedom
-    u = robot.getNumberDof() * [sigma]
-    # Set variance to 0.05 for robot free floating base
-    rank = robot.rankInVelocity[robot.displayName + "/root_joint"]
-    u[rank : rank + 6] = 6 * [0.0]
-    # Set variance to 0.05 for box
-    rank = robot.rankInVelocity[objects[0].name + "/root_joint"]
-    u[rank : rank + 6] = 6 * [0.0]
-    # Set variance to 0.05 for table
-    rank = robot.rankInVelocity[table.name + "/root_joint"]
-    u[rank : rank + 6] = 6 * [0.0]
-    robot.setCurrentVelocity(u)
-    ps.setParameter("ConfigurationShooter/Gaussian/useRobotVelocity", True)
-    ps.client.basic.problem.selectConfigurationShooter("Gaussian")
-    q_mean[robot.rankInConfiguration["box/root_joint"] + 1] += 0.1
-
-def addCostToComponent(graph, costs, state=None, edge=None):
-    if (state is None and edge is None) or (state is not None and edge is not None):
-        raise ValueError ("Either state or edge arguments must be provided.")
-    if state is not None:
-        id = graph.states[state]
-    else:
-        id = graph.edges[edge]
-    _problem = graph.clientBasic.problem.getProblem()
-    _graph = _problem.getConstraintGraph()
-    _comp = _graph.get(id)
-    assert _comp.name() in [ state, edge ]
-    _configConstraint = _comp.configConstraint()
-    _cp = _configConstraint.getConfigProjector()
-    _cp.setLastIsOptional(True)
-    for cost in costs:
-        _cost = graph.clientBasic.problem.getConstraint(cost)                                                                                                                                                 
-        _cp.add(_cost, 1) 
-

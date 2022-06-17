@@ -48,11 +48,11 @@ from hpp.corbaserver.manipulation.constraint_graph_factory import \
 from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
-from common_hpp import createGazeConstraints, createGripperLockedJoints, \
-    createLeftArmLockedJoints, \
-    createRightArmLockedJoints, createQuasiStaticEquilibriumConstraint, \
-    createWaistYawConstraint, defaultContext, makeGraph, \
-    makeRobotProblemAndViewerFactory, shrinkJointRange
+from agimus_demos.talos.tools_hpp import createGazeConstraints, \
+    createGripperLockedJoints, createLeftArmLockedJoints, \
+    createRightArmLockedJoints, defaultContext, setGaussianShooter
+from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph, \
+    makeRobotProblemAndViewerFactory
 
 loadServerPlugin (defaultContext, "manipulation-corba.so")
 
