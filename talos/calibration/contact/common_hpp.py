@@ -74,8 +74,12 @@ def makeRobotProblemAndViewerFactory(clients):
     robot.rightAnkle = "talos/leg_right_6_joint"
     camera_frame = 'talos/head_d435_camera_color_optical_frame'
     if not camera_frame in robot.getAllJointNames():
-        print("Warning: the robot loaded does not have any 'talos/head_d435_camera_color_optical_frame'. Assuming camera frame is 'talos/rgbd_rgb_optical_frame'")
-        camera_frame = 'talos/rgbd_rgb_optical_frame'
+        print("Warning: the robot loaded does not have any 'talos/head_d435_camera_color_optical_frame'.")
+        camera_frame = 'talos/head_t265_camera_link'
+        if not camera_frame in robot.getAllJointNames():
+            camera_frame = 'talos/rgbd_rgb_optical_frame'
+        print("Assuming camera_frame is {}".format(camera_frame))
+
     robot.camera_frame = camera_frame
     robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
     shrinkJointRange (robot, 0.95)
