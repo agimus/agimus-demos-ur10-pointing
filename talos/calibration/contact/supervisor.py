@@ -81,7 +81,6 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
     import pinocchio
-    import rospy
     from rospkg import RosPack
     rospack = RosPack()
 
@@ -90,11 +89,14 @@ def makeSupervisorWithFactory(robot):
 
     srdf = {}
     # retrieve objects from ros param
-    demoDict = rospy.get_param("/demo")
-    robotDict = demoDict["robots"]
+    # dictionary globalDemoDict is defined externally by
+    # agimus-sot/start_supervisor.py since SoT python interpreter cannot
+    # load rospy
+    # globalDemoDict = rospy.get_param("/demo")
+    robotDict = globalDemoDict["robots"]
     if len(robotDict) != 1:
         raise RuntimeError("One and only one robot is supported for now.")
-    objectDict = demoDict["objects"]
+    objectDict = globalDemoDict["objects"]
     objects = list(objectDict.keys())
     # parse robot and object srdf files
     srdfDict = dict()
@@ -111,7 +113,7 @@ def makeSupervisorWithFactory(robot):
                                  prefix=o)
         attach_all_to_link(objectModel, "base_link", srdfDict[o])
 
-    grippers = list(demoDict["grippers"])
+    grippers = list(globalDemoDict["grippers"])
     handlesPerObjects = list()
     contactPerObjects = list()
     for o in objects:
