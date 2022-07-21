@@ -75,7 +75,6 @@ class Box:
     srdfFilename = "package://agimus_demos/srdf/box.srdf"
     rootJointType = "anchor"
 
- 
 # parse arguments
 defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
@@ -114,7 +113,7 @@ def wd(o):
 robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 ps = ProblemSolver(robot)
-p = robot.hppcorba.problem.getProblem() 
+p = robot.hppcorba.problem.getProblem()
 cdistance = p.getDistance()
 croadmap = ps.client.manipulation.problem.createRoadmap(cdistance, crobot)
 print("Robot loaded")
@@ -232,7 +231,6 @@ def createConstraintGraph():
 
     graph = ConstraintGraph(robot, 'graph2')
     #rules = [Rule ([""], [""], True)]
-    
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["ur10e/gripper",])
     factory.environmentContacts (envSurfaces)
@@ -242,7 +240,6 @@ def createConstraintGraph():
     print('factory.handle',factory.handles)
     print('all_handles ',all_handles )
     print('part_handles',part_handles)
-    
 
 
 
@@ -268,9 +265,6 @@ def createConstraintGraph():
     graph.addConstraints(edge='stop-looking-at-part',
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
- 
-    
-    
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
     sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -283,7 +277,7 @@ def createConstraintGraph():
             graph.setWeight(e, 0)
     return graph
 
-    
+
 graph = createConstraintGraph()
 
 try:
@@ -409,7 +403,7 @@ y_min = min(forward_tool[1])   ##attation the area is rectangle so is not very p
 import transforms3d
 import pandas as pd
 data = pd.read_csv('E0_0d.txt',header=None)
-colo = data.shape[1]                                    
+colo = data.shape[1]                            
 row = data.shape[0]
 empty = pd.DataFrame([0]*141).T
 data = data.append(empty,ignore_index=True)   #remove empty '0' index
@@ -517,7 +511,7 @@ for i in range(len(final)):
     ps.resetGoalConfigs()
     ps.addGoalConfig(go)
     ps.solve()
-Nb_path = ps.numberPaths()  
+Nb_path = ps.numberPaths()
 for i in range(1,Nb_path):
     if i%4== 0:
         ps.concatenatePath(0,i)  """
@@ -526,7 +520,7 @@ for i in range(1,Nb_path):
 
 
 #test for box graph
-""" 
+"""
 go =[2.444809329135643e-18, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, 1.1, -0.02781554796245951, 0.09600101434050495, 1.3267600356985338e-06, 3.518114082643234e-06, 0.9999737254237396, -0.0072490308338324025]
 
 res2 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free_box'],go)

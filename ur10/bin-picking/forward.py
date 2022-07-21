@@ -70,8 +70,7 @@ class Ground:
  
 # parse arguments
 defaultContext = "corbaserver"
-p = argparse.ArgumentParser (description=
-                             'Initialize demo of UR10 pointing')
+p = argparse.ArgumentParser (description='Initialize demo of UR10 pointing')
 p.add_argument ('--context', type=str, metavar='context',
                 default=defaultContext,
                 help="identifier of ProblemSolver instance")
@@ -127,7 +126,6 @@ vf.loadEnvironmentModel (Ground, 'ground')
 #vf.loadObjectModel (Bin, 'part')
 
 ## Shrink joint bounds of UR-10
-#
 jointBounds = dict()
 jointBounds["default"] = [ (jn, robot.getJointBounds(jn)) \
                            if not jn.startswith('ur10/') else
@@ -219,7 +217,6 @@ def createConstraintGraph():
 
     graph = ConstraintGraph(robot, 'graph2')
     #rules = [Rule ([""], [""], True)]
-    
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["ur10e/gripper",])
     factory.environmentContacts (envSurfaces)
@@ -229,7 +226,7 @@ def createConstraintGraph():
     print('factory.handle',factory.handles)
     print('all_handles ',all_handles )
     print('part_handles',part_handles)
-    
+
 
 
 
@@ -266,7 +263,7 @@ def createConstraintGraph():
             graph.setWeight(e, 0)
     return graph
 
-    
+
 graph = createConstraintGraph()
 
 try:
@@ -371,13 +368,12 @@ forward_tool = [[],[]]
 """ for a in np.arange(jointBounds["limited"][0][1][0],jointBounds["limited"][0][1][1],0.5):
 
     for b in np.arange(jointBounds["limited"][1][1][0],jointBounds["limited"][1][1][1],0.5):
-   
         for c in np.arange(jointBounds["limited"][2][1][0],jointBounds["limited"][2][1][1],0.5):
-          
+
             for d in np.arange(jointBounds["limited"][3][1][0],jointBounds["limited"][3][1][1],0.5):
-               
+
                 for e in np.arange(jointBounds["limited"][4][1][0],jointBounds["limited"][4][1][1],0.5):
-                  
+
                     for f in np.arange(jointBounds["limited"][5][1][0],jointBounds["limited"][5][1][1],0.5):
                         #print(a,b,c,d,e,f)
                         q_t = [a,b,c,d,e,f,5,0.3,0.5,1,0,0,0]
@@ -392,7 +388,6 @@ forward_tool = [[],[]]
                         pose = crobot.getFramePosition(52)
                         #not good use np.arange due to step
                         if abs(pose[2])<0.06 and abs(pose[5])<0.001 and abs(pose[6])<0.001 :   
-                            
                             print('find it!!',pose)
                             forward_tool[0].append(pose[0])
                             forward_tool[1].append(pose[1])
@@ -401,7 +396,7 @@ print('fininsh loop') """
 
 
 
-#The second method to get part(when is on the ground) boundry                        
+#The second method to get part(when is on the ground) boundry
 
 for i in range(10000):
     res1,res = False,False

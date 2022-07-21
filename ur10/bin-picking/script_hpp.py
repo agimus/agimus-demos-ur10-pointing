@@ -114,7 +114,7 @@ def wd(o):
 robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
 ps = ProblemSolver(robot)
-p = robot.hppcorba.problem.getProblem() 
+p = robot.hppcorba.problem.getProblem()
 cdistance = p.getDistance()
 croadmap = ps.client.manipulation.problem.createRoadmap(cdistance, crobot)
 print("Robot loaded")
@@ -406,7 +406,7 @@ y_min = min(forward_tool[1])   ##attation the area is rectangle so is not very p
 import transforms3d
 import pandas as pd
 data = pd.read_csv('E0_0d.txt',header=None)
-colo = data.shape[1]                                    
+colo = data.shape[1]
 row = data.shape[0]
 empty = pd.DataFrame([0]*141).T
 data = data.append(empty,ignore_index=True)   #remove empty '0' index
@@ -514,11 +514,10 @@ for i in range(len(final)):
     ps.resetGoalConfigs()
     ps.addGoalConfig(go)
     ps.solve()
-Nb_path = ps.numberPaths()  
+Nb_path = ps.numberPaths()
 for i in range(1,Nb_path):
     if i%4== 0:
         ps.concatenatePath(0,i) """
-
 
 
 
