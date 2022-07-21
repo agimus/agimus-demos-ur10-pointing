@@ -73,7 +73,7 @@ def addContactDetection(supervisor, factory):
             task.add(ca.name)
             # Add task in transition that releases the contact
             edgeBack = '{} < {} | {}-{}_21'.format(gripper, handle, ig, ih)
-            supervisor.sots[edgeBack] = supervisor.sots[edgeName]
+            supervisor.actions[edgeBack] = supervisor.actions[edgeName]
 
 
 def makeSupervisorWithFactory(robot):
@@ -146,7 +146,7 @@ def makeSupervisorWithFactory(robot):
     supervisor.makeInitialSot()
 
     # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
-    sot_loop = supervisor.sots["Loop | f"]
+    sot_loop = supervisor.actions["Loop | f"]
     supervisor.addSolver("starting_motion", sot_loop)
     supervisor.addSolver("loop_ss", sot_loop)
     supervisor.addSolver("go_to_starting_state", sot_loop)
