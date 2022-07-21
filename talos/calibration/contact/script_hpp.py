@@ -48,11 +48,11 @@ from hpp.corbaserver.manipulation.constraint_graph_factory import \
 from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
-from common_hpp import createGazeConstraints, createGripperLockedJoints, \
-    createLeftArmLockedJoints, \
-    createRightArmLockedJoints, createQuasiStaticEquilibriumConstraint, \
-    createWaistYawConstraint, defaultContext, makeGraph, \
-    makeRobotProblemAndViewerFactory, shrinkJointRange
+from agimus_demos.talos.tools_hpp import createGazeConstraints, \
+    createGripperLockedJoints, createLeftArmLockedJoints, \
+    createRightArmLockedJoints, defaultContext, setGaussianShooter
+from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph, \
+    makeRobotProblemAndViewerFactory
 
 loadServerPlugin (defaultContext, "manipulation-corba.so")
 
@@ -197,7 +197,8 @@ def visitConfigurations (ps, configs):
 
 def goToContact(ri, pg, gripper, handle, q_init):
     pg.gripper = gripper
-    q_init = ri.getCurrentConfig(q_init, 5., 'talos/leg_left_6_joint')
+    q_init = ri.getCurrentConfig(q_init, 5., 'talos/leg_left_6_joint') if ri \
+             else q_init
     res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
                                                      q_init)
     if not res:
@@ -211,7 +212,7 @@ def goToContact(ri, pg, gripper, handle, q_init):
         ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
-    paths = pg.generatePathForHandle(handle, q_init)
+    paths = pg.generatePathForHandle(handle, q_init, NrandomConfig=100)
     # First path is already time parameterized
     # Transform second and third path into PathVector instances to time
     # parameterize them
@@ -241,6 +242,17 @@ def goToContact(ri, pg, gripper, handle, q_init):
     pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[1:]))
 
 initConf = [0, 0, 1.05, 0, 0, 0, 1, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0.006761, 0.4, 0.24, -0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.4, -0.24, 0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+# Initial configuration in PAL simulator
+# initConf = [0, 0, 1.0493761707252309, 0, 0, 0, 1, 0,
+#             -0.0010225974303292359, -0.36787678308396593, 0.6757922512379118,
+#             -0.3028653783931391, 0.0005395405932684167, -2.8927888057647416e-06,
+#             0, -0.3681011200415869, 0.6761074493076881, -0.3029241643529437, 0, 0,
+#             0.050319274246977824, 0.3999220584702339, 0.24002787068272383,
+#             -0.6002140330094962, -1.4490672794672388, 0, -0, 0.003036732533889251,
+#             0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, -0.3999212805713791,
+#             -0.2400023000505192, 0.6002203685413067, -1.4490697603203644, 0, 0,
+#             0.003224000598866796, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(None)
 initConf += [.5,0,0,0,0,0,1]
@@ -326,8 +338,17 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", .1)
 ps.addPathOptimizer ("EnforceTransitionSemantic")
 ps.addPathOptimizer ("SimpleTimeParameterization")
 
-res, q, err = graph.generateTargetConfig ("starting_motion", initConf,
-                                          initConf)
+res, q_init, err = graph.generateTargetConfig ("starting_motion", initConf,
+                                               initConf)
 if not res:
     raise RuntimeError ('Failed to project initial configuration')
+
+# Set variance to 0 in Gaussian shooter for arm that does not go into contact
+varianceLeft = {'talos/root_joint': .1, 'table/root_joint': 0.}
+varianceRight = {'talos/root_joint': .1, 'table/root_joint': 0.}
+for i in range(1,8):
+    varianceLeft['talos/arm_right_{}_joint'.format(i)] = 0
+    varianceRight['talos/arm_left_{}_joint'.format(i)] = 0
+
+setGaussianShooter(ps, [table], q_init, .2, varianceLeft)
 

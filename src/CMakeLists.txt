@@ -44,6 +44,12 @@ install(FILES
   DESTINATION ${PYTHON_SITELIB}/agimus_demos
   )
 
+install(FILES
+  agimus_demos/talos/tools_hpp.py
+  agimus_demos/talos/__init__.py
+  DESTINATION ${PYTHON_SITELIB}/agimus_demos/talos
+  )
+
 find_package(pybind11 CONFIG)
 if(pybind11_FOUND)
   pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
