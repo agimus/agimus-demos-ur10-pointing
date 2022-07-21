@@ -134,7 +134,7 @@ ps.selectPathProjector ("Progressive", .05)
 ps.selectPathValidation("Graph-Progressive", 0.01)
 vf = ViewerFactory(ps)
 vf.loadEnvironmentModel (Ground, 'ground')
-vf.loadObjectModel (Box, 'box')
+vf.loadEnvironmentModel  (Box, 'box')
 
 #vf.loadObjectModel (Bin, 'part')
 
@@ -164,7 +164,7 @@ if UseAprilTagPlank:
 else:
     Part = Bin
 vf.loadObjectModel (Part, "part")
-robot.setJointBounds('part/root_joint', [0.2, 0.6, -0.5 ,1, -0.5, 0.5])
+robot.setJointBounds('part/root_joint', [0.0, 1.1, -0.8 ,1, -0.05, 0.8])
 print("Part loaded")
 
 
@@ -227,7 +227,7 @@ def createConstraintGraph():
     all_handles = ps.getAvailable('handle')
     part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
     objContactSurfaces =[['part/bottom',]]
-    envSurfaces=['ground/surface','box/box_surface']
+    envSurfaces=['box/box_surface','ground/surface']
 
 
     graph = ConstraintGraph(robot, 'graph2')
@@ -259,15 +259,18 @@ def createConstraintGraph():
     ps.createTransformationConstraint('placement/complement', '','part/base_link',
                                     [0,0,0,0, 0, 0, 1],
                                     [True, True, True, True, True, True,])
+
     ps.setConstantRightHandSide('placement/complement', False)
+
     graph.addConstraints(edge='go-look-at-part',
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
     graph.addConstraints(edge='stop-looking-at-part',
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
-    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['ground/surface',])
-    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['box/box_surface',])   #add placement constraint to surface
+ 
+    
+    
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
     sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -285,7 +288,7 @@ graph = createConstraintGraph()
 
 try:
     v = vf.createViewer()
-    v(q0)
+    #v(q0)
     pp = PathPlayer(v)
 except:
     print("Did you launch the GUI?")
@@ -494,8 +497,8 @@ for i in range (len(coor_part)):
 ##test
 """ final = [[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, \
     0.5, 0.1, 3e-06, 0, 0, 0, 1],[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
-         0.5, 0.5, 0.4, 3e-06, 0, 0, 0, 1],[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
-         0.5, 0.5, 0, 3e-06, 0, 0, 0, 1]]    #substitue by coor_part
+         0.5, 0.5, 0.4, 3e-06, 0, 1, 0, 0],[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
+         0.5, 0.5, 0, 3e-06, 0, 1, 0, 0]]    #substitue by coor_part
 go = [0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
             0.5, -0.4, 0.4, 3e-06, 0, 1, 0, 0]
 res2 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free'],go)
@@ -517,7 +520,28 @@ for i in range(len(final)):
 Nb_path = ps.numberPaths()  
 for i in range(1,Nb_path):
     if i%4== 0:
-        ps.concatenatePath(0,i) """
+        ps.concatenatePath(0,i)  """
+
+
+
+
+#test for box graph
+""" 
+go =[2.444809329135643e-18, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, 1.1, -0.02781554796245951, 0.09600101434050495, 1.3267600356985338e-06, 3.518114082643234e-06, 0.9999737254237396, -0.0072490308338324025]
+
+res2 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free_box'],go)
+
+go = res2[1]
+
+
+end = [2.775736622161967e-20, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, 0.2, -0.45, 0.00095740333962464, 1.8704455211853133e-20, 3.253825530225867e-20, -0.2766468647918515, 0.9609716500505303]
+
+res3 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free'],end)
+end = res3[1]
+
+ps.setInitialConfig(go)
+ps.resetGoalConfigs()
+ps.addGoalConfig(end) """
 
 
 
@@ -528,7 +552,4 @@ for i in range(1,Nb_path):
 
 
 
-
-
-
-
+[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, 0.5, 0.4, 3e-06, 0, 1, 0, 0]

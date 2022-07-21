@@ -24,9 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from http.client import REQUESTED_RANGE_NOT_SATISFIABLE
 import sys, argparse, numpy as np, time, rospy
-from turtle import forward
 from math import pi, sqrt
 from hpp import Transform
 from hpp.corbaserver import loadServerPlugin
@@ -69,12 +67,6 @@ class Ground:
     srdfFilename = "package://agimus_demos/srdf/ground.srdf"
     rootJointType = "anchor"
 
-
-class Box:
-    urdfFilename = "package://agimus_demos/urdf/box.urdf"
-    srdfFilename = "package://agimus_demos/srdf/box.srdf"
-    rootJointType = "anchor"
-
  
 # parse arguments
 defaultContext = "corbaserver"
@@ -113,12 +105,10 @@ def wd(o):
 
 robot = Robot("robot", "ur10e", rootJointType="anchor", client=client)
 crobot = wd(wd(robot.hppcorba.problem.getProblem()).robot())
-ps = ProblemSolver(robot)
-p = robot.hppcorba.problem.getProblem() 
-cdistance = p.getDistance()
-croadmap = ps.client.manipulation.problem.createRoadmap(cdistance, crobot)
+
 print("Robot loaded")
 robot.opticalFrame = 'camera_color_optical_frame'
+ps = ProblemSolver(robot)
 ps.loadPlugin("manipulation-spline-gradient-based.so")
 ps.addPathOptimizer("EnforceTransitionSemantic")
 ps.addPathOptimizer("SimpleTimeParameterization")
@@ -134,8 +124,6 @@ ps.selectPathProjector ("Progressive", .05)
 ps.selectPathValidation("Graph-Progressive", 0.01)
 vf = ViewerFactory(ps)
 vf.loadEnvironmentModel (Ground, 'ground')
-vf.loadObjectModel (Box, 'box')
-
 #vf.loadObjectModel (Bin, 'part')
 
 ## Shrink joint bounds of UR-10
@@ -144,8 +132,8 @@ jointBounds = dict()
 jointBounds["default"] = [ (jn, robot.getJointBounds(jn)) \
                            if not jn.startswith('ur10/') else
                            (jn, [-pi, pi]) for jn in robot.jointNames]
-jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
-  ('ur10e/shoulder_lift_joint', [-pi, pi]),
+jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-3.1, 3.1]),
+  ('ur10e/shoulder_lift_joint', [-3.1, 3.1]),
   ('ur10e/elbow_joint', [-3.1, 3.1]),
   ('ur10e/wrist_1_joint', [-3.2, 3.2]),
   ('ur10e/wrist_2_joint', [-3.2, 3.2]),
@@ -164,7 +152,7 @@ if UseAprilTagPlank:
 else:
     Part = Bin
 vf.loadObjectModel (Part, "part")
-robot.setJointBounds('part/root_joint', [0.2, 0.6, -0.5 ,1, -0.5, 0.5])
+robot.setJointBounds('part/root_joint', [0.65, 10, -0.5, 0.5, -0.5, 1.5])
 print("Part loaded")
 
 
@@ -227,8 +215,7 @@ def createConstraintGraph():
     all_handles = ps.getAvailable('handle')
     part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
     objContactSurfaces =[['part/bottom',]]
-    envSurfaces=['ground/surface','box/box_surface']
-
+    envSurfaces=['ground/surface',]
 
     graph = ConstraintGraph(robot, 'graph2')
     #rules = [Rule ([""], [""], True)]
@@ -266,8 +253,7 @@ def createConstraintGraph():
     graph.addConstraints(edge='stop-looking-at-part',
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
-    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['ground/surface',])
-    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['box/box_surface',])   #add placement constraint to surface
+    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['ground/surface',])  #add placement constraint to surface
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
     sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -310,7 +296,7 @@ pg.setConfig("pointcloud", q_pointcloud)
 pg.setConfig("pointcloud2", q_pointcloud2)
 pg.setConfig("pointcloud_bas", q_pc1)
 pg.setConfig("pointcloud_haut", q_pc2)
-ps.resetGoalConfigs
+
 if useFOV:
     def configHPPtoFOV(q):
         return q[:6] + q[-7:]
@@ -365,8 +351,7 @@ def doDemo():
 
 holist = [7,8,9,42,43,13]
 #v(q_init)
-
-""" res2 ,res4 = False,False
+res2 ,res4 = False,False
 while not (res2 and res4):
     q = robot.shootRandomConfig ()
     res1,q1,err = graph.applyNodeConstraints ('free', q)
@@ -378,12 +363,46 @@ while not (res2 and res4):
     res4, msg = pg.robot.isConfigValid(q2)
 ps.setInitialConfig (q1)
 ps.addGoalConfig (q2)
-v(q1) """
+v(q1)
+# run at first time to check the position that the gripper (tool_tip_link) can arrive on the ground
+#The first method based on the forwardKinematics and condition to get part(on the ground) boundry
+#This method generate to much sampling need long computation time,can adjust percision by 'step'
+forward_tool = [[],[]]
+""" for a in np.arange(jointBounds["limited"][0][1][0],jointBounds["limited"][0][1][1],0.5):
+
+    for b in np.arange(jointBounds["limited"][1][1][0],jointBounds["limited"][1][1][1],0.5):
+   
+        for c in np.arange(jointBounds["limited"][2][1][0],jointBounds["limited"][2][1][1],0.5):
+          
+            for d in np.arange(jointBounds["limited"][3][1][0],jointBounds["limited"][3][1][1],0.5):
+               
+                for e in np.arange(jointBounds["limited"][4][1][0],jointBounds["limited"][4][1][1],0.5):
+                  
+                    for f in np.arange(jointBounds["limited"][5][1][0],jointBounds["limited"][5][1][1],0.5):
+                        #print(a,b,c,d,e,f)
+                        q_t = [a,b,c,d,e,f,5,0.3,0.5,1,0,0,0]
+                        res1,msg = robot.isConfigValid(q_t)
+                        res2 = crobot.setCurrentConfiguration(q_t)
+                        if (res1 and res2) !=True:
+                            continue
+                        v(q_t)
+                        print('find valid congif and set it')
+                        crobot.computeFramesForwardKinematics()
+                        crobot.updateGeometryPlacements()
+                        pose = crobot.getFramePosition(52)
+                        #not good use np.arange due to step
+                        if abs(pose[2])<0.06 and abs(pose[5])<0.001 and abs(pose[6])<0.001 :   
+                            
+                            print('find it!!',pose)
+                            forward_tool[0].append(pose[0])
+                            forward_tool[1].append(pose[1])
+                        #print(pose)
+print('fininsh loop') """
 
 
 
+#The second method to get part(when is on the ground) boundry                        
 
-""" forward_tool = [[],[]]
 for i in range(10000):
     res1,res = False,False
     while not res:
@@ -397,137 +416,9 @@ for i in range(10000):
 x_max = max(forward_tool[0])
 x_min = min(forward_tool[0])
 y_max = max(forward_tool[1])
-y_min = min(forward_tool[1])   ##attation the area is rectangle so is not very percise """
+y_min = min(forward_tool[1])   ##attation the area is rectangle so is not very percise
 
-
-
-
-
-import transforms3d
-import pandas as pd
-data = pd.read_csv('E0_0d.txt',header=None)
-colo = data.shape[1]                                    
-row = data.shape[0]
-empty = pd.DataFrame([0]*141).T
-data = data.append(empty,ignore_index=True)   #remove empty '0' index
-for i in range(data.shape[1]):
-    mean  = data[i].mean()
-    data.iloc[row,i] = mean
-
-#take average from dataframe add to the last row
-
-list = data.iloc[50].values.tolist()    # read as list
-
-for i in range(len(list)):
-    if list[i] == 0:
-        del list[i:len(list)]      #remove rest value when meet 0
-        break           #avoid index out of range
-
-coor_part = [list[i:i+6] for i in range(0,len(list),6)]    #split each 6 ele
-
-## convert from euler to quaternion
-for i in range (len(coor_part)):
-    rx = coor_part[i][3]
-    ry = coor_part[i][4]
-    rz = coor_part[i][5]
-    quater =  transforms3d.euler.euler2quat(rx,ry ,rz ,axes='sxyz')
-    coor_part[i][-3:] = quater
-
-
-#Transform a given input pose of rigid body from one fixed frame to another
-import rospy
-from geometry_msgs.msg import Pose
-
-import tf2_ros
-import tf2_geometry_msgs  #    poseStamped  >> pose --header
-
-
-def transform_pose(input_pose, from_frame, to_frame):
-
-    # **Assuming /tf topic is being broadcasted
-    tf_buffer = tf2_ros.Buffer()
-    listener = tf2_ros.TransformListener(tf_buffer)
-
-    pose_stamped = tf2_geometry_msgs.PoseStamped()
-    pose_stamped.pose = input_pose
-    pose_stamped.header.frame_id = from_frame   #Frame this data is associated with
-    pose_stamped.header.stamp = rospy.Time(0)    # return the latest available data for a specific transform
-
-    try:
-        # ** It is important to wait for the listener to start listening. Hence the rospy.Duration(1)
-        output_pose_stamped = tf_buffer.transform(pose_stamped, to_frame, rospy.Duration(1))
-        return output_pose_stamped.pose
-
-    except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-        raise
-
-
-# Test Case
-""" rospy.init_node("transform_test")
-
-my_pose = Pose()
-my_pose.position.x = -0.25
-my_pose.position.y = -0.50
-my_pose.position.z = +1.50
-my_pose.orientation.x = 0.634277921154
-my_pose.orientation.y = 0.597354098852
-my_pose.orientation.z = 0.333048372508
-my_pose.orientation.w = 0.360469667089
-
-transformed_pose = transform_pose(my_pose, "wrist_3_link", "base_link") """
-
-
-""" neutral_pose = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
-bin_des =  [0.6,0.5,0.00003,0,0,0,1]
-for i in range (len(coor_part)):
-    init_config =neutral_pose + coor_part[i]
-    ps.setInitialConfig(init_config)
-    goal_config = neutral_pose + bin_des
-    ps.resetGoalConfigs()
-    ps.addGoalConfig(goal_config)
-    ps.solve() """
-
-
-
-
-
-##test
-""" final = [[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793, 0.5, \
-    0.5, 0.1, 3e-06, 0, 0, 0, 1],[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
-         0.5, 0.5, 0.4, 3e-06, 0, 0, 0, 1],[0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
-         0.5, 0.5, 0, 3e-06, 0, 0, 0, 1]]    #substitue by coor_part
-go = [0, -1.5707963267948966, 2.796017461694916, -1.5707963267948966, -3.141592653589793,\
-            0.5, -0.4, 0.4, 3e-06, 0, 1, 0, 0]
-res2 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free'],go)
-if not res2[0]:
-    raise Exception ('Goal configuration could not be projected.')
-go = res2[1]
-
-ps.addPathOptimizer("RandomShortcut")
-for i in range(len(final)):
-    res1 = ps.client.manipulation.problem.applyConstraints(graph.nodes['free'],final[i])
-    if not res1[0]:
-        raise Exception ('Init configuration %s could not be projected.' % i)
-        continue
-    ini =  res1[1]
-    ps.setInitialConfig(ini)
-    ps.resetGoalConfigs()
-    ps.addGoalConfig(go)
-    ps.solve()
-Nb_path = ps.numberPaths()  
-for i in range(1,Nb_path):
-    if i%4== 0:
-        ps.concatenatePath(0,i) """
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 
