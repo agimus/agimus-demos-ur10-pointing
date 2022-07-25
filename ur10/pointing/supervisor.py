@@ -142,7 +142,7 @@ def makeSupervisorWithFactory(robot):
         # visual servoing is deactivated by default at this step to avoid
         # undesirable effects when grasping an object.
         supervisor.postActions[transitionName_12][goalName].sot = \
-          supervisor.sots[transitionName_12].sot
+          supervisor.actions[transitionName_12].sot
         # Add a pre-action to the pre-action of transition 'g > h | f_12'
         # in order to perform object localization before starting the
         # motion.
