@@ -374,8 +374,7 @@ react_inria_extra_flags=
 all: realsense_gazebo_plugin.install\
 	rgbd_launch.install visp_auto_tracker.install \
 	visp_camera_calibration.install visp_hand2eye_calibration.install \
-	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
-	hpp-plot.install hpp-gui.install sot-universal-robot.install \
+	sot-universal-robot.install \
 	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
 	agimus-hpp.install agimus.install \
 	agimus-demos.install rviz_camera_stream.install rviz_lighting.install \
@@ -493,7 +492,7 @@ hpp-tools.configure.dep: hpp-tools.checkout
 agimus-demos.configure.dep:
 agimus-vision.configure.dep: visp_tracker.install
 agimus-hpp.configure.dep: dynamic_graph_bridge_msgs.install \
-	hpp-manipulation-corba.install agimus_sot_msgs.install
+	agimus_sot_msgs.install
 agimus-sot.configure.dep: dynamic_graph_bridge.install agimus_sot_msgs.install
 agimus.configure.dep: agimus-hpp.install agimus_sot_msgs.install
 agimus_sot_msgs.configure.dep:
