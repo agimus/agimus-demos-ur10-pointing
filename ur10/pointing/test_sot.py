@@ -9,7 +9,7 @@ from pinocchio import SE3
 R = np.matrix([[0,1,0],[0,0,1],[1,0,0]])
 # x = up
 # y = towards the left (when looking at the part from the gripper)
-x = SE3(R, np.array([-0.072,-0.00,-0.0078]))
+x = SE3(R, np.array([-0.0000,-0.0000,-0.0000]))
 
 # ol = ObjectLocalization('part/base_link_measuredwrt_world_ol')
 # ol.trigger(robot.device.control.time)

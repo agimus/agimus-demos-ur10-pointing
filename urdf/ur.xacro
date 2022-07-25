@@ -23,9 +23,9 @@
    <xacro:arg name="safety_k_position" default="20"/>
 
    <!-- Offset of the tip link (obtained by calibration) -->
-   <xacro:arg name="tip_offset_x" default="0.0008"/>
-   <xacro:arg name="tip_offset_y" default="0.0069"/>
-   <xacro:arg name="tip_offset_z" default="-0.0083"/>
+   <xacro:arg name="tip_offset_x" default="0.0000"/>
+   <xacro:arg name="tip_offset_y" default="0.0000"/>
+   <xacro:arg name="tip_offset_z" default="0.0000"/>
 
    <!-- arm -->
    <xacro:ur_robot
