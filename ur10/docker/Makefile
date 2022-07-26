@@ -378,7 +378,7 @@ all: realsense_gazebo_plugin.install\
 	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
 	agimus-hpp.install agimus.install \
 	agimus-demos.install rviz_camera_stream.install rviz_lighting.install \
-	Universal_Robots_ROS_Driver.install react_inria.install
+	Universal_Robots_ROS_Driver.install
 
 # For test on gepgitlab, install robot packages first
 test-ci: example-robot-data.install  hpp-environments.install \
