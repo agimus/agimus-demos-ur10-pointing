@@ -46,7 +46,7 @@ INSTALL_DOCUMENTATION=ON
 ##################################
 # {{{ Dependencies
 
-pinocchio_branch=devel
+pinocchio_branch=v2.6.8
 pinocchio_repository=${SOT_REPO}
 pinocchio_extra_flags= -DBUILD_PYTHON_INTERFACE=ON -DBUILD_UNIT_TESTS=OFF -DBUILD_WITH_COLLISION_SUPPORT=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -247,14 +247,14 @@ agimus_branch=master
 agimus_repository=${AGIMUS_REPO}
 agimus_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-sot_branch=devel
+agimus-sot_branch=master
 agimus-sot_repository=${AGIMUS_REPO}
 agimus-sot_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus_sot_msgs_branch=master
 agimus_sot_msgs_repository=${AGIMUS_REPO}
 
-agimus-hpp_branch=devel
+agimus-hpp_branch=master
 agimus-hpp_repository=${AGIMUS_REPO}
 agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DCLIENT_TO_GEPETTO_VIEWER=ON \
 	-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
@@ -262,7 +262,7 @@ agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DCLIENT_TO_GEPETTO_VIEWER=ON \
 agimus-vision_branch=master
 agimus-vision_repository=${AGIMUS_REPO}
 
-agimus-demos_branch=devel
+agimus-demos_branch=master
 agimus-demos_repository=${AGIMUS_REPO}
 agimus-demo_extraflags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -291,7 +291,7 @@ dynamic-graph-python_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${P
 dynamic_graph_bridge_branch=devel
 dynamic_graph_bridge_repository=${SOT_REPO}
 
-dynamic_graph_bridge_msgs_branch=devel
+dynamic_graph_bridge_msgs_branch=master
 dynamic_graph_bridge_msgs_repository=${SOT_REPO}
 
 sot-core_branch=devel
@@ -307,7 +307,7 @@ sot-dynamic-pinocchio_repository=${SOT_REPO}
 sot-dynamic-pinocchio_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 roscontrol_sot_branch=devel
-roscontrol_sot_repository=${FLORENT_REPO}
+roscontrol_sot_repository=${SOT_REPO}
 
 pal_msgs_repository=${PAL_REPO}
 pal_msgs_branch=indigo-devel
@@ -374,12 +374,11 @@ react_inria_extra_flags=
 all: realsense_gazebo_plugin.install\
 	rgbd_launch.install visp_auto_tracker.install \
 	visp_camera_calibration.install visp_hand2eye_calibration.install \
-	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
-	hpp-plot.install hpp-gui.install sot-universal-robot.install \
+	sot-universal-robot.install \
 	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
 	agimus-hpp.install agimus.install \
 	agimus-demos.install rviz_camera_stream.install rviz_lighting.install \
-	Universal_Robots_ROS_Driver.install react_inria.install
+	Universal_Robots_ROS_Driver.install
 
 # For test on gepgitlab, install robot packages first
 test-ci: example-robot-data.install  hpp-environments.install \
@@ -493,7 +492,7 @@ hpp-tools.configure.dep: hpp-tools.checkout
 agimus-demos.configure.dep:
 agimus-vision.configure.dep: visp_tracker.install
 agimus-hpp.configure.dep: dynamic_graph_bridge_msgs.install \
-	hpp-manipulation-corba.install agimus_sot_msgs.install
+	agimus_sot_msgs.install
 agimus-sot.configure.dep: dynamic_graph_bridge.install agimus_sot_msgs.install
 agimus.configure.dep: agimus-hpp.install agimus_sot_msgs.install
 agimus_sot_msgs.configure.dep:
