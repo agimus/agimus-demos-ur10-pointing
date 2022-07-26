@@ -29,11 +29,11 @@
 # - simulateTorqueFeedbackForEndEffector, a boolean
 
 from agimus_sot.react import TaskFactory, localizeObjectOnLoopTransition
-from agimus_sot.solver import Solver
+from agimus_sot.action import Action
 import rospy
 from dynamic_graph.ros.ros_publish import RosPublish
 
-Solver.maxControlSqrNorm = 20
+Action.maxControlSqrNorm = 20
 
 # Action to be performed at start of pre-action of transition
 # "ur10e/gripper > part/handle_{} | f_12"
