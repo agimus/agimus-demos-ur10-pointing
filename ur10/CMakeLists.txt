@@ -1,6 +1,7 @@
 # Install launch files in launch directory
 INSTALL_DEMO_LAUNCH_FILES(pointing
   LAUNCHFILES
+  demo.launch
   estimation.launch
   estimation_realsense.launch
   load_ur.launch
