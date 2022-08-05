@@ -307,7 +307,7 @@ def getDoableHoles():
 def doDemo():
     NB_holes_to_do = 7
     demo_holes = range(NB_holes_to_do)
-    pids, qend = pg.planDeburringPaths(demo_holes)
+    pids, qend = pg.planPointingPaths(demo_holes)
 
 holist = [7,8,9,42,43,13]
 v(q_init)
