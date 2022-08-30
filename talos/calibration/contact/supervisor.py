@@ -150,6 +150,9 @@ def makeSupervisorWithFactory(robot):
     supervisor.addSolver("starting_motion", sot_loop)
     supervisor.addSolver("loop_ss", sot_loop)
     supervisor.addSolver("go_to_starting_state", sot_loop)
+    # Reset control maximal norm that is too small
+    for key, action in supervisor.actions.items():
+        action.sot.setMaxControlIncrementSquaredNorm(30)
     return factory, supervisor
 
 
