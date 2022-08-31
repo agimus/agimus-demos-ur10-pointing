@@ -86,7 +86,7 @@ def makeRobotProblemAndViewerFactory(clients):
 
     ps = ProblemSolver(robot)
     ps.selectPathValidation('Progressive', 1e-3)
-    ps.setErrorThreshold(1e-3)
+    ps.setErrorThreshold(1e-4)
     ps.setMaxIterProjection(40)
 
     vf = ViewerFactory(ps)
