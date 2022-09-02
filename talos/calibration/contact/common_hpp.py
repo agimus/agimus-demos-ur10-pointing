@@ -160,7 +160,8 @@ def createQuasiStaticEquilibriumConstraint (ps, q) :
     ps.addPartialCom("talos", ["talos/root_joint"])
     # Static stability constraint
     robot.createStaticStabilityConstraint(
-        "balance/", "talos", robot.leftAnkle, robot.rightAnkle, q
+        "balance/", "talos", robot.leftAnkle, robot.rightAnkle, q,
+        maskCom = [True, True, False]
     )
     com_constraint = ["balance/relative-com",]
     foot_placement = ["balance/pose-left-foot", "balance/pose-right-foot"]
