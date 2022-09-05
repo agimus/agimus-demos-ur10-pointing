@@ -91,12 +91,16 @@ for e in entities:
     except:
         pass
 
+ca = cas[0]
+ca.getWrenchOffset(robot.device.control.time)
 robot.initializeTracer()
 robot.tracer.setBufferSize(2**24)
 robot.addTrace(cas[0].name, 'contact')
 robot.addTrace(cas[0].name, 'error')
 robot.addTrace(cas[0].name, 'errorIn')
 robot.addTrace(cas[0].name, 'wrench')
+robot.addTrace(cas[0].name, 'releaseCriterion')
+robot.addTrace(cas[0].name, 'wrenchMinusOffset')
 
 robot.startTracer()
 ```

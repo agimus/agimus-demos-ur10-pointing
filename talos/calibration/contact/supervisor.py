@@ -68,7 +68,13 @@ def addContactDetection(supervisor, factory):
             plug(robot.dynamic.signal('J'+ftLinkName), ca.ftJacobian)
             ca.threshold.value = 20
             ca.wrenchDes.value = np.array([0,0,30,0,0,0])
-            ca.stiffness.value = 100 * np.identity(6)
+            ca.stiffness.value = np.array([[ 50., 0., 0., 0., 0., 0.],
+                                           [ 0., 50., 0., 0., 0., 0.],
+                                           [ 0., 0., 50., 0., 0., 0.],
+                                           [ 0., 0., 0.,  3., 0., 0.],
+                                           [ 0., 0., 0., 0.,  3., 0.],
+                                           [ 0., 0., 0., 0., 0., 50.]])
+
             task.clear()
             task.add(ca.name)
             # Add task in transition that releases the contact
