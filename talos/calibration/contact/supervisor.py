@@ -43,6 +43,23 @@ def hpTasks(sotrobot):
     rf = Foot("talos/leg_right_6_joint", sotrobot)
     return com + lf + rf
 
+## Action that initializes the wrench offset before going to contact
+#
+#  Before getting to contact, we need to remove the constant wrench due to the
+#  weight of the gripper in order to have a wrench signal close to zero when
+#  there is no contact.
+class InitializeWrenchOffset(object):
+    # Constructor takes a ContactAdmittance object as input
+    def __init__(self, sotrobot, ca):
+        self.sotrobot = sotrobot
+        self.ca = ca
+
+    def __call__(self):
+        self.ca.getWrenchOffset(self.sotrobot.device.control.time)
+        print("Initialized wrench offset for entity {}".format(self.ca.name))
+        return True, ""
+
+
 def addContactDetection(supervisor, factory):
     for name in ["wrist_left_ft_link", "wrist_right_ft_link"]:
         if not robot.dynamic.hasSignal(name):
@@ -80,7 +97,9 @@ def addContactDetection(supervisor, factory):
             # Add task in transition that releases the contact
             edgeBack = '{} < {} | {}-{}_21'.format(gripper, handle, ig, ih)
             supervisor.actions[edgeBack] = supervisor.actions[edgeName]
-
+            # Add preaction to initialize wrench offset.
+            supervisor.actions[edgeName].preActions.append\
+                (InitializeWrenchOffset(robot, ca))
 
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
