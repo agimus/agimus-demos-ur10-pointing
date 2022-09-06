@@ -207,9 +207,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     isp.optimizerTypes = ["RandomShortcut", "EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+        ("SimpleTimeParameterization/safety", Any(TC_double, .9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathForHandle(handle, q_init, NrandomConfig=100)
@@ -217,9 +217,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = [paths[0],]
     for i, p in enumerate(paths[1:]):
         path = p.asVector()
