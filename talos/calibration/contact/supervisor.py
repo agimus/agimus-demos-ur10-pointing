@@ -76,7 +76,9 @@ def addContactDetection(supervisor, factory):
         for ih, handle in enumerate(factory.handles):
             edgeName = '{} > {} | f_12'.format(gripper, handle)
             name = 'pregrasp___{}___{}'.format(gripper, handle)
+            # This task already exists, let us reuse it
             task = Task(name + '_task')
+            task.clear()
             feature = FeaturePose(name + '_feature')
             ca = ContactAdmittance(name + '_contact')
             plug(feature.error, ca.errorIn)
@@ -92,11 +94,7 @@ def addContactDetection(supervisor, factory):
                                            [ 0., 0., 0., 0.,  3., 0.],
                                            [ 0., 0., 0., 0., 0., 50.]])
 
-            task.clear()
             task.add(ca.name)
-            # Add task in transition that releases the contact
-            edgeBack = '{} < {} | {}-{}_21'.format(gripper, handle, ig, ih)
-            supervisor.actions[edgeBack] = supervisor.actions[edgeName]
             # Add preaction to initialize wrench offset.
             supervisor.actions[edgeName].preActions.append\
                 (InitializeWrenchOffset(robot, ca))
