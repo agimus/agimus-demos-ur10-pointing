@@ -59,14 +59,9 @@ class CalibrationControl (object):
         self.subStatus = rospy.Subscriber \
                          ("/agimus/agimus/smach/container_status",
                           SmachContainerStatus, self.statusCallback)
-        self.subSotJointStates = rospy.Subscriber ("/agimus/sot/state", Vector,
-                                                   self.sotJointStateCallback)
-        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
-                                                  self.rosJointStateCallback)
         self.subStatusDescription = rospy.Subscriber\
             ("/agimus/status/description", String, self.statusDescriptionCallback)
         self.running = False
-        self.sotJointStates = None
         self.rosJointStates = None
         self.jointNames = None
         self.pathId = 0
@@ -84,14 +79,21 @@ class CalibrationControl (object):
         self.waitForEndOfMotion ()
 
     def collectData (self, gripper, handle):
+        # Subscribe to joint_state only for collecting data
+        self.rosJointStates = None
+        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
+                                                  self.rosJointStateCallback)
+        # Wait for callback to be called
+        while not self.rosJointStates:
+            rospy.sleep(1e-3)
+        self.subRosJointState.unregister()
+        self.subRosJointState = None
         measurement = dict ()
         measurement["gripper"] = gripper
         measurement["handle"] = handle
         # Get joint values
-        if self.rosJointStates:
-            measurement ["joint_states"] = self.rosJointStates
-        elif self.sotJointStates:
-            measurement ["joint_states"] = self.sotJointStates
+        measurement ["joint_states"] = self.rosJointStates
+        print("Saved joint states.")
         self.measurements.append (measurement)
 
     def save (self, filename):
@@ -142,9 +144,6 @@ class CalibrationControl (object):
             self.errorOccured = True
             rospy.loginfo ('Error occured.')
 
-    def sotJointStateCallback (self, msg):
-        self.sotJointStates = msg.data
-
     def rosJointStateCallback (self, msg):
         self.rosJointStates = msg.position
         if not self.jointNames:
@@ -152,8 +151,8 @@ class CalibrationControl (object):
 
     def statusDescriptionCallback(self, msg):
         text = msg.data
-        if text[:22] != "Executing post-action ": return
-        text = text[22:]
+        if text[:21] != "Executing pre-action ": return
+        text = text[21:]
         i = text.find(' < ')
         if i == -1: return
         gripper = text[:i]
@@ -167,7 +166,7 @@ class CalibrationControl (object):
                      
 def playAllPaths (startIndex):
     i = startIndex
-    while i < nbPaths - 1:
+    while i < nbPaths:
         cc.playPath (i)
         if not cc.errorOccured:
             print("Ran {}".format(i))
