@@ -205,7 +205,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
         raise RuntimeError('Failed to project initial configuration')
     isp = pg.inStatePlanner
     isp.optimizerTypes = ["RandomShortcut", "EnforceTransitionSemantic",
-                                        "SimpleTimeParameterization"]
+                          "SimpleTimeParameterization", "Discretization"]
+    isp.manipulationProblem.setParameter\
+        ('PathOptimization/Discretization/step',Any(TC_double, 1e-3))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
