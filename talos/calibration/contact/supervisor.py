@@ -43,6 +43,23 @@ def hpTasks(sotrobot):
     rf = Foot("talos/leg_right_6_joint", sotrobot)
     return com + lf + rf
 
+## Action that initializes the wrench offset before going to contact
+#
+#  Before getting to contact, we need to remove the constant wrench due to the
+#  weight of the gripper in order to have a wrench signal close to zero when
+#  there is no contact.
+class InitializeWrenchOffset(object):
+    # Constructor takes a ContactAdmittance object as input
+    def __init__(self, sotrobot, ca):
+        self.sotrobot = sotrobot
+        self.ca = ca
+
+    def __call__(self):
+        self.ca.getWrenchOffset(self.sotrobot.device.control.time)
+        print("Initialized wrench offset for entity {}".format(self.ca.name))
+        return True, ""
+
+
 def addContactDetection(supervisor, factory):
     for name in ["wrist_left_ft_link", "wrist_right_ft_link"]:
         if not robot.dynamic.hasSignal(name):
@@ -59,7 +76,9 @@ def addContactDetection(supervisor, factory):
         for ih, handle in enumerate(factory.handles):
             edgeName = '{} > {} | f_12'.format(gripper, handle)
             name = 'pregrasp___{}___{}'.format(gripper, handle)
+            # This task already exists, let us reuse it
             task = Task(name + '_task')
+            task.clear()
             feature = FeaturePose(name + '_feature')
             ca = ContactAdmittance(name + '_contact')
             plug(feature.error, ca.errorIn)
@@ -68,13 +87,17 @@ def addContactDetection(supervisor, factory):
             plug(robot.dynamic.signal('J'+ftLinkName), ca.ftJacobian)
             ca.threshold.value = 20
             ca.wrenchDes.value = np.array([0,0,30,0,0,0])
-            ca.stiffness.value = 100 * np.identity(6)
-            task.clear()
-            task.add(ca.name)
-            # Add task in transition that releases the contact
-            edgeBack = '{} < {} | {}-{}_21'.format(gripper, handle, ig, ih)
-            supervisor.sots[edgeBack] = supervisor.sots[edgeName]
+            ca.stiffness.value = np.array([[ 50., 0., 0., 0., 0., 0.],
+                                           [ 0., 50., 0., 0., 0., 0.],
+                                           [ 0., 0., 50., 0., 0., 0.],
+                                           [ 0., 0., 0.,  3., 0., 0.],
+                                           [ 0., 0., 0., 0.,  3., 0.],
+                                           [ 0., 0., 0., 0., 0., 50.]])
 
+            task.add(ca.name)
+            # Add preaction to initialize wrench offset.
+            supervisor.actions[edgeName].preActions.append\
+                (InitializeWrenchOffset(robot, ca))
 
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor
@@ -146,10 +169,13 @@ def makeSupervisorWithFactory(robot):
     supervisor.makeInitialSot()
 
     # starting_motion: From half_sitting to position where gaze and COM constraints are satisfied.
-    sot_loop = supervisor.sots["Loop | f"]
+    sot_loop = supervisor.actions["Loop | f"]
     supervisor.addSolver("starting_motion", sot_loop)
     supervisor.addSolver("loop_ss", sot_loop)
     supervisor.addSolver("go_to_starting_state", sot_loop)
+    # Reset control maximal norm that is too small
+    for key, action in supervisor.actions.items():
+        action.sot.setMaxControlIncrementSquaredNorm(30)
     return factory, supervisor
 
 

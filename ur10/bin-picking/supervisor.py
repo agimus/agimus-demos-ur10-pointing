@@ -28,9 +28,9 @@
 # - robot, a SoT device
 # - simulateTorqueFeedbackForEndEffector, a boolean
 
-import time
 from agimus_sot.react import TaskFactory, localizeObjectOnLoopTransition
 from agimus_sot.action import Action
+import rospy
 from dynamic_graph.ros.ros_publish import RosPublish
 
 Action.maxControlSqrNorm = 20
@@ -64,11 +64,11 @@ class ObjectLocalization(object):
             if self.objectLocalization.done.value:
                 print("Successfully performed object localization")
                 return True, ""
-            time.sleep(ts)
+            rospy.sleep(ts)
 
 def wait():
     print("Waiting 1 second")
-    time.sleep(1)
+    rospy.sleep(1)
     return True, ""
 
 def makeSupervisorWithFactory(robot):
@@ -76,6 +76,7 @@ def makeSupervisorWithFactory(robot):
     from agimus_sot.factory import Factory, Affordance
     from agimus_sot.srdf_parser import parse_srdf, attach_all_to_link
     import pinocchio
+    import rospy
     from rospkg import RosPack
     rospack = RosPack()
 
@@ -83,10 +84,13 @@ def makeSupervisorWithFactory(robot):
         robot.camera_frame = "camera_color_optical_frame"
     srdf = {}
     # retrieve objects from ros param
-    robotDict = globalDemoDict["robots"]
+    demoDict = rospy.get_param("/demo")
+    print('demoDict',demoDict ) 
+    robotDict = demoDict["robots"]
+    print('robotDic',robotDict)
     if len(robotDict) != 1:
         raise RuntimeError("One and only one robot is supported for now.")
-    objectDict = globalDemoDict["objects"]
+    objectDict = demoDict["objects"]
     objects = list(objectDict.keys())
     # parse robot and object srdf files
     srdfDict = dict()
@@ -103,7 +107,7 @@ def makeSupervisorWithFactory(robot):
                                  prefix=o)
         attach_all_to_link(objectModel, "base_link", srdfDict[o])
 
-    grippers = list(globalDemoDict["grippers"])
+    grippers = list(demoDict["grippers"])
     handlesPerObjects = list()
     contactPerObjects = list()
     for o in objects:

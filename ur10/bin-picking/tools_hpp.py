@@ -39,7 +39,7 @@ from hpp.gepetto import PathPlayer
 from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String as StringMsg
 import time
 import rosnode
-from react_inria.srv import reset as ResetSrv
+#from react_inria.srv import reset as ResetSrv
 
 def concatenatePaths(paths):
     if len(paths) == 0: return None
@@ -457,7 +457,7 @@ class PathGenerator(object):
                 print("Collision between", a, "and", b)
             return False
 
-    def planPointingPathForHole(self, hole_id, qinit=None, NrandomConfig=50):
+    def planDeburringPathForHole(self, hole_id, qinit=None, NrandomConfig=50):
         qinit = self.checkQInit(qinit)
         if not self.isHoleDoable(hole_id, qinit):
             print(f"Hole {hole_id} is not doable")
@@ -474,11 +474,11 @@ class PathGenerator(object):
         print(f"Path for hole: {hole_id}, ID = {pid}")
         return pid, q_end
 
-    def planPointingPaths(self, hole_ids, qinit=None):
+    def planDeburringPaths(self, hole_ids, qinit=None):
         qi = self.checkQInit(qinit)
         path_ids = []
         for hole_id in hole_ids:
-            pid, qi = self.planPointingPathForHole(hole_id, qi)
+            pid, qi = self.planDeburringPathForHole(hole_id, qi)
             if pid is not None:
                 path_ids.append(pid)
         if len(path_ids) == 0:
@@ -730,7 +730,7 @@ class PathGenerator(object):
             self.buildPointCloud(new=False)
         print("Executing pointing task...")
         try:
-            pid, _ = self.planPointingPathForHole(hole_id)
+            pid, _ = self.planDeburringPathForHole(hole_id)
             if pid is None:
                 return False
         except:
@@ -742,7 +742,7 @@ class PathGenerator(object):
         while True:
             print(f"\nGoing to hole {hole_id}, try {i}")
             try:
-                pid, _ = self.planPointingPathForHole(hole_id)
+                pid, _ = self.planDeburringPathForHole(hole_id)
                 if pid is not None:
                     try:
                         res = self.demo_execute(pid, steps=steps)

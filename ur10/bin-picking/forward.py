@@ -34,6 +34,8 @@ from hpp.corbaserver.manipulation import Robot, \
 from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import RosInterface, PathGenerator
+#from manipulation import Ground, Bin
+
 
 UseAprilTagPlank = False
 useFOV = False
@@ -47,11 +49,28 @@ class AprilTagPlank:
     urdfFilename = "package://agimus_demos/urdf/april-tag-plank.urdf"
     srdfFilename = "package://agimus_demos/srdf/april-tag-plank.srdf"
     rootJointType = "freeflyer"
+
+#class Bin:
+ #   urdfFilename = "package://agimus_demos/urdf/bin.urdf"
+  #  srdfFilename = "package://agimus_demos/srdf/bin.srdf"
+  #  rootJointType = "freeflyer"
+class Bin (object):
+  rootJointType = 'freeflyer'
+  packageName = 'agimus_demos'
+  meshPackageName = 'agimus_demos'
+  urdfName = 'bin-picking-part'
+  urdfSuffix = ""
+  srdfSuffix = ""
+
+class Ground:
+    urdfFilename = "package://agimus_demos/urdf/ground.urdf"
+    srdfFilename = "package://agimus_demos/srdf/ground.srdf"
+    rootJointType = "anchor"
+
  
 # parse arguments
 defaultContext = "corbaserver"
-p = argparse.ArgumentParser (description=
-                             'Initialize demo of UR10 pointing')
+p = argparse.ArgumentParser (description='Initialize demo of UR10 pointing')
 p.add_argument ('--context', type=str, metavar='context',
                 default=defaultContext,
                 help="identifier of ProblemSolver instance")
@@ -70,7 +89,7 @@ except:
     print("reading generic URDF")
     from hpp.rostools import process_xacro, retrieve_resource
     Robot.urdfString = process_xacro\
-      ("package://agimus_demos/urdf/ur10_robot_sim.urdf.xacro",
+      ("package://agimus_demos/urdf/ur10_bin-picking_sim.urdf.xacro",
        "transmission_hw_interface:=hardware_interface/PositionJointInterface")
 Robot.srdfString = ""
 
@@ -103,19 +122,21 @@ ps.setParameter('SimpleTimeParameterization/safety', 0.95)
 ps.selectPathProjector ("Progressive", .05)
 ps.selectPathValidation("Graph-Progressive", 0.01)
 vf = ViewerFactory(ps)
+vf.loadEnvironmentModel (Ground, 'ground')
+#vf.loadObjectModel (Bin, 'part')
 
 ## Shrink joint bounds of UR-10
-#
 jointBounds = dict()
 jointBounds["default"] = [ (jn, robot.getJointBounds(jn)) \
                            if not jn.startswith('ur10/') else
                            (jn, [-pi, pi]) for jn in robot.jointNames]
-jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
-  ('ur10e/shoulder_lift_joint', [-pi, pi]),
+jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-3.1, 3.1]),
+  ('ur10e/shoulder_lift_joint', [-3.1, 3.1]),
   ('ur10e/elbow_joint', [-3.1, 3.1]),
   ('ur10e/wrist_1_joint', [-3.2, 3.2]),
   ('ur10e/wrist_2_joint', [-3.2, 3.2]),
   ('ur10e/wrist_3_joint', [-3.2, 3.2])]
+
 setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
@@ -127,10 +148,11 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 if UseAprilTagPlank:
     Part = AprilTagPlank
 else:
-    Part = PartPlaque
-vf.loadRobotModel (Part, "part")
-robot.setJointBounds('part/root_joint', [1, 1.5, -0.5, 0.5, -0.5, 0.5])
+    Part = Bin
+vf.loadObjectModel (Part, "part")
+robot.setJointBounds('part/root_joint', [0.65, 10, -0.5, 0.5, -0.5, 1.5])
 print("Part loaded")
+
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
@@ -139,6 +161,7 @@ partPose = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
+print("q0",q0)
 # set the joint match with real robot
 q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 r = robot.rankInConfiguration['part/root_joint']
@@ -147,6 +170,10 @@ if UseAprilTagPlank:
     q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
 else:
     q0[r:r+7] = partPose
+#q3=q0[::]
+#q3[2]=0.3
+#ps.setInitialConfig (q0)
+#ps.addGoalConfig (q3)
 ## Home configuration
 q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
 ## Calibration configuration: the part should be wholly visible
@@ -185,16 +212,23 @@ def createFreeRxConstraintForHandle(handle):
 def createConstraintGraph():
     all_handles = ps.getAvailable('handle')
     part_handles = list(filter(lambda x: x.startswith("part/"), all_handles))
+    objContactSurfaces =[['part/bottom',]]
+    envSurfaces=['ground/surface',]
 
     graph = ConstraintGraph(robot, 'graph2')
+    #rules = [Rule ([""], [""], True)]
     factory = ConstraintGraphFactory(graph)
     factory.setGrippers(["ur10e/gripper",])
-    factory.setObjects(["part",], [part_handles], [[]])
+    factory.environmentContacts (envSurfaces)
+    factory.setObjects(['part',], [part_handles],objContactSurfaces )
+    #factory.setRules (rules)
     factory.generate()
-    for handle in all_handles:
-        loopEdge = 'Loop | 0-{}'.format(factory.handles.index(handle))
-        graph.addConstraints(edge = loopEdge, constraints = Constraints
-            (numConstraints=['part/root_joint']))
+    print('factory.handle',factory.handles)
+    print('all_handles ',all_handles )
+    print('part_handles',part_handles)
+
+
+
 
     n = norm([-0.576, -0.002, 0.025, 0.817])
     ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
@@ -216,6 +250,7 @@ def createConstraintGraph():
     graph.addConstraints(edge='stop-looking-at-part',
                         constraints = Constraints(numConstraints=\
                                                 ['placement/complement']))
+    robot.client.manipulation.problem.createPlacementConstraint('placement/complement', ['part/bottom',],['ground/surface',])  #add placement constraint to surface
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
     sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -227,6 +262,7 @@ def createConstraintGraph():
         if e[-3:] == "_ls" and graph.getWeight(e) != -1:
             graph.setWeight(e, 0)
     return graph
+
 
 graph = createConstraintGraph()
 
@@ -240,13 +276,14 @@ except:
 ri = None
 ri = RosInterface(robot)
 q_init = ri.getCurrentConfig(q0)
+print("q_int",q_init)
 # q_init = q0 #robot.getCurrentConfig()
 pg = PathGenerator(ps, graph, ri, v, q_init)
 pg.inStatePlanner.setEdge('Loop | f')
 pg.testGraph()
 NB_holes = 5 * 7
 NB_holes_total = 44
-hidden_holes = [0,2,10,11,12,14,16,24,33]
+hidden_holes = [2,10,11,12,14,16,24,33]  #remove 0
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 pg.setIsClogged(None)
 ps.setTimeOutPathPlanning(10)
@@ -307,7 +344,77 @@ def getDoableHoles():
 def doDemo():
     NB_holes_to_do = 7
     demo_holes = range(NB_holes_to_do)
-    pids, qend = pg.planPointingPaths(demo_holes)
+    pids, qend = pg.planDeburringPaths(demo_holes)
 
 holist = [7,8,9,42,43,13]
-v(q_init)
+#v(q_init)
+res2 ,res4 = False,False
+while not (res2 and res4):
+    q = robot.shootRandomConfig ()
+    res1,q1,err = graph.applyNodeConstraints ('free', q)
+    q = robot.shootRandomConfig ()
+    res3,q2,err = graph.applyNodeConstraints ('free', q)
+    if not res1 and res3:
+        continue
+    res2, msg = pg.robot.isConfigValid(q1)
+    res4, msg = pg.robot.isConfigValid(q2)
+ps.setInitialConfig (q1)
+ps.addGoalConfig (q2)
+v(q1)
+# run at first time to check the position that the gripper (tool_tip_link) can arrive on the ground
+#The first method based on the forwardKinematics and condition to get part(on the ground) boundry
+#This method generate to much sampling need long computation time,can adjust percision by 'step'
+forward_tool = [[],[]]
+""" for a in np.arange(jointBounds["limited"][0][1][0],jointBounds["limited"][0][1][1],0.5):
+
+    for b in np.arange(jointBounds["limited"][1][1][0],jointBounds["limited"][1][1][1],0.5):
+        for c in np.arange(jointBounds["limited"][2][1][0],jointBounds["limited"][2][1][1],0.5):
+
+            for d in np.arange(jointBounds["limited"][3][1][0],jointBounds["limited"][3][1][1],0.5):
+
+                for e in np.arange(jointBounds["limited"][4][1][0],jointBounds["limited"][4][1][1],0.5):
+
+                    for f in np.arange(jointBounds["limited"][5][1][0],jointBounds["limited"][5][1][1],0.5):
+                        #print(a,b,c,d,e,f)
+                        q_t = [a,b,c,d,e,f,5,0.3,0.5,1,0,0,0]
+                        res1,msg = robot.isConfigValid(q_t)
+                        res2 = crobot.setCurrentConfiguration(q_t)
+                        if (res1 and res2) !=True:
+                            continue
+                        v(q_t)
+                        print('find valid congif and set it')
+                        crobot.computeFramesForwardKinematics()
+                        crobot.updateGeometryPlacements()
+                        pose = crobot.getFramePosition(52)
+                        #not good use np.arange due to step
+                        if abs(pose[2])<0.06 and abs(pose[5])<0.001 and abs(pose[6])<0.001 :   
+                            print('find it!!',pose)
+                            forward_tool[0].append(pose[0])
+                            forward_tool[1].append(pose[1])
+                        #print(pose)
+print('fininsh loop') """
+
+
+
+#The second method to get part(when is on the ground) boundry
+
+for i in range(10000):
+    res1,res = False,False
+    while not res:
+        qrand = robot.shootRandomConfig()
+        res1, q6, error = graph.applyNodeConstraints ('ur10e/gripper > part/handle_00 | f_intersec', qrand)
+        if not res1:
+            continue
+        res = crobot.setCurrentConfiguration(q6)
+    forward_tool[0].append(q6[6])
+    forward_tool[1].append(q6[7])
+x_max = max(forward_tool[0])
+x_min = min(forward_tool[0])
+y_max = max(forward_tool[1])
+y_min = min(forward_tool[1])   ##attation the area is rectangle so is not very percise
+
+ 
+
+
+
+

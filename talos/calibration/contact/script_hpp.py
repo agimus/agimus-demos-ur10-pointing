@@ -104,7 +104,7 @@ def validateGazeConstraint (ps, q, whichArm):
     z = (Mcamera.inverse () * Mtarget).translation [2]
     if z < .1: return False
     return True
-    
+
 def shootRandomConfigs (ps, graph, q0, n):
     robot = ps.robot
     configs = list ()
@@ -205,11 +205,13 @@ def goToContact(ri, pg, gripper, handle, q_init):
         raise RuntimeError('Failed to project initial configuration')
     isp = pg.inStatePlanner
     isp.optimizerTypes = ["RandomShortcut", "EnforceTransitionSemantic",
-                                        "SimpleTimeParameterization"]
+                          "SimpleTimeParameterization", "Discretization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ('PathOptimization/Discretization/step',Any(TC_double, 1e-3))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
+    isp.manipulationProblem.setParameter\
+        ("SimpleTimeParameterization/safety", Any(TC_double, .9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathForHandle(handle, q_init, NrandomConfig=100)
@@ -217,9 +219,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = [paths[0],]
     for i, p in enumerate(paths[1:]):
         path = p.asVector()
@@ -240,6 +242,41 @@ def goToContact(ri, pg, gripper, handle, q_init):
         finalPaths.append(path)
     pg.ps.client.basic.problem.addPath(finalPaths[0])
     pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[1:]))
+
+# Read configurations from csv measurement files. Compute freeflyer pose
+# by keeping the same link pose of referenceJoint parameter as in configuration
+# q0
+def getMeasurementConfigs(robot, q0, referenceJoint, filename):
+    with open(filename, "r") as f:
+        r = reader(f, delimiter=',')
+        configs = list()
+        for i, line in enumerate(r):
+            if i==0:
+                # read joint names
+                assert line[0] == "joint_names"
+                joints = line[1:]
+            else:
+                r = line.index('joint_states')
+                angles = map(float, line[r+1:])
+                q = q0[:]
+                assert(len(angles) == len(joints))
+                for j, angle in zip(joints, angles):
+                    r = robot.rankInConfiguration['talos/'+j]
+                    q[r] = angle
+                # compute freeflyer pose
+                robot.setCurrentConfig(q0)
+                # desired pose of the reference joint
+                Mrj0 = Transform(robot.getJointPosition(referenceJoint))
+                robot.setCurrentConfig(q)
+                # actual pose of the reference joint
+                Mrj = Transform(robot.getJointPosition(referenceJoint))
+                # actual pose of the humanoid root joint
+                rk = robot.rankInConfiguration['talos/root_joint']
+                Mr0 = Transform(q0[rk:rk+7])
+                # desired pose fo the humanoid root joint
+                q[rk:rk+7] = list(Mrj0*Mrj.inverse()*Mr0)
+                configs.append(q)
+        return configs
 
 initConf = [0, 0, 1.05, 0, 0, 0, 1, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0.006761, 0.4, 0.24, -0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.4, -0.24, 0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -351,4 +388,3 @@ for i in range(1,8):
     varianceRight['talos/arm_left_{}_joint'.format(i)] = 0
 
 setGaussianShooter(ps, [table], q_init, .2, varianceLeft)
-

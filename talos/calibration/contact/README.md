@@ -91,12 +91,16 @@ for e in entities:
     except:
         pass
 
+ca = cas[0]
+ca.getWrenchOffset(robot.device.control.time)
 robot.initializeTracer()
 robot.tracer.setBufferSize(2**24)
 robot.addTrace(cas[0].name, 'contact')
 robot.addTrace(cas[0].name, 'error')
 robot.addTrace(cas[0].name, 'errorIn')
 robot.addTrace(cas[0].name, 'wrench')
+robot.addTrace(cas[0].name, 'releaseCriterion')
+robot.addTrace(cas[0].name, 'wrenchMinusOffset')
 
 robot.startTracer()
 ```
@@ -137,18 +141,23 @@ export HPP_PORT=13331
 rosrun talos_controller_configuration talos_initialisation.py --wrist -y
 ```
 
-1. on talos-1m
+2. on talos-1m
 
 ```
 hppcorbaserver
 ```
 
-2. on the console
+3. on the console
+```
+gepetto-gui
+```
 
+4. on the console
 ```
 ipython -i script_hpp.py
 ```
-then in the python terminal
+
+5. then in the python terminal
 ```
 v=vf.createViewer(host="10.68.1.38")
 q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
@@ -160,7 +169,7 @@ pg.inStatePlanner.maxIterPathPlanning = 100
 goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', q_init)
 ```
 
-1. on talos-1c, launch the demonstration
+6. on talos-1c, launch the demonstration
 
 ```
 roslaunch agimus_demos talos_calibration_contact_demo.launch
