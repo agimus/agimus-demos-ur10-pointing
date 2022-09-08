@@ -34,6 +34,7 @@
 #
 #  Then, it computes a path going through all these configurations.
 
+from math import sqrt
 from csv import reader, writer
 import argparse, numpy as np
 from CORBA import Any, TC_double, TC_long
@@ -48,10 +49,10 @@ from hpp.corbaserver.manipulation.constraint_graph_factory import \
 from agimus_demos.tools_hpp import RosInterface, concatenatePaths
 from hpp_idl.hpp import Error as HppError
 
-from agimus_demos.talos.tools_hpp import createGazeConstraints, \
-    createGripperLockedJoints, createLeftArmLockedJoints, \
-    createRightArmLockedJoints, defaultContext, setGaussianShooter
-from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph, \
+from agimus_demos.talos.tools_hpp import setGaussianShooter, defaultContext,\
+    shootRandomArmConfig
+
+from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph,\
     makeRobotProblemAndViewerFactory
 
 loadServerPlugin (defaultContext, "manipulation-corba.so")
@@ -197,14 +198,13 @@ def visitConfigurations (ps, configs):
 
 def goToContact(ri, pg, gripper, handle, q_init):
     pg.gripper = gripper
-    q_init = ri.getCurrentConfig(q_init, 5., 'talos/leg_left_6_joint') if ri \
-             else q_init
+    q_init = ri.getCurrentConfig(q_init, 5., 'talos/leg_left_6_joint')
     res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
                                                      q_init)
     if not res:
         raise RuntimeError('Failed to project initial configuration')
     isp = pg.inStatePlanner
-    isp.optimizerTypes = ["RandomShortcut", "EnforceTransitionSemantic",
+    isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
@@ -212,7 +212,7 @@ def goToContact(ri, pg, gripper, handle, q_init):
         ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
-    paths = pg.generatePathForHandle(handle, q_init, NrandomConfig=100)
+    paths = pg.generatePathForHandle(handle, q_init)
     # First path is already time parameterized
     # Transform second and third path into PathVector instances to time
     # parameterize them
@@ -241,95 +241,18 @@ def goToContact(ri, pg, gripper, handle, q_init):
     pg.ps.client.basic.problem.addPath(finalPaths[0])
     pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[1:]))
 
-initConf = [0, 0, 1.05, 0, 0, 0, 1, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0, -0.37, 0.67, -0.3, 0, 0, 0.006761, 0.4, 0.24, -0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.4, -0.24, 0.7, -1.45, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-# Initial configuration in PAL simulator
-# initConf = [0, 0, 1.0493761707252309, 0, 0, 0, 1, 0,
-#             -0.0010225974303292359, -0.36787678308396593, 0.6757922512379118,
-#             -0.3028653783931391, 0.0005395405932684167, -2.8927888057647416e-06,
-#             0, -0.3681011200415869, 0.6761074493076881, -0.3029241643529437, 0, 0,
-#             0.050319274246977824, 0.3999220584702339, 0.24002787068272383,
-#             -0.6002140330094962, -1.4490672794672388, 0, -0, 0.003036732533889251,
-#             0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, -0.3999212805713791,
-#             -0.2400023000505192, 0.6002203685413067, -1.4490697603203644, 0, 0,
-#             0.003224000598866796, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]
+initConf = [0, 0, 1.02, 0, 0, 0, 1, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0, 0.006761, 0.25847, 0.173046, -0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.25847, -0.173046, 0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(None)
-initConf += [.5,0,0,0,0,0,1]
-ri = RosInterface(robot)
+# Pose of the table
+initConf += [1.2,0,0,0,0,0,1]
+# Pose of the box
+initConf += [1.0,0,0.8325,0,sqrt(2)/2,0,sqrt(2)/2]
 
-left_arm_lock  = createLeftArmLockedJoints (ps)
-right_arm_lock = createRightArmLockedJoints (ps)
-if args.arm == 'left':
-    arm_locked = right_arm_lock
-elif args.arm == 'right':
-    arm_locked = left_arm_lock
-else:
-    arm_locked = list()
+#ri = RosInterface(robot)
 
-left_gripper_lock, right_gripper_lock = createGripperLockedJoints (ps, initConf)
-com_constraint, foot_placement, foot_placement_complement = \
-    createQuasiStaticEquilibriumConstraint (ps, initConf)
-look_left_hand, look_right_hand = createGazeConstraints(ps)
-
-graph = makeGraph(ps, table)
-
-# Add other locked joints in the edges.
-for edgename, edgeid in graph.edges.items():
-    if edgename[:7] == "Loop | " and edgename[7] != 'f':
-        graph.addConstraints(
-            edge=edgename, constraints=Constraints(numConstraints=\
-                                                   ['table/root_joint',])
-        )
-# Add gaze and and equilibrium constraints and locked grippers to each node of
-# the graph
-prefixLeft = 'talos/left_gripper'
-prefixRight = 'talos/right_gripper'
-l = len(prefixLeft)
-r = len(prefixRight)
-for nodename, nodeid in graph.nodes.items():
-    graph.addConstraints(
-        node=nodename, constraints=Constraints(numConstraints=\
-            com_constraint + foot_placement + left_gripper_lock + \
-            right_gripper_lock
-            )
-        )
-    if nodename[:l] == prefixLeft:
-        graph.addConstraints(
-            node=nodename, constraints=Constraints(numConstraints=\
-                                                   [look_left_hand,]))
-    if nodename[:r] == prefixRight:
-        graph.addConstraints(
-            node=nodename, constraints=Constraints(numConstraints=\
-                                                   [look_right_hand,]))
-
-# add foot placement complement in each edge.
-for edgename, edgeid in graph.edges.items():
-    graph.addConstraints(
-        edge=edgename,
-        constraints=Constraints(numConstraints=foot_placement_complement),
-    )
-
-# On the real robot, the initial configuration as measured by sensors is very
-# likely not in any state of the graph. State "starting_state" and transition
-# "starting_motion" are aimed at coping with this issue.
-graph.createNode("starting_state")
-graph.createEdge("starting_state", "free", "starting_motion", isInNode="starting_state")
-graph.createEdge(
-    "free",
-    "starting_state",
-    "go_to_starting_state",
-    isInNode="starting_state",
-    weight=0,
-)
-graph.addConstraints(
-    edge="starting_motion",
-    constraints=Constraints(numConstraints=['table/root_joint',]),)
-graph.addConstraints(
-    edge="go_to_starting_state",
-    constraints=Constraints(numConstraints=['table/root_joint',]),
-)
-graph.initialize ()
+ps.selectPathProjector("Progressive", 0.2)
+graph = makeGraph(ps, table, objects[0], initConf)
 
 ps.setParameter("SimpleTimeParameterization/safety", 0.2)
 ps.setParameter("SimpleTimeParameterization/order", 2)
@@ -338,17 +261,72 @@ ps.setParameter("SimpleTimeParameterization/maxAcceleration", .1)
 ps.addPathOptimizer ("EnforceTransitionSemantic")
 ps.addPathOptimizer ("SimpleTimeParameterization")
 
-res, q_init, err = graph.generateTargetConfig ("starting_motion", initConf,
-                                               initConf)
+res, q, err = graph.generateTargetConfig ("starting_motion", initConf,
+                                          initConf)
 if not res:
     raise RuntimeError ('Failed to project initial configuration')
 
-# Set variance to 0 in Gaussian shooter for arm that does not go into contact
-varianceLeft = {'talos/root_joint': .1, 'table/root_joint': 0.}
-varianceRight = {'talos/root_joint': .1, 'table/root_joint': 0.}
-for i in range(1,8):
-    varianceLeft['talos/arm_right_{}_joint'.format(i)] = 0
-    varianceRight['talos/arm_left_{}_joint'.format(i)] = 0
+# configs1 = readConfigsInFile('lean-on-left-arm.csv')
+configs = list()
 
-setGaussianShooter(ps, [table], q_init, .2, varianceLeft)
+# Read waypoint configurations in files
+# leanConfigs = readConfigsInFile('data/lean-on-left-arm.csv')
+# pregraspConfigs = readConfigsInFile('data/pregrasp-lean-on-left-arm.csv')
 
+from agimus_demos import InStatePlanner
+planner = InStatePlanner(ps, graph)
+planner.maxIterPathPlanning = 500
+
+# Generate waypoints
+leanConfigs = list()
+pregraspConfigs = list()
+#setGaussianShooter(ps, objects, initConf, .2)
+finished = False
+while not finished:
+    for i in range(100):
+        q = robot.shootRandomConfig()
+        if i==0: q = initConf
+        res, q1, err = graph.generateTargetConfig("go_to_left_contact",
+                                                  initConf, q)
+        if not res: continue
+        res, msg = robot.isConfigValid(q1)
+        if not res:
+            continue
+    if not res: continue
+    print("Found q1.")
+    leanConfigs.append(q1)
+    for i in range(2000):
+        q = shootRandomArmConfig(robot, 'right', q1)
+        if i==0: q = q1
+        res, q2, err = graph.generateTargetConfig("get_box", q1, q)
+        if not res:
+            continue
+        res, msg = robot.isConfigValid(q2)
+        if not res:
+            print("q2 in collision: " + msg)
+            continue
+    if not res: continue
+    print("Found q2")
+    pregraspConfigs.append(q2)
+    finished = res
+
+
+for q0, q1 in zip(leanConfigs, pregraspConfigs):
+    planner.setEdge('Loop | f')
+    p0 = None
+    try:
+        p0 = planner.computePath(initConf, [q0])
+    except:
+        print("Failed to compute path between {} and {}".format(initConf,q0))
+        print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
+    if not p0: continue
+    ps.client.basic.problem.addPath(p0)
+    planner.setEdge('Loop | contact_on_left_arm')
+    p1 = None
+    try:
+        p1 = planner.computePath(q0, [q1])
+    except:
+        print("Failed to compute path between {} and {}".format(q0,q1))
+        print("number of nodes: {}".format(planner.croadmap.getNbNodes()))
+    if not p1: continue
+    ps.client.basic.problem.addPath(concatenatePaths([p0, p1]))

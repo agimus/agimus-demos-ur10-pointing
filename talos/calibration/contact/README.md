@@ -9,9 +9,16 @@ Open a terminal with several tabs and go into directory ~/catkin_ws/src/agimus-d
 
 1. in terminal 1
 ```
-roslaunch simulation.launch
+roslaunch simulation.launch pal_simulator:=true
 ```
-The simulation is paused at startup. Click on button play in gazebo window to
+If you drop option `pal_simulator`, gazebo is used instead of PAL physics simulator
+
+2. in terminal 2 (only with PAL simulator)
+```
+roslaunch talos_controller_configuration default_controllers.launch
+```
+
+In Gazebo, the simulation is paused at startup. Click on button play in gazebo window to
 start it.
 
 2. in terminal 3
@@ -32,13 +39,20 @@ gepetto-gui
 5. in terminal 4
 ```
 v=vf.createViewer()
+q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
+v(q_init)
+
 from agimus_demos.tools_hpp import PathGenerator
 pg = PathGenerator(ps,graph)
-goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', initConf)
+pg.inStatePlanner.maxIterPathPlanning = 100
+goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', q_init)
+
 ```
 In the path player of `gepetto-gui`, you should see three paths ready to be executed.
 
 6. In terminal 2
+
+If any, stop the current roslaunch
 ```
 roslaunch demo.launch simulation:=true
 ```
@@ -86,6 +100,7 @@ robot.addTrace(cas[0].name, 'wrench')
 
 robot.startTracer()
 ```
+<<<<<<< HEAD
 ### Generating contact configurations
 
 in terminal 4
@@ -106,3 +121,50 @@ while len(configs) < 10:
         configs.append(qpg)
 
 ```
+=======
+
+## On the robot
+
+Make sure that all terminals in the console and on the robot have the following
+environment variables set:
+
+export HPP_HOST=10.68.1.11
+export HPP_PORT=13331
+
+1. on talos-1c, go to halfsitting
+
+```
+rosrun talos_controller_configuration talos_initialisation.py --wrist -y
+```
+
+1. on talos-1m
+
+```
+hppcorbaserver
+```
+
+2. on the console
+
+```
+ipython -i script_hpp.py
+```
+then in the python terminal
+```
+v=vf.createViewer(host="10.68.1.38")
+q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
+v(q_init)
+
+from agimus_demos.tools_hpp import PathGenerator
+pg = PathGenerator(ps,graph)
+pg.inStatePlanner.maxIterPathPlanning = 100
+goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', q_init)
+```
+
+1. on talos-1c, launch the demonstration
+
+```
+roslaunch agimus_demos talos_calibration_contact_demo.launch
+```
+
+Follow the same steps as in simulation starting by 7.
+>>>>>>> 3a080818b5f24282a5eda4aa24ff2662444d85ec

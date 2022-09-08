@@ -8,7 +8,6 @@ LAAS_REPO=https://github.com/laas
 HPP_REPO=https://github.com/humanoid-path-planner
 SOT_REPO=https://github.com/stack-of-tasks
 GEPETTO_REPO=https://github.com/Gepetto
-TRAC_REPO=ssh://trac.laas.fr/git/jrl/robots/ros-hrp2
 LOCO3D_REPO=https://github.com/loco-3d
 AGIMUS_REPO=https://github.com/agimus
 INTEL_REPO=https://github.com/IntelRealSense
@@ -60,14 +59,14 @@ hpp-template-corba_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 # Either a version tag (e.g. v4.3.0), stable or devel
 HPP_VERSION=devel
-HPP_EXTRA_FLAGS= -DBUILD_TESTING=${BUILD_TESTING}$
+HPP_EXTRA_FLAGS= -DBUILD_TESTING=${BUILD_TESTING}
 
 hpp-util_branch=${HPP_VERSION}
 hpp-util_repository=${HPP_REPO}
 
-hpp-fcl_branch=${HPP_VERSION}
-hpp-fcl_repository=${HPP_REPO}
-hpp-fcl_extra_flags= -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_INTERFACE=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
+hpp-fcl_branch=react
+hpp-fcl_repository=${FLORENT_REPO}
+hpp-fcl_extra_flags= -DCMAKE_BUILD_TYPE=Release -DBUILD_PYTHON_INTERFACE=ON -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} ${HPP_EXTRA_FLAGS}
 
 hpp-statistics_branch=${HPP_VERSION}
 hpp-statistics_repository=${HPP_REPO}
@@ -122,18 +121,6 @@ hpp-gui_repository=${HPP_REPO}
 example-robot-data_branch=devel
 example-robot-data_repository=${GEPETTO_REPO}
 example-robot-data_extra_flags= -DBUILD_PYTHON_INTERFACE=OFF
-
-hrp2-14-description_branch=master
-hrp2-14-description_repository=${TRAC_REPO}
-
-hpp-hrp2_branch=devel
-hpp-hrp2_repository=${HPP_REPO}
-
-robot_capsule_urdf_branch=groovy
-robot_capsule_urdf_repository=${LAAS_REPO}
-
-robot_model_py_branch=groovy
-robot_model_py_repository=${LAAS_REPO}
 
 hpp_benchmark_branch=devel
 hpp_benchmark_repository=${HPP_REPO}
@@ -256,27 +243,27 @@ hpp-tools_extra_flags=
 ##################################
 # {{{ Packages for Agimus
 
-agimus_branch=react
-agimus_repository=${FLORENT_REPO}
+agimus_branch=master
+agimus_repository=${AGIMUS_REPO}
 agimus_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-sot_branch=react
-agimus-sot_repository=${FLORENT_REPO}
+agimus-sot_branch=devel
+agimus-sot_repository=${AGIMUS_REPO}
 agimus-sot_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus_sot_msgs_branch=master
 agimus_sot_msgs_repository=${AGIMUS_REPO}
 
 agimus-hpp_branch=devel
-agimus-hpp_repository=${FLORENT_REPO}
+agimus-hpp_repository=${AGIMUS_REPO}
 agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DCLIENT_TO_GEPETTO_VIEWER=ON \
 	-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus-vision_branch=master
 agimus-vision_repository=${AGIMUS_REPO}
 
-agimus-demos_branch=ur10-pointing
-agimus-demos_repository=${FLORENT_REPO}
+agimus-demos_branch=devel
+agimus-demos_repository=${AGIMUS_REPO}
 agimus-demo_extraflags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus-doc_branch=master
@@ -304,14 +291,14 @@ dynamic-graph-python_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${P
 dynamic_graph_bridge_branch=devel
 dynamic_graph_bridge_repository=${SOT_REPO}
 
-dynamic_graph_bridge_msgs_branch=master
+dynamic_graph_bridge_msgs_branch=devel
 dynamic_graph_bridge_msgs_repository=${SOT_REPO}
 
 sot-core_branch=devel
 sot-core_repository=${SOT_REPO}
 sot-core_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-sot-tools_branch=master
+sot-tools_branch=devel
 sot-tools_repository=${SOT_REPO}
 sot-tools_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -319,7 +306,7 @@ sot-dynamic-pinocchio_branch=devel
 sot-dynamic-pinocchio_repository=${SOT_REPO}
 sot-dynamic-pinocchio_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-roscontrol_sot_branch=noetic-devel
+roscontrol_sot_branch=devel
 roscontrol_sot_repository=${FLORENT_REPO}
 
 pal_msgs_repository=${PAL_REPO}
@@ -344,9 +331,9 @@ librealsense_repository=${INTEL_REPO}
 librealsense_branch=master
 librealsense_extra_flags=-DBUILD_EXAMPLES=false -DBUILD_GRAPHICAL_EXAMPLES=false -DBUILD_GLSL_EXTENSIONS=false -DCMAKE_BUILD_TYPE=Release
 
-realsense-ros_repository=${FLORENT_REPO}
-realsense-ros_branch=noetic-devel
-realsense-ros_extraflags=
+# realsense-ros_repository=${FLORENT_REPO}
+# realsense-ros_branch=noetic-devel
+# realsense-ros_extraflags=
 
 realsense_gazebo_plugin_repository=${PAL_REPO}
 realsense_gazebo_plugin_branch=melodic-devel
@@ -377,7 +364,7 @@ image_pipeline_branch=noetic
 image_pipeline_extra_flags=
 
 react_inria_repository=${ROB4FAM_GITLAB_REPO}
-react_inria_branch=master
+react_inria_branch=rob4fam
 react_inria_extra_flags=
 
 # }}}
@@ -390,7 +377,7 @@ all: realsense_gazebo_plugin.install\
 	hpp-manipulation-corba.install hpp-gepetto-viewer.install \
 	hpp-plot.install hpp-gui.install sot-universal-robot.install \
 	roscontrol_sot.install gerard-bauzil.install agimus-sot.install \
-	agimus-hpp.install agimus.install agimus-vision.install \
+	agimus-hpp.install agimus.install \
 	agimus-demos.install rviz_camera_stream.install rviz_lighting.install \
 	Universal_Robots_ROS_Driver.install react_inria.install
 
@@ -402,8 +389,7 @@ test-ci: example-robot-data.install  hpp-environments.install \
 	${MAKE} hpp-doc.install
 
 # For benchmark, install robot packages first
-benchmark: example-robot-data.install \
-	hpp-environments.install hrp2-14-description.install
+benchmark: example-robot-data.install hpp-environments.install
 	${MAKE} hpp_tutorial.install hpp-gepetto-viewer.install; \
 	${MAKE} hpp-baxter.install hpp_romeo.install \
 	hpp-universal-robot.install hpp-plot.install hpp-gui.install; \
@@ -450,12 +436,8 @@ qgv.configure.dep: qgv.checkout
 robot_model_py.configure.dep: robot_model_py.checkout
 robot_capsule_urdf.configure.dep: robot_model_py.install \
 	robot_capsule_urdf.checkout
-hpp-hrp2.configure.dep: hrp2-14-description.install hpp-corbaserver.install \
-	hpp-hrp2.checkout
-hrp2-14-description.configure.dep: robot_capsule_urdf.install \
-	robot_model_py.install hrp2-14-description.checkout
 test-hpp.configure.dep: hpp-wholebody-step.install \
-	hpp-gepetto-viewer.install hpp-hrp2.install test-hpp.checkout
+	hpp-gepetto-viewer.install test-hpp.checkout
 hpp_tutorial.configure.dep: hpp-gepetto-viewer.install \
 	hpp-manipulation-corba.install hpp_tutorial.checkout
 hpp_benchmark.configure.dep: hpp_tutorial.install hpp_benchmark.checkout

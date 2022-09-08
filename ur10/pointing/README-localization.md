@@ -37,7 +37,7 @@ roslaunch ./react_learning.launch
 ```
 And follow the instructions to generate a new pose and save it. This needs to be done every time the part is moved in regards to the robot base.
 
-2. Run the localization node in simulation, in terminal 2:
+2. Run the localization node, in terminal 2:
 ```bash
 roslaunch ./react_localizer.launch use_wMo_filename:=$HOME/.ros/transform_wMo.yaml use_oMo_filename:=$HOME/.ros/transform_oMo.yaml use_aligned_depth:=true
 ```

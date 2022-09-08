@@ -2,11 +2,11 @@ repositories:
   agimus:
     type: git
     url: https://github.com/agimus/agimus.git
-    version: devel
+    version: master
   agimus-demos:
     type: git
     url: https://github.com/agimus/agimus-demos
-    version: devel
+    version: talos-calibration
   agimus-doc:
     type: git
     url: https://github.com/agimus/agimus-doc
@@ -17,12 +17,12 @@ repositories:
     version: devel
   agimus-sot:
     type: git
-    url: https://github.com/agimus/agimus-sot.git
+    url: https://github.com/florent-lamiraux/agimus-sot.git
     version: devel
   agimus-vision:
     type: git
     url: https://github.com/agimus/agimus-vision
-    version: devel
+    version: master
   agimus_sot_msgs:
     type: git
     url: https://github.com/agimus/agimus_sot_msgs
@@ -30,27 +30,27 @@ repositories:
   dynamic-graph:
     type: git
     url: https://github.com/stack-of-tasks/dynamic-graph
-    version: master
+    version: 4.4.0
   dynamic-graph-python:
     type: git
-    url: https://github.com/stack-of-tasks/dynamic-graph-python
-    version: master
+    url: https://github.com/florent-lamiraux/dynamic-graph-python
+    version: devel
   dynamic_graph_bridge:
     type: git
     url: https://github.com/stack-of-tasks/dynamic_graph_bridge
-    version: devel
+    version: v3.4.0
   dynamic_graph_bridge_msgs:
     type: git
     url: https://github.com/stack-of-tasks/dynamic_graph_bridge_msgs
-    version: master
-  gepetto-viewer:
+    version: v0.3.0
+  example-robot-data:
     type: git
-    url: https://github.com/Gepetto/gepetto-viewer.git
-    version: devel
-  gepetto-viewer-corba:
+    url: https://github.com/gepetto/example-robot-data
+    version: v3.12.0
+  gazebo_ros_pkgs:
     type: git
-    url: https://github.com/Gepetto/gepetto-viewer-corba.git
-    version: devel
+    url: https://github.com/pal-robotics-forks/gazebo_ros_pkgs
+    version: 3.0.1
   gerard-bauzil:
     type: git
     url: https://gitlab.laas.fr/gepetto/gerard-bauzil.git
@@ -65,11 +65,27 @@ repositories:
     version: devel
   hpp-core:
     type: git
-    url: https://github.com/florent-lamiraux/hpp-core
+    url: https://github.com/humanoid-path-planner/hpp-core
     version: devel
   hpp-environments:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-environments
+    version: devel
+  gepetto-viewer:
+    type: git
+    url: https://github.com/gepetto/gepetto-viewer
+    version: devel
+  gepetto-viewer-corba:
+    type: git
+    url: https://github.com/gepetto/gepetto-viewer-corba
+    version: devel
+  hpp-gui:
+    type: git
+    url: https://github.com/humanoid-path-planner/hpp-gui
+    version: devel
+  hpp-plot:
+    type: git
+    url: https://github.com/humanoid-path-planner/hpp-plot
     version: devel
   hpp-gepetto-viewer:
     type: git
@@ -90,7 +106,7 @@ repositories:
   hpp-fcl:
     type: git
     url: https://github.com/florent-lamiraux/hpp-fcl
-    version: react
+    version: talos-calibration
   hpp-pinocchio:
     type: git
     url: https://github.com/humanoid-path-planner/hpp-pinocchio
@@ -122,7 +138,7 @@ repositories:
   sot-core:
     type: git
     url: https://github.com/stack-of-tasks/sot-core
-    version: devel
+    version: v4.11.6
   pinocchio:
     type: git
     url: https://github.com/stack-of-tasks/pinocchio
@@ -131,35 +147,23 @@ repositories:
     type: git
     url: https://github.com/stack-of-tasks/sot-dynamic-pinocchio
     version: devel
+  sot-gepetto-viewer:
+    type: git
+    url: https://github.com/stack-of-tasks/sot-gepetto-viewer
+    version: master
+  sot-talos:
+    type: git
+    url: https://github.com/stack-of-tasks/sot-talos
+    version: devel
   sot-tools:
     type: git
     url: https://github.com/stack-of-tasks/sot-tools
     version: master
-  sot-universal-robot:
+  talos-data:
     type: git
-    url: https://github.com/florent-lamiraux/sot-universal-robot
+    url: https://github.com/stack-of-tasks/talos-data
     version: master
-  example-robot-data: 
+  talos_metapkg_ros_control_sot:
     type: git
-    url: https://github.com/gepetto/example-robot-data
+    url: https://github.com/stack-of-tasks/talos_metapkg_ros_control_sot
     version: master
-  humanoid_msgs: 
-    type: git
-    url: https://github.com/ahornung/humanoid_msgs
-    version: master
-  pal_hardware_interfaces: 
-    type: git
-    url: https://github.com/pal-robotics/pal_hardware_interfaces
-    version: indigo-devel
-  pal_msgs: 
-    type: git
-    url: https://github.com/pal-robotics/pal_msgs
-    version: indigo-devel
-  tiago_description_calibration: 
-    type: git
-    url: https://github.com/pal-robotics/tiago_description_calibration
-    version: indigo-devel
-  tiago_robot: 
-    type: git
-    url: https://github.com/pal-robotics/tiago_robot
-    version: kinetic-devel

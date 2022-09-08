@@ -44,6 +44,12 @@ install(FILES
   DESTINATION ${PYTHON_SITELIB}/agimus_demos
   )
 
+install(FILES
+  agimus_demos/talos/tools_hpp.py
+  agimus_demos/talos/__init__.py
+  DESTINATION ${PYTHON_SITELIB}/agimus_demos/talos
+  )
+
 find_package(pybind11 CONFIG)
 if(pybind11_FOUND)
   pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
@@ -75,6 +81,7 @@ add_library(wrap MODULE python-module-py.cc)
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/src/agimus_demos/sot/${SUBMODULENAME})
 set_target_properties(wrap
   PROPERTIES PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src
   OUTPUT_NAME agimus_demos/sot/wrap)
 target_compile_options(wrap PRIVATE "-Wl,--no-as-needed")
 target_link_libraries(wrap PUBLIC

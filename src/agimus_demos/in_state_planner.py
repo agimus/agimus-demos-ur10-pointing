@@ -31,8 +31,11 @@ from hpp_idl.hpp import Error as HppError
 class InStatePlanner:
     # Default path planner
     parameters = {'kPRM*/numberOfNodes': Any(TC_long,2000)}
+    pathProjectorType = "Progressive"
+    pathProjectorParam = 0.02
 
     def wd(self, o):
+        return o
         return wrap_delete(o, self.ps.client.basic._tools)
 
     def __init__(self, ps, graph):
@@ -58,6 +61,16 @@ class InStatePlanner:
             self.cproblem.addConfigValidation\
                 (self.wd(self.ps.hppcorba.problem.createConfigValidation
                          (cfgval, self.crobot)))
+        # Set steering method in problem
+        self.cproblem.setSteeringMethod\
+            (self.ps.hppcorba.problem.createSteeringMethod\
+             ("Straight", self.cproblem))
+        # Set path projector in problem
+        if self.pathProjectorType:
+            self.cproblem.setPathProjector\
+                (self.ps.hppcorba.problem.createPathProjector\
+                 (self.pathProjectorType, self.cproblem,
+                  self.pathProjectorParam))
         # Add obstacles to new problem
         for obs in self.ps.getObstacleNames(True,False):
             self.cproblem.addObstacle\
@@ -152,6 +165,10 @@ class InStatePlanner:
            None:
             self.planner.stopWhenProblemIsSolved(True)
         path = self.wd(self.planner.solve())
+        path = self.optimizePath(path)
+        return path
+
+    def optimizePath(self, path):
         for optType in self.optimizerTypes:
             optimizer = self.wd(self.ps.hppcorba.problem.createPathOptimizer\
                 (optType, self.manipulationProblem))
