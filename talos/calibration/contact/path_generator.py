@@ -385,27 +385,27 @@ pg.gripper = 'talos/left_gripper'
 ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.1)
 ps.setParameter('ConfigurationShooter/Gaussian/center', initConf)
 
-contacts = list()
-pre_grasps = list()
-handle_list = list()
-for handle in table.handles: 
-    count = 0
-    while count < 3: 
-        res, qpg, qg = pg.generateValidConfigForHandle(handle, initConf, step=3)
-        if res:
-            pre_grasps.append(qpg)
-            contacts.append(qg)
-            handle_list.append(handle)
-            count += 1
+# contacts = list()
+# pre_grasps = list()
+# handle_list = list()
+# for handle in table.handles: 
+#     count = 0
+#     while count < 3: 
+#         res, qpg, qg = pg.generateValidConfigForHandle(handle, initConf, step=3)
+#         if res:
+#             pre_grasps.append(qpg)
+#             contacts.append(qg)
+#             handle_list.append(handle)
+#             count += 1
 
-# contacts = readConfigsInFile('27_opt_contacts')
-# pre_grasps = readConfigsInFile('27_opt_pregrasps')
+contacts = readConfigsInFile('27_opt_contacts')
+pre_grasps = readConfigsInFile('27_opt_pregrasps')
 
-# with open('27_opt_handles', "r") as fr:
-#     handle_list = list()
-#     for line in fr:
-#         x = line[:-1]
-#         handle_list.append(x)
+with open('27_opt_handles', "r") as fr:
+    handle_list = list()
+    for line in fr:
+        x = line[:-1]
+        handle_list.append(x)
 
 
 v = vf.createViewer()
@@ -453,10 +453,8 @@ for i, idx in enumerate(ordered_idx):
 
 # concatenate all paths in one path
 while ps.numberPaths() >1: 
-            print("Pregrasp configuration found :", qpg)
-            print("Goal configuration found     :", qg)
-ps.concatenatePath(0,1)
-ps.erasePath(1)
+    ps.concatenatePath(0,1)
+    ps.erasePath(1)
 
 print(ps.numberPaths())
 pp = PathPlayer(v)
