@@ -16,3 +16,5 @@ demo:
         ["top"]
   grippers:
     [talos/left_gripper,talos/right_gripper]
+  hpp:
+    discretization_rate: 4
