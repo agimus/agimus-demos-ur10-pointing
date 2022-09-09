@@ -104,6 +104,28 @@ robot.addTrace(cas[0].name, 'wrenchMinusOffset')
 
 robot.startTracer()
 ```
+<<<<<<< HEAD
+### Generating contact configurations
+
+in terminal 4
+```python
+from agimus_demos.tools_hpp import PathGenerator
+pg = PathGenerator(ps,graph)
+pg.gripper='talos/left_gripper'
+
+ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation',0.1)
+ps.setParameter('ConfigurationShooter/Gaussian/center', initConf)
+ps.selectConfigurationShooter('Gaussian')
+
+configs = list()
+while len(configs) < 10:
+    res, qpg, qg = pg.generateValidConfigForHandle('table/contact_01', initConf,
+	step = 1)
+    if res:
+        configs.append(qpg)
+
+```
+=======
 
 ## On the robot
 
@@ -154,3 +176,4 @@ roslaunch agimus_demos talos_calibration_contact_demo.launch
 ```
 
 Follow the same steps as in simulation starting by 7.
+>>>>>>> 3a080818b5f24282a5eda4aa24ff2662444d85ec

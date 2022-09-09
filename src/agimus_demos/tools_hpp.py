@@ -390,6 +390,21 @@ class PathGenerator(object):
             # back to pregrasp
             p3 = self.wd(p2.reverse())
             return [p1, p2, p3]
+        raise RuntimeError('failed fo compute a path.')        
+        
+    def generatePathToContact(self, handle, qpg, qg, NrandomConfig=10,
+                              step=3):
+        edge = self.gripper + " > " + handle
+        ok = False
+        for nTrial in range(NrandomConfig):
+            # from pregrasp to grasp
+            self.inStatePlanner.setEdge(edge + " | f_12")
+            res, p2, msg = self.inStatePlanner.directPath(qpg, qg, True)
+            if not res: p2 = None
+            if not p2: continue
+            # back to pregrasp
+            p3 = self.wd(p2.reverse())
+            return [ p2, p3]
         raise RuntimeError('failed fo compute a path.')
 
     def planTo(self, qgoal, qinit=None):
