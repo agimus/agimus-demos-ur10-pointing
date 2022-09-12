@@ -154,4 +154,3 @@ roslaunch agimus_demos talos_calibration_contact_demo.launch
 ```
 
 Follow the same steps as in simulation starting by 7.
->>>>>>> 3a080818b5f24282a5eda4aa24ff2662444d85ec

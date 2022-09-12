@@ -214,9 +214,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathForHandle(handle, q_init)
@@ -224,9 +224,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = [paths[0],]
     for i, p in enumerate(paths[1:]):
         path = p.asVector()
@@ -253,9 +253,9 @@ def pre_grasp_to_contact(ri, pg, gripper, handle, qpg, qg):
     isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathToContact(handle, qpg, qg)
@@ -263,9 +263,9 @@ def pre_grasp_to_contact(ri, pg, gripper, handle, qpg, qg):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = []
     for i, p in enumerate(paths[0:]):
         path = p.asVector()
@@ -408,7 +408,7 @@ with open('27_opt_handles', "r") as fr:
         handle_list.append(x)
 
 
-v = vf.createViewer()
+v = vf.createViewer(host="10.68.1.38")
 
 # create a list of paths linking ordered visting pre_grasps
 ordered_cfgs = orderConfigurations(ps, pre_grasps)
@@ -452,9 +452,9 @@ for i, idx in enumerate(ordered_idx):
     for j in range(nOptimizers): ps.erasePath(ps.numberPaths() - 1)
 
 # concatenate all paths in one path
-while ps.numberPaths() >1: 
-    ps.concatenatePath(0,1)
-    ps.erasePath(1)
+# while ps.numberPaths() >1:
+#     ps.concatenatePath(0,1)
+#     ps.erasePath(1)
 
 print(ps.numberPaths())
 pp = PathPlayer(v)
