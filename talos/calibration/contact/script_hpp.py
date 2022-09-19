@@ -307,7 +307,8 @@ com_constraint, foot_placement, foot_placement_complement = \
     createQuasiStaticEquilibriumConstraint (ps, initConf)
 look_left_hand, look_right_hand = createGazeConstraints(ps)
 
-graph = makeGraph(ps, table)
+graph = ConstraintGraph(robot, "graph")
+makeGraph(ps, table, graph)
 
 # Add other locked joints in the edges.
 for edgename, edgeid in graph.edges.items():

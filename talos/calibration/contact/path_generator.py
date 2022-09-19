@@ -321,7 +321,8 @@ com_constraint, foot_placement, foot_placement_complement = \
     createQuasiStaticEquilibriumConstraint (ps, initConf)
 look_left_hand, look_right_hand = createGazeConstraints(ps)
 
-graph = makeGraph(ps, table)
+graph = ConstraintGraph(robot, "graph")
+makeGraph(ps, table, graph)
 
 # Add other locked joints in the edges.
 for edgename, edgeid in graph.edges.items():
@@ -448,7 +449,10 @@ res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
 
 # add an initial path going to center
 if ordered_handle_list[0] != "table/contact_05":
-    res, qpg, qg = pg.generateValidConfigForHandle('table/contact_05', q_init, step=3)
+    res = False
+    while not res:
+        res, qpg, qg = pg.generateValidConfigForHandle('table/contact_05',
+                                                       q_init, step=3)
     go_to_pre_grasp(ri, pg, 'table/contact_05', q_init, qpg)
     ordered_cfgs = [qpg] + ordered_cfgs
 else:

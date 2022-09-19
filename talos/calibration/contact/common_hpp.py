@@ -98,13 +98,37 @@ def makeRobotProblemAndViewerFactory(clients):
 
     return robot, ps, vf, table, objects
 
-def makeGraph(ps, table):
+def makeGraph(ps, table, graph, autoCollision = False):
     robot = ps.robot
-    graph = ConstraintGraph(robot, "graph")
     factory = ConstraintGraphFactory(graph)
     grippers = ["talos/left_gripper", "talos/right_gripper"]
     factory.setGrippers(grippers)
     factory.setObjects([table.name,], [table.handles,], [table.contacts,])
+    talosBody = ['talos/root_joint', 'talos/leg_left_1_joint',
+                 'talos/leg_left_2_joint', 'talos/leg_left_3_joint',
+                 'talos/leg_left_4_joint', 'talos/leg_left_5_joint',
+                 'talos/leg_left_6_joint', 'talos/leg_right_1_joint',
+                 'talos/leg_right_2_joint', 'talos/leg_right_3_joint',
+                 'talos/leg_right_4_joint', 'talos/leg_right_5_joint',
+                 'talos/leg_right_6_joint', 'talos/torso_1_joint',
+                 'talos/torso_2_joint', 'talos/head_1_joint',
+                 'talos/head_2_joint',]
+    talosLeftArm = ['talos/arm_left_6_joint', 'talos/arm_left_7_joint',
+                    'talos/gripper_left_inner_double_joint',
+                    'talos/gripper_left_fingertip_1_joint',
+                    'talos/gripper_left_fingertip_2_joint',
+                    'talos/gripper_left_inner_single_joint',
+                    'talos/gripper_left_fingertip_3_joint',
+                    'talos/gripper_left_joint',
+                    'talos/gripper_left_motor_single_joint',]
+    talosRightArm = ['talos/arm_right_6_joint', 'talos/arm_right_7_joint',
+                     'talos/gripper_right_inner_double_joint',
+                     'talos/gripper_right_fingertip_1_joint',
+                     'talos/gripper_right_fingertip_2_joint',
+                     'talos/gripper_right_inner_single_joint',
+                     'talos/gripper_right_fingertip_3_joint',
+                     'talos/gripper_right_joint',
+                     'talos/gripper_right_motor_single_joint',]
     # forbid contact with 2 hands
     rules = [Rule(grippers=grippers, handles=(table.name + "/contact_*",
                                               table.name + "/contact_*"),
@@ -117,10 +141,21 @@ def makeGraph(ps, table):
     sm.setSecurityMarginBetween("talos", "talos", 0)
     sm.defaultMargin = 0.01
     sm.apply()
-    # deactivate collision checking between fingertips and table between
-    # pregrasp and grasp
+
+    # Set bigger margins between some pairs of talos bodies
     cproblem = wd(ps.client.basic.problem.getProblem())
     cgraph = wd(cproblem.getConstraintGraph())
+    if autoCollision:
+        for j1 in talosBody:
+            for j2 in talosLeftArm + talosRightArm:
+                for e in list(graph.edges.values()):
+                    cedge = wd(cgraph.get(e))
+                    cedge.setSecurityMarginForPair(robot.jointNames.index(j1)+1,
+                                                   robot.jointNames.index(j1)+1,
+                                                   0.01)
+
+    # deactivate collision checking between fingertips and table between
+    # pregrasp and grasp
     for ig, g in enumerate(factory.grippers):
         joint, _ = robot.getGripperPositionInJoint(g)
         if joint[10:14] == 'left':
@@ -159,7 +194,6 @@ def makeGraph(ps, table):
                     (finger.format(side))+1, robot.jointNames.index\
                                                (table.name + '/root_joint')+1,
                                                float('-inf'))
-    return graph
 
 def createQuasiStaticEquilibriumConstraint (ps, q) :
     robot = ps.robot
