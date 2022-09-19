@@ -92,7 +92,6 @@ for e in entities:
         pass
 
 ca = cas[0]
-ca.getWrenchOffset(robot.device.control.time)
 robot.initializeTracer()
 robot.tracer.setBufferSize(2**24)
 robot.addTrace(cas[0].name, 'contact')
@@ -106,6 +105,9 @@ robot.startTracer()
 ```
 
 ## On the robot
+
+On talos-1c and talos-1m, the code is deployed into directory
+`/home/pal/deployed_ws`.
 
 Make sure that all terminals in the console and on the robot have the following
 environment variables set:
@@ -132,6 +134,7 @@ gepetto-gui
 
 4. on the console
 ```
+cd /home/pal/deployed_ws/share/agimus_demos/talos/calibration/contact
 ipython -i script_hpp.py
 ```
 
