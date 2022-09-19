@@ -36,7 +36,9 @@ from hpp.corbaserver.manipulation.robot import HumanoidRobot
 from hpp.gepetto.manipulation import ViewerFactory
 from hpp.corbaserver.manipulation.constraint_graph_factory import \
     ConstraintGraphFactory
-from agimus_demos.talos.tools_hpp import shrinkJointRange, getSrdfString
+from agimus_demos.talos.tools_hpp import shrinkJointRange, getSrdfString, \
+    createObjectLockedJoint, createGripperLockedJoints, createGazeConstraints, \
+    createLeftWristLockJoint
 
 class Table(object):
     contacts = ["top"]
@@ -114,7 +116,7 @@ def makeGraph(ps, table, box, initConf):
         ['talos/left_arm','talos/left_sole','talos/right_sole'])
     ps.createQPStabilityConstraint('stand_on_feet/force', 'talos/root_joint',
         ['talos/left_sole','talos/right_sole'])
-    createObjectLockedJoint(ps, table, initConf)
+    tableLockedJoint = createObjectLockedJoint(ps, table, initConf)
     leftPlace, leftPrePlace = ps.createPlacementConstraints\
         ('contact_on_left_arm/pose', ['talos/left_arm'], ['table/top'],
          width=.1)
@@ -133,7 +135,7 @@ def makeGraph(ps, table, box, initConf):
                                          [boxPlace,])
     # Constraints that are applied to all transitions
     commonTransitionConstraints = Constraints(numConstraints = \
-        footPlacementComplement + ['table/root_joint', 'place_box/complement'])
+        footPlacementComplement + tableLockedJoint + ['place_box/complement'])
     # Create states
     graph.createNode(['pregrasp_box', 'lean_on_left_arm', 'free',
                       'starting_state'])
@@ -190,10 +192,10 @@ def makeGraph(ps, table, box, initConf):
                         commonTransitionConstraints)
     graph.addConstraints(
         edge="starting_motion",
-        constraints=Constraints(numConstraints=['table/root_joint',]),)
+        constraints=Constraints(numConstraints=tableLockedJoint),)
     graph.addConstraints(
         edge="go_to_starting_state",
-        constraints=Constraints(numConstraints=['table/root_joint',]))
+        constraints=Constraints(numConstraints=tableLockedJoint))
     graph.addConstraints(
         edge='get_box', constraints = Constraints(
             numConstraints=['contact_on_left_arm/pose/complement',]) +
