@@ -391,7 +391,28 @@ class PathGenerator(object):
             p3 = self.wd(p2.reverse())
             return [p1, p2, p3]
         raise RuntimeError('failed fo compute a path.')        
-        
+
+    def generatePathToGoal(self, handle, qinit, qgoal, NrandomConfig=10):
+        qinit = self.checkQInit(qinit)
+        # generate configurations
+        edge = self.gripper + " > " + handle
+        for nTrial in range(NrandomConfig):
+            # build path
+            # from qinit to pregrasp
+            self.inStatePlanner.setEdge(edge + " | f_01")
+            try:
+                p1 = self.inStatePlanner.computePath(qinit, [qgoal],
+                                                     resetRoadmap = True)
+            except:
+                print("Error in ComputePath : ",sys.exc_info())
+                p1 = None
+            if not p1:
+                print("Planning to pregrasp failed.")
+                continue
+            print("Planning to pregrasp succeed.")
+            return p1
+        raise RuntimeError('failed fo compute a path.') 
+
     def generatePathToContact(self, handle, qpg, qg, NrandomConfig=10,
                               step=3):
         edge = self.gripper + " > " + handle
