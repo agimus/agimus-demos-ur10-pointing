@@ -56,9 +56,10 @@ from hpp_idl.hpp import Error as HppError
 
 from agimus_demos.talos.tools_hpp import createGazeConstraints, \
     createGripperLockedJoints, createLeftArmLockedJoints, \
-    createRightArmLockedJoints, defaultContext, setGaussianShooter
+    createRightArmLockedJoints, defaultContext, setGaussianShooter, \
+    shrinkJointRange
 from common_hpp import createQuasiStaticEquilibriumConstraint, makeGraph, \
-    makeRobotProblemAndViewerFactory
+    makeRobotProblemAndViewerFactory, Table
 
 from hpp.gepetto import PathPlayer
 
@@ -76,6 +77,41 @@ p.add_argument ('--arm', type=str, metavar='arm',
 p.add_argument ('--N', type=int, metavar='N', default=0,
                 help="number of configurations generated")
 args = p.parse_args ()
+
+# Add specific urdf model of TALOS 1 
+def makeRobotProblemAndViewerFactory(clients):
+
+    print("reading generic URDF")
+    HumanoidRobot.urdfFilename = "package://pyrene/urdf/robot.urdf"
+    HumanoidRobot.srdfFilename = "package://talos_data/srdf/pyrene.srdf"
+
+    objects = list()
+    robot = HumanoidRobot("talos", "talos", rootJointType="freeflyer", client=clients)
+    robot.leftAnkle = "talos/leg_left_6_joint"
+    robot.rightAnkle = "talos/leg_right_6_joint"
+    camera_frame = 'talos/head_d435_camera_color_optical_frame'
+    if not camera_frame in robot.getAllJointNames():
+        print("Warning: the robot loaded does not have any 'talos/head_d435_camera_color_optical_frame'.")
+        camera_frame = 'talos/head_t265_camera_link'
+        if not camera_frame in robot.getAllJointNames():
+            camera_frame = 'talos/rgbd_rgb_optical_frame'
+        print("Assuming camera_frame is {}".format(camera_frame))
+
+    robot.camera_frame = camera_frame
+    robot.setJointBounds("talos/root_joint", [-2, 2, -2, 2, 0, 2])
+    shrinkJointRange (robot, 0.95)
+
+    ps = ProblemSolver(robot)
+    ps.selectPathValidation('Progressive', 1e-3)
+    ps.setErrorThreshold(1e-4)
+    ps.setMaxIterProjection(40)
+
+    vf = ViewerFactory(ps)
+
+    table = Table(name="table", vf=vf)
+    robot.setJointBounds("table/root_joint", [-2, 2, -2, 2, -2, 2])
+
+    return robot, ps, vf, table, objects
 
 # Write configurations in a file in CSV format
 def writeConfigsInFile (filename, configs):
@@ -214,7 +250,7 @@ def goToContact(ri, pg, gripper, handle, q_init):
     isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
@@ -224,9 +260,9 @@ def goToContact(ri, pg, gripper, handle, q_init):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = [paths[0],]
     for i, p in enumerate(paths[1:]):
         path = p.asVector()
@@ -248,14 +284,27 @@ def goToContact(ri, pg, gripper, handle, q_init):
     pg.ps.client.basic.problem.addPath(finalPaths[0])
     pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[1:]))
 
+def go_to_pre_grasp(ri, pg, handle, qinit, qgoal):
+    isp = pg.inStatePlanner
+    isp.optimizerTypes = ["EnforceTransitionSemantic",
+                                        "SimpleTimeParameterization"]
+    isp.manipulationProblem.setParameter\
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
+    isp.manipulationProblem.setParameter\
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.9))
+    isp.manipulationProblem.setParameter\
+        ("SimpleTimeParameterization/order", Any(TC_long, 2))
+    path = pg.generatePathToGoal(handle, qinit, qgoal)
+    pg.ps.client.basic.problem.addPath(path)
+
 def pre_grasp_to_contact(ri, pg, gripper, handle, qpg, qg):
     isp = pg.inStatePlanner
     isp.optimizerTypes = ["EnforceTransitionSemantic",
                                         "SimpleTimeParameterization"]
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.1))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.5))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.9))
     isp.manipulationProblem.setParameter\
         ("SimpleTimeParameterization/order", Any(TC_long, 2))
     paths = pg.generatePathToContact(handle, qpg, qg)
@@ -263,9 +312,9 @@ def pre_grasp_to_contact(ri, pg, gripper, handle, qpg, qg):
     # Transform second and third path into PathVector instances to time
     # parameterize them
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.01))
+        ("SimpleTimeParameterization/maxAcceleration", Any(TC_double, 0.5))
     isp.manipulationProblem.setParameter\
-        ("SimpleTimeParameterization/safety", Any(TC_double, 0.02))
+        ("SimpleTimeParameterization/safety", Any(TC_double, 0.04))
     finalPaths = []
     for i, p in enumerate(paths[0:]):
         path = p.asVector()
@@ -366,9 +415,9 @@ graph.addConstraints(
 )
 graph.initialize ()
 
-ps.setParameter("SimpleTimeParameterization/safety", 0.2)
+ps.setParameter("SimpleTimeParameterization/safety", 0.9)
 ps.setParameter("SimpleTimeParameterization/order", 2)
-ps.setParameter("SimpleTimeParameterization/maxAcceleration", .1)
+ps.setParameter("SimpleTimeParameterization/maxAcceleration", .5)
 # ps.addPathOptimizer ("RandomShortcut")
 ps.addPathOptimizer ("EnforceTransitionSemantic")
 ps.addPathOptimizer ("SimpleTimeParameterization")
@@ -388,9 +437,10 @@ ps.setParameter('ConfigurationShooter/Gaussian/center', initConf)
 # contacts = list()
 # pre_grasps = list()
 # handle_list = list()
-# for handle in table.handles: 
+# selected_handles = ['table/contact_05', 'table/contact_01','table/contact_09']
+# for handle in selected_handles: 
 #     count = 0
-#     while count < 3: 
+#     while count < 1: 
 #         res, qpg, qg = pg.generateValidConfigForHandle(handle, initConf, step=3)
 #         if res:
 #             pre_grasps.append(qpg)
@@ -423,38 +473,35 @@ for cfg in ordered_cfgs:
         ordered_idx.append(idx)
         ordered_contacts.append(contacts[idx])
         ordered_handle_list.append(handle_list[idx])
-ordered_cfgs = ordered_cfgs + [initConf]
-
-# buildRoadmap(ordered_cfgs)
 
 # number of optimizer
 nOptimizers = len(ps.getSelected("PathOptimizer"))
 
-# res, pid, msg = ps.directPath(initConf, ordered_cfgs[0],True)
-ps.setInitialConfig(initConf)
-ps.addGoalConfig(ordered_cfgs[0])
-ps.solve()
+q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
+res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
+                                                    q_init)
 
-# # erase first 2 configs
-for j in range(nOptimizers): ps.erasePath(ps.numberPaths() - 1)
+# add an initial path going to center
+if ordered_handle_list[0] != "table/contact_05":
+    res, qpg, qg = pg.generateValidConfigForHandle('table/contact_05', q_init, step=3)
+    go_to_pre_grasp(ri, pg, 'table/contact_05', q_init, qpg)
+    ordered_cfgs = [qpg] + ordered_cfgs
+else:
+    ordered_cfgs = [q_init] + ordered_cfgs
 
 for i, idx in enumerate(ordered_idx):
     print(handle_list[idx])
+    go_to_pre_grasp(ri, pg, handle_list[idx], ordered_cfgs[i], ordered_cfgs[i+1])
     pre_grasp_to_contact(ri, pg, pg.gripper, handle_list[idx], pre_grasps[idx], contacts[idx])
-    
-    # pre_grasp to contact 
-    ps.resetGoalConfigs()
-    ps.setInitialConfig(ordered_cfgs[i])
-    ps.addGoalConfig(ordered_cfgs[i+1])
-    ps.solve()
 
-    # erase first 2 configs 
-    for j in range(nOptimizers): ps.erasePath(ps.numberPaths() - 1)
-
-# concatenate all paths in one path
-while ps.numberPaths() >1: 
-    ps.concatenatePath(0,1)
-    ps.erasePath(1)
-
-print(ps.numberPaths())
+for i in range(ps.numberPaths()-1):
+    print(i)
+    q0 = np.array(ps.configAtParam(i, ps.pathLength(i)))
+    q1 = np.array(ps.configAtParam(i+1,0))
+    assert(np.linalg.norm(q1-q0) < 1e-10)
+go_to_pre_grasp(ri,pg, handle_list[-1], ordered_cfgs[-1], q_init)
+l = 0
+for i in range(ps.numberPaths()):
+    l+= ps.pathLength(i)
+print("Path Length: ", l)
 pp = PathPlayer(v)
