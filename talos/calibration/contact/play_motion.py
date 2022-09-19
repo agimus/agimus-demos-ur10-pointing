@@ -61,6 +61,8 @@ class CalibrationControl (object):
                           SmachContainerStatus, self.statusCallback)
         self.subStatusDescription = rospy.Subscriber\
             ("/agimus/status/description", String, self.statusDescriptionCallback)
+        self.subStatusDescription = rospy.Subscriber\
+            ("/agimus/collect_data", UInt32, self.collectDataCallback)
         self.running = False
         self.rosJointStates = None
         self.jointNames = None
@@ -68,6 +70,8 @@ class CalibrationControl (object):
         self.hppClient = HppClient ()
         self.count = 0
         self.measurements = list ()
+        self.gripper = None
+        self.handle = None
 
     def playPath (self, pathId):
         nbPaths = self.hppClient.problem.numberPaths ()
@@ -153,7 +157,7 @@ class CalibrationControl (object):
         text = msg.data
         if text[:21] != "Executing pre-action ": return
         text = text[21:]
-        i = text.find(' < ')
+        i = text.find(' > ')
         if i == -1: return
         gripper = text[:i]
         text = text[i+3:]
@@ -161,9 +165,17 @@ class CalibrationControl (object):
         if i == -1: return
         handle = text[:i]
         text = text[i+3:]
-        if text.find('_21') != -1:
-            self.collectData(gripper, handle)
+        if text.find('_12') != -1:
+            self.gripper = gripper
+            self.handle = handle
+            print("gripper: {}, handle: {}".format(self.gripper, self.handle))
                      
+    def collectDataCallback(self, msg):
+        if self.gripper and self.handle:
+            self.collectData(self.gripper, self.handle)
+        else:
+            print('no gripper or no handle')
+
 def playAllPaths (startIndex):
     i = startIndex
     while i < nbPaths:
