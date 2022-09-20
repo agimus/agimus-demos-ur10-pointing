@@ -60,8 +60,10 @@ if(pybind11_FOUND)
     DESTINATION ${PYTHON_SITELIB}/agimus_demos)
 endif()
 
-install(FILES rqt_agimus/tooltip_calibration.py
-    DESTINATION ${PYTHON_SITELIB}/rqt_agimus)
+install(FILES
+  rqt_agimus/tooltip_calibration.py
+  rqt_agimus/contact_calibration.py
+  DESTINATION ${PYTHON_SITELIB}/rqt_agimus)
 
 SET(LIBRARY_NAME ${PROJECT_NAME})
 ADD_LIBRARY(${LIBRARY_NAME}

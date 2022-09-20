@@ -33,7 +33,9 @@ from dynamic_graph import plug
 from hpp.corbaserver.manipulation import Rule
 from dynamic_graph.sot.core.task import Task
 from dynamic_graph.sot.core.feature_pose import FeaturePose
+from dynamic_graph.sot.core.operator import Add_of_double
 from agimus_sot.sot import ContactAdmittance
+from dynamic_graph.ros.ros_subscribe import RosSubscribe
 
 def hpTasks(sotrobot):
     from agimus_sot.task import COM, Foot
@@ -57,6 +59,30 @@ class InitializeWrenchOffset(object):
     def __call__(self):
         self.ca.getWrenchOffset(self.sotrobot.device.control.time)
         print("Initialized wrench offset for entity {}".format(self.ca.name))
+        return True, ""
+
+# Wait for signal "/agimus/collect_data" to broadcast new data and return True
+#
+# Only one instance of RosSubscribe is created for all instances of this class
+# We add 0 because it does not seem possible to get directly the values of
+# the RosSubscribe signals.
+class WaitForSignalToReleaseContact(object):
+    def __init__(self, sotrobot):
+        self.sotrobot = sotrobot
+        self.ros_subscribe = RosSubscribe('wait_for_signal')
+        if len(self.ros_subscribe.signals()) == 0:
+            self.ros_subscribe.add("double", "out","/agimus/release_contact")
+            self.add = Add_of_double('wait_for_signal_add')
+            self.add.signal('sin0').value = 0.
+            plug(self.ros_subscribe.signal('out'), self.add.signal('sin1'))
+    def __call__(self):
+        print("waiting for topic /agimus/release_contact")
+        t = self.sotrobot.device.control.time
+        self.add.sout.recompute(t)
+        value = self.add.sout.value
+        while self.add.signal('sout').value == value:
+            t = self.sotrobot.device.control.time
+            self.add.signal('sout').recompute(t)
         return True, ""
 
 
@@ -98,6 +124,14 @@ def addContactDetection(supervisor, factory):
             # Add preaction to initialize wrench offset.
             supervisor.actions[edgeName].preActions.append\
                 (InitializeWrenchOffset(robot, ca))
+
+            # Add preaction that waits for topic /agimus/release_contact
+            # to change value
+            edgeName = '{} < {} | {}-{}_21'.format(gripper, handle,
+                                                   ig, ih)
+            supervisor.actions[edgeName].preActions.append\
+                (WaitForSignalToReleaseContact(robot))
+
 
 def makeSupervisorWithFactory(robot):
     from agimus_sot import Supervisor

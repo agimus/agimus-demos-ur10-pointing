@@ -30,6 +30,7 @@ import roslib
 import rospy
 import math
 import tf2_ros
+from std_msgs.msg import Float64
 from sensor_msgs.msg import JointState
 from dynamic_graph_bridge_msgs.msg import Vector
 import geometry_msgs.msg
@@ -61,8 +62,8 @@ class CalibrationControl (object):
                           SmachContainerStatus, self.statusCallback)
         self.subStatusDescription = rospy.Subscriber\
             ("/agimus/status/description", String, self.statusDescriptionCallback)
-        self.subStatusDescription = rospy.Subscriber\
-            ("/agimus/collect_data", UInt32, self.collectDataCallback)
+        self.subReleaseContact = rospy.Subscriber\
+            ("/agimus/release_contact", Float64, self.collectDataCallback)
         self.running = False
         self.rosJointStates = None
         self.jointNames = None

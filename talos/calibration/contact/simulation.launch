@@ -13,11 +13,15 @@
         args="0 0 0 0 0 0 1 world odom 100" />
   </group>
 
+  <include file="$(find talos_description)/robots/upload.launch"
+	   unless="$(arg pal_simulator)">
+  </include>
   <include file="$(find talos_gazebo)/launch/talos_gazebo.launch"
 	   unless="$(arg pal_simulator)">
     <!-- Gazebo args:
          -u: paused
     -->
+    <arg name="load_model" value="false"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="extra_gazebo_args" value="-u"/>
     <arg name="gzpose" value="

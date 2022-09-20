@@ -82,4 +82,5 @@ install(PROGRAMS
   scripts/publishwmc.py
   scripts/publish_camera_extrinsics.py
   scripts/rqt_tooltip_calibration
+  scripts/rqt_contact_calibration
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
