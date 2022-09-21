@@ -56,9 +56,20 @@ MACRO(INSTALL_DEMO_LAUNCH_FILES DEMO)
   ENDFOREACH ()
 ENDMACRO()
 
-ADD_SUBDIRECTORY(talos)
-ADD_SUBDIRECTORY(tiago)
-ADD_SUBDIRECTORY(ur10)
+OPTION(USE_TALOS "Install files for talos robot" ON)
+OPTION(USE_TIAGO "Install files for tiago robot" ON)
+OPTION(USE_UR10 "Install files for UR10 robot" ON)
+
+IF(USE_TALOS)
+  ADD_SUBDIRECTORY(talos)
+ENDIF()
+IF(USE_TIAGO)
+  ADD_SUBDIRECTORY(tiago)
+ENDIF()
+IF(USE_UR10)
+  ADD_SUBDIRECTORY(ur10)
+ENDIF()
+
 add_subdirectory(src)
 add_subdirectory(tests)
 
