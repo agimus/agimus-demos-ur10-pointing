@@ -1,6 +1,7 @@
-FROM osrf/ros:melodic-desktop-bionic
+FROM registry.gitlab.com/pal-robotics-public/talos-simulation:latest
 
-ENV CMAKE_PREFIX_PATH=/opt/openrobots
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/packages/debian/pub bionic robotpkg > /etc/apt/sources.list.d/robotpkg.list
 RUN echo deb [arch=amd64] http://robotpkg.openrobots.org/wip/packages/debian/pub bionic robotpkg >> /etc/apt/sources.list.d/robotpkg.list
@@ -11,57 +12,40 @@ RUN curl http://robotpkg.openrobots.org/packages/debian/robotpkg.key | \
 
 # Configure catkin workspace
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -qy python3-vcstool python-catkin-tools git cmake vim g++ ros-melodic-catkin ccache \
-      ros-melodic-amcl ros-melodic-backward-ros ros-melodic-catkin ros-melodic-cmake-modules ros-melodic-ddynamic-reconfigure-python \
-      ros-melodic-depthimage-to-laserscan ros-melodic-driver-base ros-melodic-eband-local-planner ros-melodic-fake-localization \
-      ros-melodic-global-planner ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-view ros-melodic-image-view2 \
-      ros-melodic-joy ros-melodic-laser-filters ros-melodic-libuvc-camera ros-melodic-move-base ros-melodic-moveit-commander \
-      ros-melodic-moveit-planners-ompl ros-melodic-moveit-ros-move-group ros-melodic-moveit-ros-planning-interface \
-      ros-melodic-moveit-ros-visualization ros-melodic-moveit-simple-controller-manager ros-melodic-navigation-layers \
-      ros-melodic-octomap-server ros-melodic-openni-launch ros-melodic-openni2-camera ros-melodic-openni2-launch \
-      ros-melodic-pointcloud-to-laserscan ros-melodic-pr2-description ros-melodic-qt-gui-py-common ros-melodic-rgbd-launch \
-      ros-melodic-robot-state-publisher ros-melodic-rosbash ros-melodic-roslaunch ros-melodic-roslint ros-melodic-rqt-tf-tree \
-      ros-melodic-rviz ros-melodic-sick-tim ros-melodic-slam-gmapping ros-melodic-slam-toolbox ros-melodic-smach-ros \
-      ros-melodic-spatio-temporal-voxel-layer ros-melodic-teb-local-planner ros-melodic-tf2-geometry-msgs ros-melodic-twist-mux \
-      ros-melodic-urdf-test ros-melodic-uvc-camera ros-melodic-video-stream-opencv ros-melodic-video-stream-opencv-dbgsym ros-melodic-visp-bridge \
-      ros-melodic-tf-conversions python-omniorb libboost-dev liburdfdom-dev libassimp-dev libeigen3-dev libgraphviz-dev ros-melodic-xacro \
+    python-omniorb libboost-dev liburdfdom-dev libassimp-dev libeigen3-dev libgraphviz-dev ros-melodic-xacro \
       libccd-dev ros-melodic-octomap ros-melodic-resource-retriever ros-melodic-srdfdom libltdl-dev python-omniorb python-matplotlib python-scipy libxml2 \
-      libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python gazebo9 libgazebo9-dev ros-melodic-polled-camera \
-      ros-melodic-four-wheel-steering-msgs ros-melodic-urdf-geometry-parser python-tqdm \
+      libtinyxml2-dev libpcre3-dev libcdd-dev libomniorb4-dev omniidl omniidl-python python-tqdm \
       robotpkg-qt5-osgqt robotpkg-openscenegraph ffmpeg libpythonqt-qt5-common-dev libpythonqt-qtall-qt5-common-dev libpythonqt-qt5-python2-dev \
       libpythonqt-qtall-qt5-python2-dev qtbase5-dev libtinyxml-dev mesa-common-dev libglvnd-dev libgl1-mesa-dev omniorb-nameserver omniorb-idl omniidl-python \
-      robotpkg-qt5-qgv robotpkg-pyrene-motions robotpkg-talos-simulation oxygen-icon-theme \
+      robotpkg-qt5-qgv oxygen-icon-theme robotpkg-pal-msgs robotpkg-pal-hardware-interfaces robotpkg-pyrene-motions robotpkg-py27-eigenpy \
       mesa-utils net-tools novnc terminator firefox \
       x11-apps tigervnc-standalone-server tigervnc-xorg-extension xfce4 \
-      ipython emacs pybind11-dev  doxygen openssh-client gdb gnuplot
-
-RUN git config --global url."https://github.com/".insteadOf git://github.com/
-RUN mkdir -p ~/catkin_ws/src
-WORKDIR /root/catkin_ws
-ENV CMAKE_PREFIX_PATH=/opt/openrobots
-RUN catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=ON
+      ipython emacs pybind11-dev  doxygen openssh-client gdb gnuplot \
+      ros-melodic-visp-bridge
 
 RUN mkdir ~/.vnc \
  && echo -e "#!/bin/sh\nstartxfce4" > ~/.vnc/xstartup \
  && chmod +x ~/.vnc/xstartup
 
+WORKDIR /root/catkin_ws
+
+RUN mkdir -p ~/catkin_ws/src
+
 COPY passwd /root/.vnc/passwd
+COPY config.sh /root/config.sh
+COPY setup_build.sh /root/catkin_ws/setup_build.sh
 
-COPY ./pal_talos.repos src/pal_talos.repos
-RUN cd src && vcs-import --recursive --input pal_talos.repos
-
-RUN . /opt/ros/melodic/setup.sh && catkin build
+RUN git config --global url."https://github.com/".insteadOf git://github.com/
+RUN . ./setup_build.sh && catkin init && catkin config --install --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_BUILD_TESTING=0 -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF
 
 COPY ./gepetto_talos.repos src/gepetto_talos.repos
-COPY config.sh /root/config.sh
-RUN echo "source ~/config.sh" >> ~/.bashrc
-
 COPY ./patches src/patches
 COPY ./patches/apply.sh src/apply_patches.sh
 
-# RUN cd src && vcs-import --recursive --input gepetto_talos.repos
-# RUN cd src/ && bash apply_patches.sh
+RUN cd src && vcs-import --recursive --input gepetto_talos.repos
+RUN cd src/ && bash apply_patches.sh
 
-# RUN . /root/config.sh && cd src && catkin build -j 1
+RUN . /root/catkin_ws/setup_build.sh && cd src && catkin build -j 1
 
 # # Clone manually rob4fam-models
 # COPY rob4fam-models src/rob4fam-models
