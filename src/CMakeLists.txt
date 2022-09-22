@@ -50,15 +50,17 @@ install(FILES
   DESTINATION ${PYTHON_SITELIB}/agimus_demos/talos
   )
 
-find_package(pybind11 CONFIG)
-if(pybind11_FOUND)
-  pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
-  target_link_libraries(pytsp PRIVATE Eigen3::Eigen)
+IF(USE_TIAGO)
+  find_package(pybind11 CONFIG)
+  if(pybind11_FOUND)
+    pybind11_add_module(pytsp tsp.cpp tsp-py.cpp)
+    target_link_libraries(pytsp PRIVATE Eigen3::Eigen)
 
-  message(STATUS "Installing python module to ${PYTHON_SITELIB}")
-  install(TARGETS pytsp
-    DESTINATION ${PYTHON_SITELIB}/agimus_demos)
-endif()
+    message(STATUS "Installing python module to ${PYTHON_SITELIB}")
+    install(TARGETS pytsp
+      DESTINATION ${PYTHON_SITELIB}/agimus_demos)
+  endif()
+ENDIF()
 
 install(FILES
   rqt_agimus/tooltip_calibration.py

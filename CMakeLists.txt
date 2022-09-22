@@ -65,13 +65,13 @@ IF(USE_TALOS)
 ENDIF()
 IF(USE_TIAGO)
   ADD_SUBDIRECTORY(tiago)
+  add_subdirectory(tests)
 ENDIF()
 IF(USE_UR10)
   ADD_SUBDIRECTORY(ur10)
 ENDIF()
 
 add_subdirectory(src)
-add_subdirectory(tests)
 
 # Install other files with the same hierarchy as here.
 install(DIRECTORY talos tiago urdf srdf meshes worlds
