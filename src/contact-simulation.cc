@@ -37,13 +37,13 @@ void ContactSimulation::display(std::ostream& os) const
   os << "ContactSimulation " << getName();
 }
 
-ContactSimulation::ContactSimulation(const std::string& name):
-  Entity(name),
+ContactSimulation::ContactSimulation(const std::string& _name):
+  Entity(_name),
   wristPoseSIN
-  (0x0, "ContactSimulation("+name+")::input(MatriHomo)::wristPose"),
+  (0x0, "ContactSimulation("+_name+")::input(MatriHomo)::wristPose"),
   wrenchSOUT(boost::bind(&ContactSimulation::computeWrench, this, _1, _2),
              wristPoseSIN,
-             "ContactSimulation("+name+")::output(vector)::wrench"),
+             "ContactSimulation("+_name+")::output(vector)::wrench"),
   planeHeight_(0.75), stiffness_(1e4)
 {
   fingers_ <<

@@ -349,18 +349,18 @@ bool swap3opt(const distance_matrix_t& d, path_t& path, int i, int j, int k)
               // Copy BC
               std::vector<int> BC(path.begin()+i, path.begin()+j);
               // Move DE after A
-              auto B = std::copy(path.begin()+j, path.begin()+k, path.begin()+i);
+              auto B_ = std::copy(path.begin()+j, path.begin()+k, path.begin()+i);
               // Copy back BC
-              std::copy(BC.begin(), BC.end(), B);
+              std::copy(BC.begin(), BC.end(), B_);
               return true;
             }
     case 5: {
               // Copy BC
               std::vector<int> BC(path.begin()+i, path.begin()+j);
               // Move DE after A
-              auto B = std::copy(path.begin()+j, path.begin()+k, path.begin()+i);
+              auto B_ = std::copy(path.begin()+j, path.begin()+k, path.begin()+i);
               // Copy back CB
-              std::copy(BC.rbegin(), BC.rend(), B);
+              std::copy(BC.rbegin(), BC.rend(), B_);
               return true;
             }
     case 6: {
@@ -372,9 +372,9 @@ bool swap3opt(const distance_matrix_t& d, path_t& path, int i, int j, int k)
               std::vector<int> BC(path.begin()+i, path.begin()+j);
               std::vector<int> DE(path.begin()+j, path.begin()+k);
               // Reverse and move DE after A
-              auto B = std::copy(DE.rbegin(), DE.rend(), path.begin()+i);
+              auto B_ = std::copy(DE.rbegin(), DE.rend(), path.begin()+i);
               // Copy back BC
-              std::copy(BC.begin(), BC.end(), B);
+              std::copy(BC.begin(), BC.end(), B_);
               return true;
             }
     case 7: {
