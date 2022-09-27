@@ -148,7 +148,7 @@ Universal_Robots_ROS_Driver_repository=https://github.com/UniversalRobots
 Universal_Robots_ROS_Driver_branch=master
 Universal_Robots_ROS_Driver_extra_flags=
 
-sot-universal-robot_repository=${FLORENT_REPO}
+sot-universal-robot_repository=${SOT_REPO}
 sot-universal-robot_branch=master
 sot-universal-robot_extra_flags=-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -198,7 +198,7 @@ ndcurves_branch=${HPP_VERSION}
 ndcurves_repository=${LOCO3D_REPO}
 ndcurves_extra_flags= -DBUILD_PYTHON_INTERFACE=ON
 
-eigenpy_branch=v2.6.2
+eigenpy_branch=v2.7.13
 eigenpy_repository=${SOT_REPO}
 eigenpy_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -247,22 +247,22 @@ agimus_branch=master
 agimus_repository=${AGIMUS_REPO}
 agimus_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-sot_branch=master
+agimus-sot_branch=devel
 agimus-sot_repository=${AGIMUS_REPO}
 agimus-sot_extra_flags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
 agimus_sot_msgs_branch=master
 agimus_sot_msgs_repository=${AGIMUS_REPO}
 
-agimus-hpp_branch=master
+agimus-hpp_branch=devel
 agimus-hpp_repository=${AGIMUS_REPO}
 agimus-hpp_extra_flags=-DBUILD_ROS_INTERFACE=ON -DCLIENT_TO_GEPETTO_VIEWER=ON \
 	-DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-vision_branch=master
+agimus-vision_branch=devel
 agimus-vision_repository=${AGIMUS_REPO}
 
-agimus-demos_branch=master
+agimus-demos_branch=devel
 agimus-demos_repository=${AGIMUS_REPO}
 agimus-demo_extraflags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
@@ -272,7 +272,7 @@ agimus-doc_repository=${AGIMUS_REPO}
 gerard-bauzil_branch=devel
 gerard-bauzil_repository=${GEPETTO_GITLAB_REPO}
 
-dynamic-graph_branch=master
+dynamic-graph_branch=devel
 dynamic-graph_repository=${SOT_REPO}
 dynamic-graph_extra_flags=-DSUFFIX_SO_VERSION=OFF
 
@@ -284,7 +284,7 @@ fake-ros_extra_flags=
 ##################################
 # {{{ Packages for SoT
 
-dynamic-graph-python_branch=master
+dynamic-graph-python_branch=devel
 dynamic-graph-python_repository=${SOT_REPO}
 dynamic-graph-python_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
