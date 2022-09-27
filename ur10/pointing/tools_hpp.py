@@ -243,72 +243,26 @@ class PathGenerator(object):
             res = True; break
         return res, qpg, qg
 
-    def generateRotatingMotionForHandle(self, handle, qinit, loopEdge,
-                                        qguesses = [],
-                                        NrandomConfig=10):
-        p0 = self.generatePathForHandle(handle, qinit,
-                                       NrandomConfig=NrandomConfig, step=2)
-        if not p0:
-            print('failed to generate path to grasp')
-            return None
-        qg = p0.end()
-        q = qg[:]
-        q[5] = -pi
-        configs = []
-        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
-        if not res:
-            print('Failed to generate first configuration')
-            return None
-        configs.append(q1[:])
-        q[5] = -pi/2
-        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
-        if not res:
-            print('Failed to generate first configuration')
-            return None
-        configs.append(q1[:])
-        q[5] = 0
-        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
-        if not res:
-            print('Failed to generate first configuration')
-            return None
-        configs.append(q1[:])
-        q[5] = pi/2
-        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
-        if not res:
-            print('Failed to generate first configuration')
-            return None
-        configs.append(q1[:])
-        q[5] = pi
-        res, q1, err = self.graph.generateTargetConfig(loopEdge, qg, q)
-        if not res:
-            print('Failed to generate second configuration')
-            return None
-        configs.append(q1[:])
-        self.inStatePlanner.setEdge(loopEdge)
-
-        paths = []
-        qi = qg
-        for q1 in configs+[qg]:
-            res, p1, msg = self.inStatePlanner.directPath(qi, q1, False)
-            if not res:
-                print(f'Failed to generate path from {qi} to {q1}')
+    # Generate successive pointing motions to handles
+    #  - handle_04,
+    #  - calibration_01,
+    #  - calibration_02,
+    #  - calibration_03.
+    def generateCalibrationMotion(self, qinit, handles = ['calibration_00',
+        'calibration_01', 'calibration_02', 'calibration_03',],
+        qguesses = [], NrandomConfig=10):
+        q_end = qinit
+        paths = list()
+        for handle in handles:
+            p = self.wd(self.generatePathForHandle('part/' + handle, q_end,
+                        NrandomConfig=NrandomConfig, step=3))
+            if not p:
+                print('failed to generate path to grasp')
                 return None
-            qi = q1[:]
-            paths.append(p1)
-        # res, p2, msg = self.inStatePlanner.directPath(q1, q2, False)
-        # if not res:
-        #     print('Failed to generate path from first to second configuration')
-        # res, p3, msg = self.inStatePlanner.directPath(q2, qg, False)
-        # if not res:
-        #     print('Failed to generate path from second configuration to grasp')
-        p_end = p0.pathAtRank(1).reverse()
-        res = [p0] + paths + [p_end]
-
-        path_ids = []
-        for p in res:
-            pid = self.addPath(p.asVector())
-            path_ids.append(pid)
-        return path_ids
+            paths.append(p)
+            q_end = p.end()
+        pid = self.addPath(concatenatePaths(paths))
+        return pid
 
     def generateValidConfig(self, constraint, qguesses = [], NrandomConfig=50):
         from itertools import chain
@@ -380,7 +334,7 @@ class PathGenerator(object):
             try:
                 p1 = self.inStatePlanner.computePath(qinit, [qpg],
                                                      resetRoadmap = True)
-            except hpp_idl.hpp.Error as exc:
+            except:
                 p1 = None
             if not p1: continue
             if step < 2:

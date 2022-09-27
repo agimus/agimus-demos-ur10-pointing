@@ -144,8 +144,13 @@ def makeSupervisorWithFactory(robot):
         # Add a pre-action to the pre-action of transition 'g > h | f_12'
         # in order to perform object localization before starting the
         # motion.
-        supervisor.preActions[transitionName_12].preActions.append\
-            (ObjectLocalization(robot, factory, g, h))
+        ol = ObjectLocalization(robot, factory, g, h)
+        supervisor.preActions[transitionName_12].preActions.append(ol)
+        # For calibration handles, relocalize in contact
+        if h.find('calibration') != -1:
+            supervisor.postActions[transitionName_12][goalName].preActions.\
+                append(ol)
+
         id = factory.handles.index(h)
         transitionName_21 = '{} < {} | 0-{}_21'.format(g, h, id)
         supervisor.preActions[transitionName_21].preActions.append(wait)

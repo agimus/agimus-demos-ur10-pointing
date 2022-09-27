@@ -307,4 +307,35 @@
     <mask>1 1 1 1 1 1</mask>
     <mask_complement>0 0 0 0 0 0</mask_complement>
 </handle>
+
+<!-- Additional handles aligned with hole_04 with different orientations
+     to calibrate the end-effector -->
+<handle name="calibration_00" clearance="0.05">
+    <position rpy="-0.7853981633974483 1.57079 0"/>
+    <link name="hole_04_link" />
+    <mask>1 1 1 1 1 1</mask>
+    <mask_complement>0 0 0 0 0 0</mask_complement>
+</handle>
+
+<handle name="calibration_01" clearance="0.05">
+    <position rpy="-2.356194490192345 1.57079 0"/>
+    <link name="hole_04_link" />
+    <mask>1 1 1 1 1 1</mask>
+    <mask_complement>0 0 0 0 0 0</mask_complement>
+</handle>
+
+<handle name="calibration_02" clearance="0.05">
+    <position rpy="2.356194490192345 1.57079 0"/>
+    <link name="hole_04_link" />
+    <mask>1 1 1 1 1 1</mask>
+    <mask_complement>0 0 0 0 0 0</mask_complement>
+</handle>
+
+<handle name="calibration_03" clearance="0.05">
+    <position rpy="0.7853981633974483 1.57079 0"/>
+    <link name="hole_04_link" />
+    <mask>1 1 1 1 1 1</mask>
+    <mask_complement>0 0 0 0 0 0</mask_complement>
+</handle>
+
 </robot>
