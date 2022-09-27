@@ -146,7 +146,7 @@ def makeSupervisorWithFactory(robot):
         # motion.
         supervisor.preActions[transitionName_12].preActions.append\
             (ObjectLocalization(robot, factory, g, h))
-        id = str(int(h.split('_')[1]))
+        id = factory.handles.index(h)
         transitionName_21 = '{} < {} | 0-{}_21'.format(g, h, id)
         supervisor.preActions[transitionName_21].preActions.append(wait)
     localizeObjectOnLoopTransition(supervisor, factory.handles)
