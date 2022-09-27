@@ -226,9 +226,9 @@ def createConstraintGraph():
     for e in graph.edges.keys():
         if e[-3:] == "_ls" and graph.getWeight(e) != -1:
             graph.setWeight(e, 0)
-    return graph
+    return factory, graph
 
-graph = createConstraintGraph()
+factory, graph = createConstraintGraph()
 
 try:
     v = vf.createViewer()
