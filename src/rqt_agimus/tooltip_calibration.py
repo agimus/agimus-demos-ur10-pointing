@@ -1,4 +1,29 @@
-from csv import reader
+# Copyright 2022 CNRS - Airbus SAS
+# Author: Florent Lamiraux
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import (
     QFileDialog,
@@ -21,36 +46,14 @@ import tf
 import numpy as np
 from dynamic_graph_bridge_msgs.srv import RunCommand
 from agimus_sot.srdf_parser import parse_srdf
-from pinocchio import integrate, JointModelFreeFlyer, Model, Quaternion, \
-    SE3
+from pinocchio import Quaternion, SE3
+from agimus_demos.calibration.tooltip_calibration import TooltipCalibration as \
+    Computation
 
 def tfToSE3(trans, rot):
     p = Quaternion(x=rot[0], y=rot[1], z=rot[2], w=rot[3])
     t = np.array(trans).reshape(3,1)
     return SE3(p,t)
-
-def cross(v):
-    return np.cross(v, np.identity(v.shape[0]) * -1)
-
-class SE3Integrator (object):
-    """
-    Integrate a velocity on SE3
-    """
-    def __init__(self):
-        self.model = Model()
-        self.model.addJoint(0, JointModelFreeFlyer(), SE3(), "SE3")
-
-    def __call__(self, T, nu):
-        """
-        Integrate se3 velocity from SE3 element T
-          - T: instance of SE3
-          - nu: numpy array of dimension 6 (v,omega)
-        """
-        q0 = np.array(7*[0.])
-        q0[0:3] = T.translation
-        q0[3:7] = Quaternion(T.rotation).coeffs()
-        q = integrate(self.model,q0,nu)
-        return SE3(Quaternion(x=q[3], y=q[4], z=q[5], w=q[6]), q[0:3])
 
 ##
 #  Qt Widget to perform hand eye calibration of the UR10 robot
@@ -84,7 +87,6 @@ class TooltipCalibration(Plugin):
     def __init__(self, context):
         super(TooltipCalibration, self).__init__(context)
         self.setObjectName("Tooltip calibration")
-        self.measurements = list()
         # Create QWidget
         self._widget = QWidget()
         layout = QGridLayout()
@@ -197,18 +199,14 @@ class TooltipCalibration(Plugin):
                 # Get initial pose of end-effector in camera frame.
                 (trans,rot) = self._tfListener.lookupTransform\
                     (self.cameraFrame, self.endEffectorFrame, rospy.Time(0))
-                self.cMe = tfToSE3(trans, rot)
-                # Get nominal position of tooltip in end-effector frame
-                (trans,rot) = self._tfListener.lookupTransform\
-                    (self.endEffectorFrame, self.tooltipFrame, rospy.Time(0))
-                self.et = np.array(trans)
+                cMe = tfToSE3(trans, rot)
                 readFrame = True
-                self.computeHolePosition()
+                oh = self.computeHolePosition()
             except (tf.LookupException, tf.ConnectivityException,
                     tf.ExtrapolationException):
                 print('Failed to read information from tf, keep trying')
                 rospy.sleep(1.)
-
+        self.computation = Computation(cMe, oh)
 
     def xChanged(self, val):
         self.xValue.setText("{:.4f}".format(2e-4*val))
@@ -230,7 +228,7 @@ class TooltipCalibration(Plugin):
         self.handleName.setText(self.handle)
         self.updateFeatureName()
         self.runCommand("tc_f = FeaturePose('{}')".format(self._featureName))
-        self.computeHolePosition()
+        self.computation.oh = self.computeHolePosition()
 
     def gripperIdChanged(self, val):
         self.gripper = self.grippers[val]
@@ -341,78 +339,10 @@ class TooltipCalibration(Plugin):
                                                        holeLink, rospy.Time(0))
         oMl = tfToSE3(trans, rot)
         # Get position of hole in part frame
-        self.oh = oMl.act(lh)
+        oh = oMl.act(lh)
         if self._verbose:
-            print(f'self.oh={self.oh}')
+            print(f'oh={oh}')
+        return oh
 
-
-    def parseLine(self, line, i):
-        # Check that line starts with joint_states
-        if line[0] != 'offsets':
-            raise RuntimeError('line {} does not start by keyword "offsets"'
-                               .format(i))
-        measurement = dict()
-        try:
-            measurement['offsets'] = np.array(list(map(float, line [1:4])))
-        except ValueError as exc:
-            raise SyntaxError(f'line {i+1}, tag "offsets": could not convert' +\
-                              f' list {line [1:4]} to array')
-        if line[4] != 'cMo':
-            raise SyntaxError(f'line {i+1}, expected tag "cMo": got {line[4]}')
-        try:
-            v = list(map(float, line [5:12]))
-            p = Quaternion(x=v[3], y=v[4], z=v[5], w=v[6])
-            t = np.array(v[0:3]).reshape(3,1)
-            measurement ['cMo'] = SE3(p,t)
-        except ValueError as exc:
-            raise SyntaxError(f'line {i+1}, tag "cMo": could not convert' +\
-                              f' list {line [5:12]} to array')
-        return measurement
-
-    def readData(self, filename):
-        with open(filename, 'r') as f:
-            r = reader(f)
-            for i, line in enumerate(r):
-                self.measurements.append(self.parseLine(line, i))
-
-    def solve(self, x):
-        integration = SE3Integrator()
-        # allocate vector and Jacobian matrix
-        self.value = np.zeros(3*len(self.measurements))
-        self.jacobian = np.zeros(6*3*len(self.measurements))
-        self.jacobian.resize(3*len(self.measurements), 6)
-        self.computeValueAndJacobian()
-        # Compute pose of camera in end-effector frame
-        for i in range(20):
-            print(f'squared error = {sum(self.value*self.value)}')
-            nu = -np.matmul(np.linalg.pinv(self.jacobian),self.value)
-            self.cMe = integration(self.cMe, nu)
-        # Compute position of tooltip in camera frame
-        if len(self.measurements) == 0: return
-        s = 0
-        for m in self.measurements:
-            s += m['cMo'].act(self.oh)
-        ch = s/len(self.measurements)
-        self.eMc = self.cMe.inverse()
-        self.eh = self.eMc.act(ch)
-        print(f"""   <xacro:arg name="tip_offset_x" default="{self.eh[0]}"/>
-   <xacro:arg name="tip_offset_y" default="{self.eh[1]}"/>
-   <xacro:arg name="tip_offset_z" default="{self.eh[2]}"/>
-        """)
-        rpy = pinocchio.rpy.matrixToRpy(self.eMc.rotation)
-        xyz = self.eMc.translation
-        print(f"""    <joint name="ref_camera_joint" type="fixed">
-     <parent link="ur10e_d435_mount_link" />
-     <child link = "ref_camera_link" />
-     <origin xyz="{xyz[0]} {xyz[1]} {xyz[2]}"
-	     rpy="{rpy[0]} {rpy[1]} {rpy[2]}"/>
-   </joint>
-        """)
-
-    def computeValueAndJacobian(self):
-        for i, m in enumerate(self.measurements):
-            self.value[i:i+3] = self.cMe.act(self.et +
-                m['offsets'] - m['cMo'].act(self.oh))
-            self.jacobian[i+0:i+3,0:3] = self.cMe.rotation
-            self.jacobian[i+3:i+6,3:6] = -np.matmul(self.cMe.rotation,
-                cross(self.et + m['offsets']))
+    def solve(x):
+        self.computation.solve()
