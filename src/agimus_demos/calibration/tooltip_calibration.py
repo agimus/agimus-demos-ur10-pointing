@@ -83,16 +83,16 @@ class TooltipCalibration(object):
             r = reader(f)
             for i, line in enumerate(r):
                 self.measurements.append(self.parseLine(line, i))
-
-    def solve(self):
-        integration = SE3Integrator()
         # allocate vector and Jacobian matrix
         self.value = np.zeros(3*len(self.measurements))
         self.jacobian = np.zeros(6*3*len(self.measurements))
         self.jacobian.resize(3*len(self.measurements), 6)
-        self.computeValueAndJacobian()
+
+    def solve(self):
+        integration = SE3Integrator()
         # Compute pose of camera in end-effector frame
         for i in range(20):
+            self.computeValueAndJacobian()
             print(f'squared error = {sum(self.value*self.value)}')
             nu = -np.matmul(np.linalg.pinv(self.jacobian),self.value)
             self.cMe = integration(self.cMe, nu)
@@ -102,14 +102,26 @@ class TooltipCalibration(object):
         for m in self.measurements:
             s += m['cMo'].act(self.oh)
         ch = s/len(self.measurements)
-        self.eMc = self.cMe.inverse()
-        self.eh = self.eMc.act(ch)
-        print(f"""   <xacro:arg name="tip_offset_x" default="{self.eh[0]}"/>
-   <xacro:arg name="tip_offset_y" default="{self.eh[1]}"/>
-   <xacro:arg name="tip_offset_z" default="{self.eh[2]}"/>
+        # There is an intermediate frame called ref_camera_link
+        # between ur10e_d435_mount_link and the camera optical frame
+        # camera_color_optical_frame. Let us denote by i for this frame
+        # eMc = eMi * iMc
+        # iMc is provided by the camera manufacturer. We need to compute
+        # eMi since this is the value reported in the urdf file.
+        #
+        # eMi = eMc * iMc.inverse()
+        iMc = SE3(Quaternion(np.array([-.5,.5,-.5,.5])),
+                             np.array([0.011, 0.033, 0.013]))
+        eMc = self.cMe.inverse()
+        self.eMi = eMc * iMc.inverse()
+        self.eh = eMc.act(ch)
+        offset = self.eh - self.et
+        print(f"""   <xacro:arg name="tip_offset_x" default="{offset[0]}"/>
+   <xacro:arg name="tip_offset_y" default="{offset[1]}"/>
+   <xacro:arg name="tip_offset_z" default="{offset[2]}"/>
         """)
-        rpy = matrixToRpy(self.eMc.rotation)
-        xyz = self.eMc.translation
+        rpy = matrixToRpy(self.eMi.rotation)
+        xyz = self.eMi.translation
         print(f"""    <joint name="ref_camera_joint" type="fixed">
      <parent link="ur10e_d435_mount_link" />
      <child link = "ref_camera_link" />
@@ -120,10 +132,10 @@ class TooltipCalibration(object):
 
     def computeValueAndJacobian(self):
         for i, m in enumerate(self.measurements):
-            self.value[i:i+3] = self.cMe.act(self.et +
-                m['offsets'] - m['cMo'].act(self.oh))
-            self.jacobian[i+0:i+3,0:3] = self.cMe.rotation
-            self.jacobian[i+3:i+6,3:6] = -np.matmul(self.cMe.rotation,
+            self.value[3*i:3*i+3] = self.cMe.act(self.et + m['offsets']) - \
+                m['cMo'].act(self.oh)
+            self.jacobian[3*i+0:3*i+3,0:3] = self.cMe.rotation
+            self.jacobian[3*i+0:3*i+3,3:6] = -np.matmul(self.cMe.rotation,
                 cross(self.et + m['offsets']))
 
     def parseLine(self, line, i):

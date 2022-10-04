@@ -76,10 +76,10 @@ The Jacobian of this equation with respect to $\transf{c}{e}$ is:
 %%     0 & 0\end{array}\right)
 %%     \left(\begin{array}{c} ^e\tool + ^{e}\hat{\Delta}_i\\ 1\end{array}\right)\\
 %%       &=& R\cross{\angvel}(^e\tool + ^{e}\hat{\Delta}_i) + R\linvel\\
-%%       \left(\begin{array}{cc}R & 0 \\ 0 & -R\cross{^e\tool + ^{e}\hat{\Delta}_i}\end{array}\right)&&
+%%       \left(\begin{array}{cc}R & -R\cross{^e\tool + ^{e}\hat{\Delta}_i}\end{array}\right)&&
 %% \end{eqnarray*}
 $$
-J = \left(\begin{array}{cc} ^{c}R_{e} & 0 \\ 0 & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_i}\end{array}\right)
+J = \left(\begin{array}{cc} ^{c}R_{e}& -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_i}\end{array}\right)
 $$
 where $^{c}R_{e}$ is the rotation matrix of $\transf{c}{e}$.
 To compute $\transf{c}{e}$, we use Newton Raphson algorithm: we linearize the
@@ -94,11 +94,9 @@ system. Let us denote
     \end{array}\right) \\
     \frac{\partial f}{\partial \x}(\x) &=&
     \left(\begin{array}{cc}
-      ^{c}R_{e} & 0 \\
-      0 & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_1}\\
+      ^{c}R_{e} & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_1}\\
       \vdots & \vdots \\
-      ^{c}R_{e} & 0 \\
-      0 & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_N}
+      ^{c}R_{e} & -^{c}R_{e}\cross{^e\tool +\ ^{e}\hat{\Delta}_N}
     \end{array}\right)
 \end{eqnarray*}
 
