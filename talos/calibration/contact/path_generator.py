@@ -336,6 +336,111 @@ def pre_grasp_to_contact(ri, pg, gripper, handle, qpg, qg):
     # pg.ps.client.basic.problem.addPath(finalPaths[0])
     pg.ps.client.basic.problem.addPath(concatenatePaths(finalPaths[0:]))
 
+def path_generator(ri, pg, ps, gripper, handles):
+    pg.gripper = gripper
+
+    contacts = list()
+    pre_grasps = list()
+    handle_list = list()
+    for handle in handles: 
+        count = 0
+        while count < 3: 
+            res, qpg, qg = pg.generateValidConfigForHandle(handle, q_init, step=3)
+            if res:
+                pre_grasps.append(qpg)
+                contacts.append(qg)
+                handle_list.append(handle)
+                count += 1
+
+    # create a list of paths linking ordered visting pre_grasps
+    ordered_cfgs = orderConfigurations(ps, pre_grasps)
+
+    # reorder contacts 
+    ordered_contacts = list()
+    ordered_idx = list()
+    ordered_handle_list = list()
+    for cfg in ordered_cfgs:
+        if cfg in pre_grasps:
+            idx = pre_grasps.index(cfg)
+            ordered_idx.append(idx)
+            ordered_contacts.append(contacts[idx])
+            ordered_handle_list.append(handle_list[idx])
+
+    ordered_cfgs = [q_init] + ordered_cfgs
+
+    for i, idx in enumerate(ordered_idx):
+        print(handle_list[idx])
+        go_to_pre_grasp(ri, pg, handle_list[idx], ordered_cfgs[i], ordered_cfgs[i+1])
+        pre_grasp_to_contact(ri, pg, pg.gripper, handle_list[idx], pre_grasps[idx], contacts[idx])
+    go_to_pre_grasp(ri,pg, handle_list[-1], ordered_cfgs[-1], q_init)
+    
+    #write to files
+    writeConfigsInFile('opt_contacts_{}'.format(handle_list[0]).replace("/","_"), contacts)
+    writeConfigsInFile('opt_pregrasps_{}'.format(handle_list[0]).replace("/","_"), pre_grasps)
+
+    with open('opt_handles_{}'.format(handle_list[0]).replace("/","_"), "w") as fw:
+        for item in handle_list:
+            fw.write("%s\n" % item)
+
+def plan_paths(ri, pg, ps, gripper, file1, file2, file3):
+    pg.gripper = gripper
+    contacts = readConfigsInFile(file1)
+    pre_grasps = readConfigsInFile(file2)
+
+    with open(file3, "r") as fr:
+        handle_list = list()
+        for line in fr:
+            x = line[:-1]
+            handle_list.append(x)
+
+    # create a list of paths linking ordered visting pre_grasps
+    ordered_cfgs = orderConfigurations(ps, pre_grasps)
+
+    # reorder contacts 
+    ordered_contacts = list()
+    ordered_idx = list()
+    ordered_handle_list = list()
+    for cfg in ordered_cfgs:
+        if cfg in pre_grasps:
+            idx = pre_grasps.index(cfg)
+            ordered_idx.append(idx)
+            ordered_contacts.append(contacts[idx])
+            ordered_handle_list.append(handle_list[idx])
+
+    ordered_cfgs = [q_init] + ordered_cfgs
+
+    for i, idx in enumerate(ordered_idx):
+        print(handle_list[idx])
+        go_to_pre_grasp(ri, pg, handle_list[idx], ordered_cfgs[i], ordered_cfgs[i+1])
+        pre_grasp_to_contact(ri, pg, pg.gripper, handle_list[idx], pre_grasps[idx], contacts[idx])
+    go_to_pre_grasp(ri,pg, handle_list[-1], ordered_cfgs[-1], q_init)
+    l = 0
+    for i in range(ps.numberPaths()):
+        l+= ps.pathLength(i)
+    print("Path Length: ", l)
+
+def check_path_discontinued(ps):
+    for i in range(ps.numberPaths()-1):
+        q0 = np.array(ps.configAtParam(i, ps.pathLength(i)))
+        q1 = np.array(ps.configAtParam(i+1,0))
+        assert(np.linalg.norm(q1-q0) < 1e-10), "Path discontinued at the end of {}-th path".format(i)
+
+def erase_all_paths(ps):
+    for i in range(ps.numberPaths()):
+        ps.erasePath(0)
+
+def mobilize_handles(crobot, dir, dis, handles):
+    assert (len(handles) >0)
+    for handle in handles:
+        _, conf = crobot.getHandlePositionInJoint(handle)
+        if dir == 'x':
+            conf[0] += dis
+        elif dir == 'y':
+            conf[1] += dis
+        elif dir == 'z':
+            conf[2] += dis
+        crobot.setHandlePositionInJoint(handle, conf)
+
 initConf = [0, 0, 1.02, 0, 0, 0, 1, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0.0, 0.0, -0.411354, 0.859395, -0.448041, -0.001708, 0, 0.006761, 0.25847, 0.173046, -0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, -0.25847, -0.173046, 0.0002, -0.525366, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 robot, ps, vf, table, objects = makeRobotProblemAndViewerFactory(None)
@@ -429,79 +534,9 @@ if not res:
 
 from agimus_demos.tools_hpp import PathGenerator
 pg = PathGenerator(ps, graph)
-pg.gripper = 'talos/left_gripper'
-
-ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.1)
-ps.setParameter('ConfigurationShooter/Gaussian/center', initConf)
-
-# contacts = list()
-# pre_grasps = list()
-# handle_list = list()
-# selected_handles = ['table/contact_05', 'table/contact_01','table/contact_09']
-# for handle in selected_handles: 
-#     count = 0
-#     while count < 1: 
-#         res, qpg, qg = pg.generateValidConfigForHandle(handle, initConf, step=3)
-#         if res:
-#             pre_grasps.append(qpg)
-#             contacts.append(qg)
-#             handle_list.append(handle)
-#             count += 1
-
-contacts = readConfigsInFile('27_opt_contacts')
-pre_grasps = readConfigsInFile('27_opt_pregrasps')
-
-with open('27_opt_handles', "r") as fr:
-    handle_list = list()
-    for line in fr:
-        x = line[:-1]
-        handle_list.append(x)
-
-
-v = vf.createViewer()
-
-# create a list of paths linking ordered visting pre_grasps
-ordered_cfgs = orderConfigurations(ps, pre_grasps)
-
-# reorder contacts 
-ordered_contacts = list()
-ordered_idx = list()
-ordered_handle_list = list()
-for cfg in ordered_cfgs:
-    if cfg in pre_grasps:
-        idx = pre_grasps.index(cfg)
-        ordered_idx.append(idx)
-        ordered_contacts.append(contacts[idx])
-        ordered_handle_list.append(handle_list[idx])
-
-# number of optimizer
-nOptimizers = len(ps.getSelected("PathOptimizer"))
-
+# read current config (half sitting)
 q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
 res, q_init, err = pg.graph.generateTargetConfig('starting_motion', q_init,
                                                     q_init)
-
-# add an initial path going to center
-if ordered_handle_list[0] != "table/contact_05":
-    res, qpg, qg = pg.generateValidConfigForHandle('table/contact_05', q_init, step=3)
-    go_to_pre_grasp(ri, pg, 'table/contact_05', q_init, qpg)
-    ordered_cfgs = [qpg] + ordered_cfgs
-else:
-    ordered_cfgs = [q_init] + ordered_cfgs
-
-for i, idx in enumerate(ordered_idx):
-    print(handle_list[idx])
-    go_to_pre_grasp(ri, pg, handle_list[idx], ordered_cfgs[i], ordered_cfgs[i+1])
-    pre_grasp_to_contact(ri, pg, pg.gripper, handle_list[idx], pre_grasps[idx], contacts[idx])
-
-for i in range(ps.numberPaths()-1):
-    print(i)
-    q0 = np.array(ps.configAtParam(i, ps.pathLength(i)))
-    q1 = np.array(ps.configAtParam(i+1,0))
-    assert(np.linalg.norm(q1-q0) < 1e-10)
-go_to_pre_grasp(ri,pg, handle_list[-1], ordered_cfgs[-1], q_init)
-l = 0
-for i in range(ps.numberPaths()):
-    l+= ps.pathLength(i)
-print("Path Length: ", l)
-pp = PathPlayer(v)
+ps.setParameter('ConfigurationShooter/Gaussian/standardDeviation', 0.1)
+ps.setParameter('ConfigurationShooter/Gaussian/center', q_init)
