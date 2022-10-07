@@ -72,9 +72,9 @@ class WaitForSignalToReleaseContact(object):
         self.ros_subscribe = RosSubscribe('wait_for_signal')
         if len(self.ros_subscribe.signals()) == 0:
             self.ros_subscribe.add("double", "out","/agimus/release_contact")
-            self.add = Add_of_double('wait_for_signal_add')
-            self.add.signal('sin0').value = 0.
-            plug(self.ros_subscribe.signal('out'), self.add.signal('sin1'))
+        self.add = Add_of_double('wait_for_signal_add')
+        self.add.signal('sin0').value = 0.
+        plug(self.ros_subscribe.signal('out'), self.add.signal('sin1'))
     def __call__(self):
         print("waiting for topic /agimus/release_contact")
         t = self.sotrobot.device.control.time

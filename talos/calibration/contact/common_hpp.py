@@ -52,8 +52,8 @@ class Table(object):
                 "contact_25", "contact_26", "contact_27",]
     # handles = ["contact_01"]
     rootJointType = "freeflyer"
-    urdfFilename = "package://desk/urdf/desk.urdf"
-    srdfFilename = "package://desk/srdf/desk_calibration_contact.srdf"
+    urdfFilename = "package://agimus_demos/urdf/desk.urdf"
+    srdfFilename = "package://agimus_demos/srdf/desk_calibration_contact.srdf"
 
     def __init__(self, name, vf):
         self.name = name
