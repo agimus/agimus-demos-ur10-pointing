@@ -40,14 +40,20 @@ from hpp.corbaserver.manipulation.constraint_graph_factory import \
 from agimus_demos.talos.tools_hpp import wd, shrinkJointRange, getSrdfString
 
 class Table(object):
-    contacts = ["top"]
+    contacts = ["top", "side", 'front']
     handles = ["contact_01", "contact_02", "contact_03",
                 "contact_04", "contact_05", "contact_06",
-                "contact_07", "contact_08", "contact_09"]
+                "contact_07", "contact_08", "contact_09",
+                "contact_10", "contact_11", "contact_12",
+                "contact_13", "contact_14", "contact_15",
+                "contact_16", "contact_17", "contact_18",
+                "contact_19", "contact_20", "contact_21",
+                "contact_22", "contact_23", "contact_24",
+                "contact_25", "contact_26", "contact_27",]
     # handles = ["contact_01"]
     rootJointType = "freeflyer"
-    urdfFilename = "package://gerard_bauzil/urdf/rolling_table.urdf"
-    srdfFilename = "package://agimus_demos/srdf/rolling_table_calibration_contact.srdf"
+    urdfFilename = "package://desk/urdf/desk.urdf"
+    srdfFilename = "package://desk/srdf/desk_calibration_contact.srdf"
 
     def __init__(self, name, vf):
         self.name = name
