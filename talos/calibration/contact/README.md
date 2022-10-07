@@ -28,7 +28,7 @@ hppcorbaserver
 
 3. in terminal 4
 ```
-ipython -i script_hpp.py
+python -i script_hpp.py
 ```
 
 4. in terminal 5
@@ -57,11 +57,7 @@ If any, stop the current roslaunch
 roslaunch demo.launch simulation:=true
 ```
 
-7. in terminal 6
-```
-rosrun agimus rqt_path_execution
-```
-Select the path to execute and click on "Execute Path".
+Follow the same steps as on the robot starting by 7.
 
 ### Record the traces
 
@@ -135,25 +131,50 @@ gepetto-gui
 4. on the console
 ```
 cd /home/pal/deployed_ws/share/agimus_demos/talos/calibration/contact
-ipython -i script_hpp.py
+python -i path_generator.py
 ```
 
-5. then in the python terminal
+5. In the python terminal
 ```
 v=vf.createViewer(host="10.68.1.38")
 q_init = ri.getCurrentConfig(initConf, 5., 'talos/leg_left_6_joint')
 v(q_init)
-
+```
+If you want to plan only one motion:
+```
 from agimus_demos.tools_hpp import PathGenerator
 pg = PathGenerator(ps,graph)
 pg.inStatePlanner.maxIterPathPlanning = 100
 goToContact(ri, pg, 'talos/left_gripper', 'table/contact_01', q_init)
 ```
+For the whole sequence:
+```
+plan_paths(ri, pg, ps, gripper, file1, file2, file3)
+check_discontinued(ps)
 
+
+```
 6. on talos-1c, launch the demonstration
 
 ```
 roslaunch agimus_demos talos_calibration_contact_demo.launch
 ```
 
-Follow the same steps as in simulation starting by 7.
+7. in terminal 7
+```
+rosrun agimus_demos rqt_contact_calibration
+```
+
+8. in terminal 7
+```
+python -i play_motion.py
+```
+
+## Recording bags
+
+on talos-1c, open 4 terminals
+
+  1. roslaunch introspection_controller introspection_controller.launch
+  2. rosrun topic_tools throttle messages /introspection_data/names 1
+  3. rosrun topic_tools throttle messages /introspection_data/values 1
+  4. rosbag record /introspection_data/names_throttle /introspecon_data/values_throttle -O pyrene-calibration.bag
