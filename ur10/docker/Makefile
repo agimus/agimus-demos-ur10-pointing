@@ -266,7 +266,7 @@ agimus-demos_branch=devel
 agimus-demos_repository=${AGIMUS_REPO}
 agimus-demo_extraflags= -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
 
-agimus-doc_branch=master
+agimus-doc_branch=devel
 agimus-doc_repository=${AGIMUS_REPO}
 
 gerard-bauzil_branch=devel
@@ -301,6 +301,9 @@ sot-core_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUT
 sot-tools_branch=devel
 sot-tools_repository=${SOT_REPO}
 sot-tools_extra_flags=-DSUFFIX_SO_VERSION=OFF -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
+
+sot-doc_repository=${SOT_REPO}
+sot-doc_branch=master
 
 sot-dynamic-pinocchio_branch=devel
 sot-dynamic-pinocchio_repository=${SOT_REPO}
@@ -493,12 +496,13 @@ hpp-tools.configure.dep: hpp-tools.checkout
 agimus-demos.configure.dep:
 agimus-vision.configure.dep: visp_tracker.install
 agimus-hpp.configure.dep: dynamic_graph_bridge_msgs.install \
-	hpp-manipulation-corba.install agimus_sot_msgs.install
-agimus-sot.configure.dep: dynamic_graph_bridge.install agimus_sot_msgs.install
+	hpp-manipulation-corba.install agimus_sot_msgs.install \
+	hpp-gepetto-viewer.install
+agimus-sot.configure.dep: dynamic_graph_bridge.install agimus_sot_msgs.install hpp-manipulation-corba.install
 agimus.configure.dep: agimus-hpp.install agimus_sot_msgs.install
 agimus_sot_msgs.configure.dep:
 agimus-doc.configure.dep: agimus.install agimus-hpp.install agimus-sot.install \
-	agimus-demos.install
+	agimus-demos.install sot-doc.install
 gerard-bauzil.configure.dep: gerard-bauzil.checkout
 fake-ros.configure.dep: fake-ros.checkout
 ##### Dynamic graph sot ###################################
@@ -511,8 +515,9 @@ dynamic_graph_bridge.configure.dep: dynamic-graph.install \
 	dynamic-graph-python.install \
 	sot-dynamic-pinocchio.install \
 	sot-core.install
-sot-core.configure.dep: dynamic-graph-python.install
-sot-tools.configure.dep: sot-core.install
+sot-core.configure.dep: dynamic-graph-python.install pinocchio.install
+sot-tools.configure.dep: sot-core.install example-robot-data.install
+sot-doc.configure.dep: sot-core.install sot-doc.checkout
 sot-dynamic-pinocchio.configure.dep: sot-core.install sot-tools.install
 roscontrol_sot.configure.dep: dynamic_graph_bridge.install \
 	sot-core.install sot-dynamic-pinocchio.install \

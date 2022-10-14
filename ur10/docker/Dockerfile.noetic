@@ -37,7 +37,7 @@ RUN . /root/devel/config.sh && make -C /root/devel/src react_inria.install_nodep
 RUN . /root/devel/config.sh && make -C /root/devel/src agimus-doc.install hpp-doc.install
 
 COPY 99-realsense-libusb.rules /etc/udev/rules.d/.
-COPY .vnc /root
+COPY .vnc/xstartup /root/.vnc/xstartup
 COPY passwd /root/.vnc/passwd
 COPY set_env_for_ur10 /root/set_env_for_ur10
 RUN echo "source /root/devel/config.sh" >> /root/.bashrc
