@@ -244,10 +244,11 @@ class PathGenerator(object):
         return res, qpg, qg
 
     # Generate successive pointing motions to handles
-    #  - handle_04,
+    #  - calibration_00,
     #  - calibration_01,
     #  - calibration_02,
-    #  - calibration_03.
+    #  - calibration_03,
+    # starting from configuration qinit
     def generateCalibrationMotion(self, qinit, handles = ['calibration_00',
         'calibration_01', 'calibration_02', 'calibration_03',],
         qguesses = [], NrandomConfig=10):

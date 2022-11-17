@@ -146,10 +146,6 @@ def makeSupervisorWithFactory(robot):
         # motion.
         ol = ObjectLocalization(robot, factory, g, h)
         supervisor.preActions[transitionName_12].preActions.append(ol)
-        # For calibration handles, relocalize in contact
-        if h.find('calibration') != -1:
-            supervisor.postActions[transitionName_12][goalName].preActions.\
-                append(ol)
 
         id = factory.handles.index(h)
         transitionName_21 = '{} < {} | 0-{}_21'.format(g, h, id)
