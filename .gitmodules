@@ -1,6 +1,0 @@
-[submodule "tiago/deburring/python-tsp"]
-	path = tiago/deburring/python-tsp
-	url = https://github.com/fillipe-gsm/python-tsp
-[submodule "cmake"]
-	path = cmake
-	url = https://github.com/jrl-umi3218/jrl-cmakemodules

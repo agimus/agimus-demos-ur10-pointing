@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(dirname)/tiago_deburring_realsense.rviz"/>
-  <node pkg="tf2_ros" type="static_transform_publisher" name="part_to_tf"
-    args="0 0 0 0 0 0 part/base_link_measured part/base_link" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="driller_to_tf"
-    args="0 0 0 0 0 0 driller/base_link_measured driller/base_link" />
-</launch>

@@ -1,9 +1,0 @@
-TODO HPP:
-x call optimization automatically.
-x compute pregrasp and grasp config with reduced joint bounds.
-x fix issue of collision when the robot is in home position.
-x when computing base motion, acquire position of the part, if possible
-
-TODO SOT:
-- add vision task
-- add joint bound constraint in SoT solver

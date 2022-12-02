@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<robot name="ground">
-  <handle name="contact" clearance="0.03">
-    <position> 0 0 0.01 0.707106 0 0.707106 0 </position>
-    <link name="base_link" />
-    <mask> 1 0 0 0 1 1 </mask>
-  </handle>
-</robot>

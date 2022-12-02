@@ -1,5 +1,0 @@
-<launch>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(dirname)/config.rviz"/>
-  <node pkg="tf2_ros" type="static_transform_publisher" name="part_to_tf"
-    args="0 0 0 0 0 0 part/base_link_measured part/base_link" />
-</launch>
