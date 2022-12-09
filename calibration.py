@@ -154,3 +154,5 @@ def computeCameraPose(mMe, eMc, eMc_measured):
 
 # #new position mMe_new of ref_camera_link in ur10e_d435_mount_link
 # mMe_new = computeCameraPose(mMe, eMc, eMc_measured)
+# xyz = mMe_new.translation
+# rpy = pinocchio.rpy.matrixToRpy(mMe_new.rotation)
