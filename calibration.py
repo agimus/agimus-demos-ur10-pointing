@@ -26,9 +26,10 @@
 
 import numpy as np
 import eigenpy, pinocchio, hpp.rostools, hppfcl, numpy as np
-from agimus_demos.calibration import Calibration as Parent
+from agimus_demos.calibration import HandEyeCalibration as Parent
 from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
+from hpp.corbaserver.manipulation import Constraints, SecurityMargins
 
 ## Hand-eye calibration
 #
@@ -50,7 +51,7 @@ class Calibration(Parent):
         self.factory = factory
         Parent.transition = 'go-look-at-cb'
 
-    def generateValidConfigs(self, q, n, m, M):
+    def generateValidConfigs(self, q0, n, m, M):
         robot = self.ps.robot
         graph = self.graph
         result = list()
@@ -91,10 +92,12 @@ class Calibration(Parent):
                                           [True, True, True, True, True, True,])
         ps.setConstantRightHandSide('placement/complement', False)
 
-        graph.createNode(['look-at-cb'])
+        graph.createNode(['look-at-cb'], priority = 1)
         graph.createEdge('free', 'look-at-cb', 'go-look-at-cb', 1,
                          'free')
         graph.createEdge('look-at-cb', 'free', 'stop-looking-at-cb', 1,
+                         'free')
+        graph.createEdge('look-at-cb', 'look-at-cb', 'loop-look-at-cb', 1,
                          'free')
 
         graph.addConstraints(node='look-at-cb',
@@ -112,13 +115,14 @@ class Calibration(Parent):
         sm.apply()
         graph.initialize()
 
-    def generateConfigurationsAndPaths(self, filename = None):
-        ri = RosInterface(robot)
+    def generateConfigurationsAndPaths(self, q0, filename = None):
+        ri = RosInterface(self.ps.robot)
         q_init = ri.getCurrentConfig(q0)
         if filename:
             configs = self.readConfigsInFile(filename)
         else:
             configs = self.generateValidConfigs(q0, self.nbConfigs, .3, .5)
+            self.writeConfigsInFile("/tmp/ur10-configs.csv", configs)
         configs = [q_init] + configs
         self.buildRoadmap(configs)
         configs = self.orderConfigurations(configs)
