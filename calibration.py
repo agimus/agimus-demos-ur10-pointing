@@ -92,12 +92,10 @@ class Calibration(Parent):
                                           [True, True, True, True, True, True,])
         ps.setConstantRightHandSide('placement/complement', False)
 
-        graph.createNode(['look-at-cb'], priority = 1)
+        graph.createNode(['look-at-cb'])
         graph.createEdge('free', 'look-at-cb', 'go-look-at-cb', 1,
                          'free')
         graph.createEdge('look-at-cb', 'free', 'stop-looking-at-cb', 1,
-                         'free')
-        graph.createEdge('look-at-cb', 'look-at-cb', 'loop-look-at-cb', 1,
                          'free')
 
         graph.addConstraints(node='look-at-cb',
