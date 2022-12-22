@@ -112,6 +112,8 @@ class CalibrationControl (object):
                                              queue_size=1)
         self.subRunning = rospy.Subscriber ("/agimus/status/running", Bool,
                                             self.runningCallback)
+        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
+                                                  self.rosJointStateCallback)
         self.subStatus = rospy.Subscriber \
                          ("/agimus/agimus/smach/container_status",
                           SmachContainerStatus, self.statusCallback)
@@ -154,7 +156,10 @@ class CalibrationControl (object):
             self.wMc = None
             rospy.loginfo ("No camera pose in tf")
         now = rospy.Time.now ()
-        # Get image
+        # Get joint values.
+        if self.rosJointStates:
+            measurement ["joint_states"] = self.rosJointStates
+        # Get image.
         t = self.image.header.stamp
         # Check that data is recent enough
         if abs (now - t) < self.maxDelay:
@@ -175,6 +180,10 @@ class CalibrationControl (object):
         with open(directory + '/camera.xml', 'w') as f:
             f.write(cameraInfoString.format(width=width, height=height,
                                             px=px, py=py, u0=u0, v0=v0))
+        # write urdf description of robot
+        robotString = rospy.get_param('/robot_description')
+        with open(directory + '/robot.urdf', 'w') as f:
+            f.write(robotString)
         count=0
         for measurement in self.measurements:
             if not "image" in measurement.keys() or \
@@ -200,7 +209,15 @@ class CalibrationControl (object):
                 f.write("- [{}]\n".format(utheta[0]))
                 f.write("- [{}]\n".format(utheta[1]))
                 f.write("- [{}]\n".format(utheta[2]))
-                        
+            if "joint_states" in measurement:
+                with open(directory + f"/configuration_{count}", 'w') as f:
+                    line = ""
+                    for jv in measurement ["joint_states"]:
+                        line += f"{jv},"
+                    line = line [:-1] + "\n"
+                    f.write (line)
+
+
     def waitForEndOfMotion (self):
         rate = rospy.Rate(2) # 2hz
         # wait for motion to start

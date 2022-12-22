@@ -7,6 +7,6 @@
 from calibration import Calibration, computeCameraPose
 
 calibration = Calibration(ps, graph, factory)
-calibration.nbConfigs = 100
+calibration.nbConfigs = 30
 calibration.addStateToConstraintGraph()
-calibration.generateConfigurationsAndPaths(q0)
+calibration.generateConfigurationsAndPaths(q0, filename="./data/calib-configs.csv")

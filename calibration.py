@@ -123,7 +123,7 @@ class Calibration(Parent):
             self.writeConfigsInFile("/tmp/ur10-configs.csv", configs)
         configs = [q_init] + configs
         self.buildRoadmap(configs)
-        configs = self.orderConfigurations(configs)
+        configs = self.orderConfigurations(configs)[:self.nbConfigs+1]
         self.visitConfigurations(configs)
 
 
