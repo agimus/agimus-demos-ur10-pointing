@@ -1,51 +1,52 @@
 <?xml version="1.0"?>
-<!-- This file is based on "package://ur_description/urdf/ur.xacro".
-     This file is used on the real robot. For simulation, see
-     "ur10_robot_sim.urdf.xacro"-->
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur10e" >
 
-   <!-- import main macro -->
-   <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>
+  <!-- parameters -->
+  <xacro:arg name="gazebo" default="false"
+             doc="whether robot is loaded in gazebo simulator"/>
+  <xacro:arg name="joint_limit_params"
+             default="$(find ur_description)/config/ur10e/joint_limits.yaml"/>
+  <xacro:arg name="kinematics_params"
+             default="$(find ur_description)/config/ur10e/default_kinematics.yaml"/>
+  <xacro:arg name="physical_params"
+             default="$(find ur_description)/config/ur10e/physical_parameters.yaml"/>
+  <xacro:arg name="visual_params"
+             default="$(find ur_description)/config/ur10e/visual_parameters.yaml"/>
+  <!-- legal values:
+       - hardware_interface/PositionJointInterface
+       - hardware_interface/VelocityJointInterface
+       - hardware_interface/EffortJointInterface
+  -->
+  <xacro:arg name="transmission_hw_interface"
+             default="hardware_interface/PositionJointInterface"/>
+  <xacro:arg name="safety_limits" default="false"/>
+  <xacro:arg name="safety_pos_margin" default="0.15"/>
+  <xacro:arg name="safety_k_position" default="20"/>
 
-   <!-- parameters -->
-   <xacro:arg name="joint_limit_params" default=""/>
-   <xacro:arg name="kinematics_params" default=""/>
-   <xacro:arg name="physical_params" default=""/>
-   <xacro:arg name="visual_params" default=""/>
-   <!-- legal values:
-         - hardware_interface/PositionJointInterface
-         - hardware_interface/VelocityJointInterface
-         - hardware_interface/EffortJointInterface
-   -->
-   <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
-   <xacro:arg name="safety_limits" default="false"/>
-   <xacro:arg name="safety_pos_margin" default="0.15"/>
-   <xacro:arg name="safety_k_position" default="20"/>
+  <!-- Offset of the tip link (obtained by calibration) -->
+  <xacro:arg name="tip_offset_x" default="0.0000"/>
+  <xacro:arg name="tip_offset_y" default="0.0000"/>
+  <xacro:arg name="tip_offset_z" default="0.0000"/>
 
-   <!-- Offset of the tip link (obtained by calibration) -->
-   <xacro:arg name="tip_offset_x" default="0.0000"/>
-   <xacro:arg name="tip_offset_y" default="0.0000"/>
-   <xacro:arg name="tip_offset_z" default="0.0000"/>
+  <!-- import gazebo plugins macro -->
+  <xacro:if value="$(arg gazebo)">
+    <xacro:include filename="$(find agimus_demos)/urdf/ur10_pointing_gazebo.urdf.xacro" />
+  </xacro:if>
+  <!-- import main macro -->
+  <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>
 
-   <!-- arm -->
-   <xacro:ur_robot
-     prefix=""
-     joint_limits_parameters_file="$(arg joint_limit_params)"
-     kinematics_parameters_file="$(arg kinematics_params)"
-     physical_parameters_file="$(arg physical_params)"
-     visual_parameters_file="$(arg visual_params)"
-     transmission_hw_interface="$(arg transmission_hw_interface)"
-     safety_limits="$(arg safety_limits)"
-     safety_pos_margin="$(arg safety_pos_margin)"
-     safety_k_position="$(arg safety_k_position)"/>
+  <!-- arm -->
+  <xacro:ur_robot
+      prefix=""
+      joint_limits_parameters_file="$(arg joint_limit_params)"
+      kinematics_parameters_file="$(arg kinematics_params)"
+      physical_parameters_file="$(arg physical_params)"
+      visual_parameters_file="$(arg visual_params)"
+      transmission_hw_interface="$(arg transmission_hw_interface)"
+      safety_limits="$(arg safety_limits)"
+      safety_pos_margin="$(arg safety_pos_margin)"
+      safety_k_position="$(arg safety_k_position)"/>
 
-   <!-- Up to this line, this file is a copy of
-	"package://ur_description/urdf/ur.xacro".
-	The following lines add additional elements
-	- end effector,
-	- RGBD sensor,
-	- robot support.
-   -->
    <link name="world" />
 
    <link name="wall_link">
@@ -168,7 +169,6 @@
      </collision>
    </link>
 
-
    <joint name="ur10e_d435_mount_joint" type="fixed">
      <parent link="wrist_3_link"/>
      <child link="ur10e_d435_mount_link" />
@@ -248,6 +248,4 @@
      <!-- <origin xyz="0 0.115 0" rpy="0 -1.0472 -1.57079632679"/> -->
       <origin xyz="0 0 0" rpy="0 0 0"/>
    </xacro:sensor_d435>
-
-
 </robot>

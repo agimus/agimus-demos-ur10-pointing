@@ -2,7 +2,7 @@
 <launch>
   <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
 
-  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur10_pointing_robot_sim.urdf.xacro' transmission_hw_interface:=$(arg transmission_hw_interface)" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur10_pointing_robot.urdf.xacro' transmission_hw_interface:=$(arg transmission_hw_interface) gazebo:=true" />
 
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="50.0" />
