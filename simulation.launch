@@ -45,7 +45,8 @@
   <include file="$(find agimus_demos)/launch/ur10_pointing_ur10_upload.launch">
   </include>
 
-  <rosparam command="load" file="$(find agimus_demos)/ur10/config/pid.yaml"/>
+  <rosparam command="load"
+            file="$(find agimus_demos)/ur10/pointing/config/pid.yaml"/>
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model"
   args="-urdf -param robot_description -model robot -z 0.0 -Y 0
