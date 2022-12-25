@@ -29,7 +29,7 @@ import yaml
 from csv import reader
 import numpy as np
 import eigenpy, pinocchio, hpp.rostools, hppfcl, numpy as np
-from pinocchio import SE3, exp3
+from pinocchio import SE3, exp3, RobotWrapper, forwardKinematics, Quaternion
 from agimus_demos.calibration import HandEyeCalibration as Parent
 from tools_hpp import PathGenerator, RosInterface
 from hpp import Transform
@@ -140,10 +140,17 @@ class Calibration(Parent):
 #  maxIndex is the maximal index of the input files:
 #    configuration_{i}, i<=maxIndex,
 #    pose_cPo_{i}.yaml, i<=maxIndex.
-def generateDataForFigaroh(input_directory, output_file, maxIndex):
+def generateDataForFigaroh(robot, input_directory, output_file, maxIndex):
+    # create a pinocchio model from the Robot.urdfString
+    with open('/tmp/robot.urdf', 'w') as f:
+        f.write(robot.urdfString)
+    pinRob = RobotWrapper()
+    pinRob.initFromURDF('/tmp/robot.urdf')
+    # get camera frame id
+    camera_frame_id = pinRob.model.getFrameId('camera_color_optical_frame')
     with open(output_file, 'w') as f:
         # write header line in output file
-        f.write('x,y,z,phix,phiy,phiz,ur10e/shoulder_pan_joint,ur10e/shoulder_lift_joint,ur10e/elbow_joint,ur10e/wrist_1_joint,ur10e/wrist_2_joint,ur10e/wrist_3_joint\n')
+        f.write('x1,y1,z1,phix1,phiy1,phiz1,shoulder_pan_joint,shoulder_lift_joint,elbow_joint,wrist_1_joint,wrist_2_joint,wrist_3_joint\n')
         count = 1
         while count <= maxIndex:
             poseFile = os.path.join(input_directory, f'pose_cPo_{count}.yaml')
@@ -151,27 +158,106 @@ def generateDataForFigaroh(input_directory, output_file, maxIndex):
             try:
                 f1 = open(poseFile, 'r')
                 d = yaml.safe_load(f1)
+                f1.close()
+                f1 = open(configFile, 'r')
+                config = f1.readline()
+                f1.close()
                 cMo_tuple = list(zip(*d['data']))[0]
                 trans = np.array(cMo_tuple[:3])
                 rot = exp3(np.array(cMo_tuple[3:]))
                 cMo = SE3(translation = trans, rotation = rot)
+                # The first time, compute measured pose of chessboard to express
+                # camera pose in world frame
+                if count == 1:
+                    q = np.array(list(map(float, config.split(','))))
+                    forwardKinematics(pinRob.model, pinRob.data, q)
+                    pinRob.framesForwardKinematics(q)
+                    wMc = pinRob.data.oMf[camera_frame_id]
+                    wMo = wMc * cMo
+                    print(f'wMo = {wMo}')
                 oMc = cMo.inverse()
+                wMc = wMo * oMc
                 line = ""
                 # write camera pose
                 for i in range(3):
-                    line += f'{oMc.translation[i]},'
-                rpy = pinocchio.rpy.matrixToRpy(oMc.rotation)
+                    line += f'{wMc.translation[i]},'
+                rpy = pinocchio.rpy.matrixToRpy(wMc.rotation)
                 for i in range(3):
                     line += f'{rpy[i]},'
-                f1.close()
                 # write configuration
-                f1 = open(configFile, 'r')
-                config = f1.readline()
                 line += config
                 f.write(line)
             except FileNotFoundError as exc:
                 print(f'{poseFile} does not exist')
             count+=1
+
+def readDataFromFigaroh(filename, q0):
+    with open(filename, 'r') as f:
+        configurations = list()
+        wMcs = list()
+        r = reader(f)
+        for i, line in enumerate(r):
+            if i == 0: continue
+            xyz = list(map(float, line[0:3])); rpy = list(map(float, line[3:6]))
+            wMc = SE3(translation = np.array(xyz),
+                      rotation = pinocchio.rpy.rpyToMatrix(np.array(rpy)))
+            wMcs.append(wMc)
+            # read robot configuration in csv file
+            q = list(map(float, line[6:]))
+            # append configuration of the plank
+            q += q0[6:]
+            configurations.append(q)
+    return configurations, wMcs
+
+def displayPose(nodeName, wMc):
+    if not nodeName in v.client.gui.getNodeList():
+        v.client.gui.addXYZaxis(nodeName, [1,1,1,1], 0.015, 0.1)
+    pose = list(wMc.translation)
+    pose += list(Quaternion(wMc.rotation).coeffs())
+    v.client.gui.applyConfiguration(nodeName, pose)
+    v.client.gui.refresh()
+
+# Read configurations and cMo in files and display corresponding pose
+# in gepetto-gui
+def checkData(robot, v, input_directory, q_init, maxIndex):
+    with open('/tmp/robot.urdf', 'w') as f:
+        f.write(robot.urdfString)
+    pinRob = RobotWrapper()
+    pinRob.initFromURDF('/tmp/robot.urdf')
+    camera_frame_id = pinRob.model.getFrameId('camera_color_optical_frame')
+    count = 1
+    while count <= maxIndex:
+        poseFile = os.path.join(input_directory, f'pose_cPo_{count}.yaml')
+        configFile = os.path.join(input_directory, f'configuration_{count}')
+        try:
+            f1 = open(poseFile, 'r')
+            d = yaml.safe_load(f1)
+            f1.close()
+            f1 = open(configFile, 'r')
+            config = f1.readline()
+            f1.close()
+            cMo_tuple = list(zip(*d['data']))[0]
+            trans = np.array(cMo_tuple[:3])
+            rot = exp3(np.array(cMo_tuple[3:]))
+            cMo = SE3(translation = trans, rotation = rot)
+            listq = list(map(float, config.split(',')))
+            q = np.array(listq)
+            listq += q_init[6:]
+            forwardKinematics(pinRob.model, pinRob.data, q)
+            pinRob.framesForwardKinematics(q)
+            wMc = pinRob.data.oMf[camera_frame_id]
+            v.client.gui.setCameraTransform('scene_hpp_',
+                list(wMc.translation) +
+                list((Quaternion(wMc.rotation)*Quaternion(np.array([0,1,0,0]))).
+                     coeffs()))
+            wMo = wMc * cMo
+            displayPose('robot/chessboard', wMc)
+            v(listq)
+            print('Press enter')
+            input()
+        except FileNotFoundError as exc:
+            print(f'{poseFile} does not exist')
+        count+=1
 
 def computeCameraPose(mMe, eMc, eMc_measured):
     # we wish to compute a new position mMe_new of ref_camera_link in
