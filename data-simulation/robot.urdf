@@ -626,6 +626,13 @@
         <mesh filename="package://agimus_demos/meshes/ur10e_tip.stl"/>
       </geometry>
     </collision>
+    <!-- wooden spike -->
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.113"/>
+      <geometry>
+        <cylinder length="0.25" radius="0.0015"/>
+      </geometry>
+    </collision>
   </link>
   <joint name="ur10e_tool_joint" type="fixed">
     <parent link="ur10e_d435_mount_link"/>
