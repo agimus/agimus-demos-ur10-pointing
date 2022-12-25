@@ -104,6 +104,8 @@ class CalibrationControl (object):
     endEffectorFrame = "ref_camera_link"
     origin = "world"
     maxDelay = rospy.Duration (1,0)
+    joints = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+              'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
     def __init__ (self) :
         rospy.init_node ('calibration_control')
         self.tfBuffer = tf2_ros.Buffer(rospy.Duration (1,0))
@@ -212,7 +214,11 @@ class CalibrationControl (object):
             if "joint_states" in measurement:
                 with open(directory + f"/configuration_{count}", 'w') as f:
                     line = ""
-                    for jv in measurement ["joint_states"]:
+                    q = len(measurement ["joint_states"])* [None]
+                    for jn, jv in zip(self.jointNames,
+                                      measurement ["joint_states"]):
+                        q[self.joints.index(jn)] = jv
+                    for jv in q:
                         line += f"{jv},"
                     line = line [:-1] + "\n"
                     f.write (line)
