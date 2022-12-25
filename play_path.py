@@ -107,6 +107,11 @@ class CalibrationControl (object):
     joints = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
               'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
     def __init__ (self) :
+        self.running = False
+        self.sotJointStates = None
+        self.rosJointStates = None
+        self.jointNames = None
+        self.pathId = 0
         rospy.init_node ('calibration_control')
         self.tfBuffer = tf2_ros.Buffer(rospy.Duration (1,0))
         self.tf2Listener = tf2_ros.TransformListener(self.tfBuffer)
@@ -114,20 +119,11 @@ class CalibrationControl (object):
                                              queue_size=1)
         self.subRunning = rospy.Subscriber ("/agimus/status/running", Bool,
                                             self.runningCallback)
-        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
-                                                  self.rosJointStateCallback)
         self.subStatus = rospy.Subscriber \
                          ("/agimus/agimus/smach/container_status",
                           SmachContainerStatus, self.statusCallback)
-        self.subImage = rospy.Subscriber ("/camera/color/image_raw", Image,
-                                                   self.imageCallback)
         self.subCameraInfo = rospy.Subscriber("/camera/color/camera_info",
                                CameraInfo, self.cameraInfoCallback)
-        self.running = False
-        self.sotJointStates = None
-        self.rosJointStates = None
-        self.jointNames = None
-        self.pathId = 0
         self.hppClient = HppClient ()
         self.count = 0
         self.measurements = list ()
@@ -142,11 +138,17 @@ class CalibrationControl (object):
         self.waitForEndOfMotion ()
         if not self.errorOccured:
             # wait to be sure that the robot is static
-            rospy.sleep(10.)
+            rospy.sleep(1.)
             print("Collect data.")
             self.collectData ()
 
     def collectData (self):
+        self.rosJointStates = None
+        self.subRosJointState = rospy.Subscriber ("/joint_states", JointState,
+                                                  self.rosJointStateCallback)
+        self.image = None
+        self.subImage = rospy.Subscriber ("/camera/color/image_raw", Image,
+                                                   self.imageCallback)
         measurement = dict ()
         # record position of camera
         try:
@@ -158,10 +160,9 @@ class CalibrationControl (object):
             self.wMc = None
             rospy.loginfo ("No camera pose in tf")
         now = rospy.Time.now ()
-        # Get joint values.
-        if self.rosJointStates:
-            measurement ["joint_states"] = self.rosJointStates
         # Get image.
+        while not self.image or not self.rosJointStates:
+            rospy.sleep(1e-3)
         t = self.image.header.stamp
         # Check that data is recent enough
         if abs (now - t) < self.maxDelay:
@@ -169,6 +170,9 @@ class CalibrationControl (object):
         else:
             rospy.loginfo ("time latest image from now: {}".
                            format ((now - t).secs + 1e-9*(now - t).nsecs))
+        # Get joint values.
+        if self.rosJointStates:
+            measurement ["joint_states"] = self.rosJointStates
         self.measurements.append (measurement)
 
     def save (self, directory):
@@ -251,9 +255,12 @@ class CalibrationControl (object):
 
     def imageCallback(self, msg):
         self.image = msg
+        self.subImage.unregister()
+        self.subImage = None
 
     def cameraInfoCallback(self, msg):
         self.cameraInfo = msg
+        self.subCameraInfo.unregister()
         self.subCameraInfo = None
 
     def sotJointStateCallback (self, msg):
@@ -263,6 +270,8 @@ class CalibrationControl (object):
         self.rosJointStates = msg.position
         if not self.jointNames:
             self.jointNames = msg.name
+        self.subRosJointState.unregister()
+        self.subRosJointState = None
 
 def playAllPaths (startIndex):
     i = startIndex
