@@ -1,7 +1,12 @@
-# Camera eye in hand calibration
+# Calibration
 
 This file explains how to plan, execute motions that move the camera in front
-of a chessboard, and how to collect calibration data.
+of a chessboard, and how to collect calibration data. We then propose two
+calibration procedure
+
+  - hand eye based on VIsP to compute the camera pose in the end-effector frame,
+  - full calibration based on VIsP and figaroh that besides the above computes
+    the kinematic parameters of the kinematic chain of the robot.
 
 Before starting, place a chessboard of 10 by 7 squares of size 2.7cm
 on a vertical plane in front of the robot (1.3m ahead). The center of
@@ -20,9 +25,20 @@ Start the demo with the following differences:
 Move the robot to the "calib" configuration.
 
 In the terminal where script_hpp.py has been run, copy paste the
-content of calibration_paths.py. If no path appears in the "Path
-Player" of gepetto-gui after refreshing, re-execute the last line of
-the later script after increasing "calibration.nbConfigs".
+following lines. 
+
+```python
+from calibration import Calibration, generateDataForFigaroh, checkData
+
+calibration = Calibration(ps, graph, factory)
+calibration.nbConfigs = 30
+calibration.addStateToConstraintGraph()
+calibration.generateConfigurationsAndPaths(q0, filename="./data/calib-configs.csv")
+```
+
+If no path appears in the "Path Player" of gepetto-gui after
+refreshing, re-execute the last line of the later script after
+increasing "calibration.nbConfigs".
 
 in a new terminal, cd into ur10/pointing and run
 ```python
@@ -50,13 +66,11 @@ acquired the first time. For that, it is recommended
   - to go back to the "calib" configuration,
   - to save the data in another directory to avoid overwriting the previous data.
 
-## Running the calibration procedure
+## Hand eye calibration
 
-Follow the instructions here:
+Follow the instructions here https://visp-doc.inria.fr/doxygen/visp-daily/tutorial-calibration-extrinsic.html.
 
-  https://visp-doc.inria.fr/doxygen/visp-daily/tutorial-calibration-extrinsic.html
-
-## Updating the model
+### Updating the model
 
 The calibration procedure computes the pose of the optical frame
 "camera_color_optical_frame" in the end-effector link, here "ref_camera_link".
@@ -86,3 +100,18 @@ Therefore
   mMe_new = mMe * eMc_measured * eMc_provided.inverse()
 
 Function computeCameraPose in calibration.py makes this calculation.
+
+## Full calibration
+
+Compute the camera poses with respect to the chessboard:
+
+$DEVEL_HPP_DIR/src/visp/build-rel/tutorial/calibration/tutorial-chessboard-pose --square_size 0.027 --input image-%d.png --intrinsic camera.xml --output pose_cPo_%d.yaml
+
+See  https://visp-doc.inria.fr/doxygen/visp-daily/tutorial-calibration-extrinsic.html for details.
+
+In the python terminal where `script_hpp.py` has been executed, type
+```python
+generateDataForFigaroh(robot, './measurements', output_file, 30)
+```
+where `output_file` is the full path to `data/ur10/calibration.csv` in
+`figaroh` source directory.
