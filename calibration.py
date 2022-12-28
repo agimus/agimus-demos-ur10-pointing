@@ -215,9 +215,15 @@ def displayPose(v, nodeName, wMc):
 # Read configurations and cMo in files and display corresponding pose
 # in gepetto-gui
 def checkData(robot, v, figaroh_csv_file, q_init):
+    view_from_camera = False
     configurations, wMcs = readDataFromFigaroh(figaroh_csv_file, q_init)
     for q, wMc in zip(configurations, wMcs):
         displayPose(v, 'robot/chessboard', wMc)
+        if view_from_camera:
+            ql = list(wMc.translation)
+            ql += list((Quaternion(wMc.rotation)*
+                        Quaternion(np.array([0,1,0,0]))).coeffs())
+            v.client.gui.setCameraTransform('scene_hpp_', ql)
         v(q)
         print('Check pose of camera and press enter')
         input()
