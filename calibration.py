@@ -141,6 +141,10 @@ class Calibration(Parent):
 #    configuration_{i}, i<=maxIndex,
 #    pose_cPo_{i}.yaml, i<=maxIndex.
 def generateDataForFigaroh(robot, input_directory, output_file, maxIndex):
+    # Use reference pose of chessboard. Note that this is the pose of the
+    # frame extracted from pose computation top left part of the chessboard
+    wMo = SE3(translation=np.array([1.28, 0.108, 1.4775]),
+              rotation = np.array([[0,0,1],[-1,0,0],[0,-1,0]]))
     # create a pinocchio model from the Robot.urdfString
     with open('/tmp/robot.urdf', 'w') as f:
         f.write(robot.urdfString)
@@ -166,15 +170,6 @@ def generateDataForFigaroh(robot, input_directory, output_file, maxIndex):
                 trans = np.array(cMo_tuple[:3])
                 rot = exp3(np.array(cMo_tuple[3:]))
                 cMo = SE3(translation = trans, rotation = rot)
-                # The first time, compute measured pose of chessboard to express
-                # camera pose in world frame
-                if count == 1:
-                    q = np.array(list(map(float, config.split(','))))
-                    forwardKinematics(pinRob.model, pinRob.data, q)
-                    pinRob.framesForwardKinematics(q)
-                    wMc = pinRob.data.oMf[camera_frame_id]
-                    wMo = wMc * cMo
-                    print(f'wMo = {wMo}')
                 oMc = cMo.inverse()
                 wMc = wMo * oMc
                 line = ""
