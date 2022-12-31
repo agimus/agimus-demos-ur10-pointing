@@ -4,9 +4,10 @@ This file explains how to plan, execute motions that move the camera in front
 of a chessboard, and how to collect calibration data. We then propose two
 calibration procedure
 
-  - hand eye based on VIsP to compute the camera pose in the end-effector frame,
+  - hand eye based with VIsP to compute the camera pose in the end-effector
+    frame,
   - full calibration based on VIsP and figaroh that besides the above computes
-    the kinematic parameters of the kinematic chain of the robot.
+    the geometric parameters of the kinematic chain of the robot.
 
 Before starting, place a chessboard of 10 by 7 squares of size 2.7cm
 on a vertical plane in front of the robot (1.3m ahead). The center of
@@ -103,7 +104,13 @@ Function computeCameraPose in calibration.py makes this calculation.
 
 ## Full calibration
 
-Compute the camera poses with respect to the chessboard:
+Install figaroh
+
+```bash
+cd $DEVEL_HPP_DIR/src
+make figaroh.install
+```
+### Compute the camera poses with respect to the chessboard:
 
 $DEVEL_HPP_DIR/src/visp/build-rel/tutorial/calibration/tutorial-chessboard-pose --square_size 0.027 --input image-%d.png --intrinsic camera.xml --output pose_cPo_%d.yaml
 
@@ -113,5 +120,32 @@ In the python terminal where `script_hpp.py` has been executed, type
 ```python
 generateDataForFigaroh(robot, './measurements', output_file, 30)
 ```
-where `output_file` is the full path to `data/ur10/calibration.csv` in
-`figaroh` source directory.
+where `output_file` is the full path to
+`examples/ur10/data/calibration.csv` in `figaroh` source directory.
+
+### Compute the kinematic parameters
+
+```bash
+cd $DEVEL_HPP_DIR/src/figaroh/examples/ur10
+python -i calibration.py
+```
+Several windows appear that show the result of the optimization procedure. Close
+the windows by typing 'q'.
+Then in the python terminal, type
+```python
+from update_model import update_parameters
+update_parameters(f_input, f_output, LM_solve.x, param)
+```
+where
+
+  - `f_input` is the full path to the current kinematic parameters of the
+     robot: `$DEVEL_HPP_DIR/src/agimus-demos/ur10/pointing/config/calibrated-params.yaml`,
+  - `f_output` is the name of a file in the same directory, for example
+    `updated-params.yaml`.
+Compare the two files to check that the differences are relevant. If so, copy
+the later into the former, commit, push and reinstall agimus-demos.
+
+### Compute the camera pose
+
+The last 6 components of `LM_solve.x` represent the pose of
+`camera_color_optical_frame` in `wrist_3_link`: (x,y,z,roll,pitch,yaw).
