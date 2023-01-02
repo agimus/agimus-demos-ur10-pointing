@@ -47,6 +47,11 @@
       safety_pos_margin="$(arg safety_pos_margin)"
       safety_k_position="$(arg safety_k_position)"/>
 
+  <!-- load parameters of camera pose -->
+  <xacro:property name="camera_pose_file"
+                  value="$(find agimus_demos)/ur10/pointing/config/calibrated-params.yaml" />
+  <xacro:property name="camera_pose" value="${load_yaml(camera_pose_file)}"/>
+
    <link name="world" />
 
    <link name="wall_link">
@@ -238,8 +243,12 @@
     <joint name="ref_camera_joint" type="fixed">
      <parent link="ur10e_d435_mount_link" />
      <child link = "ref_camera_link" />
-     <origin xyz="0.00033351  0.11805402 -0.01064025"
-	     rpy="-0.00127120646 -1.00435876 -1.56137241"/>
+     <origin xyz="${camera_pose['camera']['x']}
+                  ${camera_pose['camera']['y']}
+                  ${camera_pose['camera']['z']}"
+	     rpy="${camera_pose['camera']['roll']}
+                  ${camera_pose['camera']['pitch']}
+                  ${camera_pose['camera']['yaw']}"/>
    </joint>
 
    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
