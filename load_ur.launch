@@ -4,10 +4,18 @@ The file is copied in order to allow us to use a dedicated xacro file
 to describe the robot with end effector and sensors. -->
 <launch>
   <!--ur parameters files -->
-  <arg name="joint_limit_params" doc="YAML file containing the joint limit values"/>
-  <arg name="kinematics_params" doc="YAML file containing the robot's kinematic parameters. These will be different for each robot as they contain the robot's calibration."/>
-  <arg name="physical_params" doc="YAML file containing the phycical parameters of the robots"/>
-  <arg name="visual_params" doc="YAML file containing the visual model of the robots"/>
+  <arg name="joint_limit_params"
+       doc="YAML file containing the joint limit values"
+       default="$(find ur_description)/config/ur10e/joint_limits.yaml"/>
+  <arg name="kinematics_params"
+       doc="YAML file containing the robot's kinematic parameters. These will be different for each robot as they contain the robot's calibration."
+       default="$(find ur_description)/config/ur10e/default_kinematics.yaml"/>
+  <arg name="physical_params"
+       doc="YAML file containing the phycical parameters of the robots"
+       default="$(find ur_description)/config/ur10e/physical_parameters.yaml"/>
+  <arg name="visual_params"
+       doc="YAML file containing the visual model of the robots"
+       default="$(find ur_description)/config/ur10e/visual_parameters.yaml"/>
   <!--common parameters  -->
   <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
   <arg name="safety_limits" default="false" doc="If True, enable the safety limits controller"/>
@@ -31,7 +39,7 @@ to describe the robot with end effector and sensors. -->
        include the ur_macro.xacro file into it. Then write a new .launch file
        to load it onto the parameter server.
   -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur.xacro'
+  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur10_pointing_ur.urdf.xacro'
     joint_limit_params:=$(arg joint_limit_params)
     kinematics_params:=$(arg kinematics_params)
     physical_params:=$(arg physical_params)
