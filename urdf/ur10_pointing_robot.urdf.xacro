@@ -30,7 +30,7 @@
 
   <!-- import gazebo plugins macro -->
   <xacro:if value="$(arg gazebo)">
-    <xacro:include filename="$(find agimus_demos)/urdf/ur10_pointing_gazebo.urdf.xacro" />
+    <xacro:include filename="$(find agimus_demos)/urdf/d435_gazebo.urdf.xacro" />
   </xacro:if>
   <!-- import main macro -->
   <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>

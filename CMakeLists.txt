@@ -45,7 +45,6 @@ INSTALL(FILES
   )
 
 INSTALL(FILES
-  urdf/ur10_pointing_gazebo.urdf.xacro
   urdf/ur10_pointing_robot.urdf.xacro
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf
   )
