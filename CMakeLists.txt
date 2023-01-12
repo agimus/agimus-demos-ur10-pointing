@@ -45,8 +45,16 @@ INSTALL(FILES
   )
 
 INSTALL(FILES
+  urdf/plaque-tubes-with-table.urdf
   urdf/robot.urdf.xacro
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/urdf
   )
+
+INSTALL(FILES
+  srdf/plaque-tubes.srdf
+  srdf/plaque-tubes.py
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/srdf
+  )
+
 INSTALL(DIRECTORY config DESTINATION
   ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing)

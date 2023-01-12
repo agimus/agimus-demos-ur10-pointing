@@ -54,7 +54,7 @@
 
    <link name="world" />
 
-      <link name="wall_link">
+   <link name="wall_link">
    <inertial>
         <mass value="1000"/>
         <origin xyz="0 0 0.45"/>

@@ -39,8 +39,8 @@ UseAprilTagPlank = False
 useFOV = False
 
 class PartPlaque:
-    urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
-    srdfFilename = "package://agimus_demos/srdf/plaque-tubes.srdf"
+    urdfFilename = "package://agimus_demos/ur10/pointing/urdf/plaque-tubes-with-table.urdf"
+    srdfFilename = "package://agimus_demos/ur10/pointing/srdf/plaque-tubes.srdf"
     rootJointType = "freeflyer"
 
 class AprilTagPlank:
