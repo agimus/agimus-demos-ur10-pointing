@@ -779,7 +779,7 @@ class PathGenerator(object):
                 i += 1
                 if i > NbTries:
                     return None
-    
+
     def demoSN(self, hole_list=[1,21,6,34], pointcloud_handles=[1,5,19,15],
                 steps=True, getPCatPreGrasp=False, execute=True):
 
@@ -810,11 +810,11 @@ class PathGenerator(object):
             self.resetVision()
             res = self.demo_goToHolePointCloud(hole_id, steps=steps, pointcloud=False)
             time.sleep(0.2)
-        
+
         print("\nGoing to transition config...")
         flag = None
         while flag != 'y':
-            
+
             for i in range(3):
                 try:
                     pid, _ = self.planTo("pointcloud")
@@ -832,11 +832,11 @@ class PathGenerator(object):
                 return False
 
         res = self.demo_execute(pid, steps=False)
-        
+
         print("\nGoing to calibration config...")
         flag = None
         while flag != 'y':
-            
+
             for i in range(3):
                 try:
                     pid, _ = self.planTo("calib")

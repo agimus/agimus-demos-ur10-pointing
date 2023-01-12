@@ -47,7 +47,7 @@ class AprilTagPlank:
     urdfFilename = "package://agimus_demos/urdf/april-tag-plank.urdf"
     srdfFilename = "package://agimus_demos/srdf/april-tag-plank.srdf"
     rootJointType = "freeflyer"
- 
+
 # parse arguments
 defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=

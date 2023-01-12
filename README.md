@@ -86,7 +86,7 @@ roslaunch ./demo.launch
 ```
 On the robot, after the file is run, the robot should have a lock sound of the joint.
 
-### III-2) Launch HPP 
+### III-2) Launch HPP
 
 4. In terminal 3
 ```bash
@@ -102,7 +102,7 @@ gepetto-gui
 ```bash
 python -i script_hpp.py
 ```
-7. on met le robot en configuration pour demarrer la localisation, move the sensor in front of the part, in python terminal : 
+7. Move the sensor in front of the part, in python terminal:
 ```
 pg.planTo("calib")
 ```

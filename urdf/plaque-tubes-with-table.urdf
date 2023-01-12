@@ -154,7 +154,7 @@
   </gazebo>
 
 
-  <link name="plaque_link">  
+  <link name="plaque_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
@@ -201,7 +201,7 @@
         <mesh filename="package://agimus_demos/meshes/axis_systemA.stl" scale="0.005 0.005 0.005"/>
       </geometry>
     </visual> -->
-    
+
 
     <collision>
       <origin xyz="0.5 0 .5"/>
@@ -209,14 +209,14 @@
         <box size="1.995 1 1"/>
       </geometry>
     </collision>
-    
+
     <inertial>
       <mass value="2.2"/>
       <origin xyz="0 0 0.65" rpy="0 0 0"/>
       <inertia ixx="0.1"  ixy="0"  ixz="0" iyy="0.1" iyz="0" izz="0.1" />
     </inertial>
   </link>
-  
+
   <link name="hole_00_link">
     <visual>
         <geometry>
