@@ -181,74 +181,35 @@
   <joint name="plaque_joint" type="fixed">
     <parent link="base_link"/>
     <child link="plaque_link"/>
-    <origin xyz="-0.5075 0 1.52" rpy="1.5708 0 0"/>
+    <origin xyz="-0.5 -0.5 1.792" rpy="1.5708 0 0"/>
   </joint>
 
   <link name="base_link">
     <visual>
-      <origin xyz="0 0 .725"/>
+      <origin xyz="0.5 0 .5"/>
       <geometry>
-        <box size="1.2 0.40 .05"/>
+        <box size="1.995 1 1"/>
       </geometry>
       <material name="blue">
         <color rgba="0 0 1 1"/>
       </material>
     </visual>
-    <visual>
-      <origin xyz=".59 .19 .36"/>
+
+    <!-- <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size=".02 .02 .72"/>
+        <mesh filename="package://agimus_demos/meshes/axis_systemA.stl" scale="0.005 0.005 0.005"/>
       </geometry>
-    </visual>
-    <visual>
-      <origin xyz="-.59 .19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </visual>
-    <visual>
-      <origin xyz="-.59 -.19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </visual>
-    <visual>
-      <origin xyz=".59 -.19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </visual>
+    </visual> -->
+    
 
     <collision>
-      <origin xyz="0 0 .725"/>
+      <origin xyz="0.5 0 .5"/>
       <geometry>
-        <box size="1.10 .42 .05"/>
+        <box size="1.995 1 1"/>
       </geometry>
     </collision>
-    <collision>
-      <origin xyz=".59 .19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-.59 .19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz="-.59 -.19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </collision>
-    <collision>
-      <origin xyz=".59 -.19 .36"/>
-      <geometry>
-        <box size=".02 .02 .72"/>
-      </geometry>
-    </collision>
+    
     <inertial>
       <mass value="2.2"/>
       <origin xyz="0 0 0.65" rpy="0 0 0"/>

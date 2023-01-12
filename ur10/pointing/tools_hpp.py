@@ -108,6 +108,7 @@ class PathGenerator(object):
 
     def buildPointCloud(self, res=0.005, qi=None, margin=0.015, timeout=30,
                   plan=True, new=True):
+        input("Taper entrer")
         qi = self.localizePart()
         self.robot.setCurrentConfig(qi)
         if plan:
@@ -662,34 +663,96 @@ class PathGenerator(object):
                 return True
         return True
 
+    # Add option to calculate another path to the original step function
+    def stepOther(self, pid, steps=True, visualize=True):
+        if steps:
+            if visualize:
+                self.pp(pid)
+            res = input("Execute ? (Y/n/reshow(r)/otherPath(o))")
+            if 'r' in res.lower():
+                return self.stepOther(pid, steps=steps, visualize=True)
+            if 'n' in res.lower():
+                return 'n'
+            if 'o' in res.lower():
+                return 'o'
+            if 'y' in res.lower():
+                return 'y'
+            else:
+                return 'n'
+        return 'y'
+
+    # def demo_goToHolePointCloud(self, hole_id, steps=False, pointcloud=True):
+    #     qinit = self.checkQInit()
+    #     if not self.isHoleDoable(hole_id, qinit):
+    #         print(f"Hole {hole_id} is not doable")
+    #         return None, qinit
+    #     print(f"\nGoing to hole {hole_id}")
+    #     for i in range(3):
+    #         try:
+    #             print("Planning pregrasp")
+    #             pid, _ = self.planToPregrasp(hole_id)
+    #             if pid is not None:
+    #                 break
+    #         except:
+    #             return False
+    #     if pid is None:
+    #         print(f"Failed to do hole {hole_id}")
+    #         return True
+    #     res = self.demo_execute(pid, steps=steps)
+    #     if pointcloud:
+    #         self.buildPointCloud(new=False)
+    #     print("Executing pointing task...")
+    #     try:
+    #         pid, _ = self.planPointingPathForHole(hole_id)
+    #         if pid is None:
+    #             return False
+    #     except:
+    #         return False
+    #     return self.demo_execute(pid, steps=steps)
+
     def demo_goToHolePointCloud(self, hole_id, steps=False, pointcloud=True):
         qinit = self.checkQInit()
         if not self.isHoleDoable(hole_id, qinit):
             print(f"Hole {hole_id} is not doable")
             return None, qinit
         print(f"\nGoing to hole {hole_id}")
-        for i in range(3):
-            try:
-                print("Planning pregrasp")
-                pid, _ = self.planToPregrasp(hole_id)
-                if pid is not None:
-                    break
-            except:
+
+        flag = None
+        while flag != 'y':
+            for i in range(3):
+                try:
+                    print("Planning pregrasp")
+                    pid, _ = self.planToPregrasp(hole_id)
+                    if pid is not None:
+                        break
+                except:
+                    return False
+            if pid is None:
+                print(f"Failed to do hole {hole_id}")
+                return True
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+
+            if flag == 'n':
                 return False
-        if pid is None:
-            print(f"Failed to do hole {hole_id}")
-            return True
-        res = self.demo_execute(pid, steps=steps)
+        res = self.demo_execute(pid, steps=False)
+
         if pointcloud:
             self.buildPointCloud(new=False)
         print("Executing pointing task...")
-        try:
-            pid, _ = self.planPointingPathForHole(hole_id)
-            if pid is None:
+
+        flag = None
+        while flag != 'y':
+            try:
+                pid, _ = self.planPointingPathForHole(hole_id)
+                if pid is None:
+                    return False
+                flag = self.stepOther(pid, steps=steps, visualize=True)
+                if flag =='n':
+                    return False
+            except:
                 return False
-        except:
-            return False
-        return self.demo_execute(pid, steps=steps)
+
+        return self.demo_execute(pid, steps=False)
 
     def demo_goToHole(self, hole_id, steps=False, NbTries=3):
         i = 0
@@ -715,16 +778,93 @@ class PathGenerator(object):
                 i += 1
                 if i > NbTries:
                     return None
+    
+    def demoSN(self, hole_list=[1,21,6,34], pointcloud_handles=[1,5,19,15],
+                steps=True, getPCatPreGrasp=False, execute=True):
 
-    def demo(self, hole_list=[7,8,9,42,43,13], pointcloud_handles=[1,5,19,15],
-                steps=False, getPCatPreGrasp=False, execute=True):
+        self.localizePart()
+        print("\nGoing to transition config...")
+        flag = None
+        while flag != 'y':
+            for i in range(3):
+                try:
+                    pid, _ = self.planTo("pointcloud")
+                except Exception as e :
+                    print(e)
+                    continue
+                if pid is not None:
+                    break
+            if pid is None:
+                print("Failed to go to transition config")
+                return False
+
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+            if flag =='n':
+                return False
+
+        res = self.demo_execute(pid, steps=False)
+
+
+        for hole_id in hole_list:
+            self.resetVision()
+            res = self.demo_goToHolePointCloud(hole_id, steps=steps, pointcloud=False)
+            time.sleep(0.2)
+        
+        print("\nGoing to transition config...")
+        flag = None
+        while flag != 'y':
+            
+            for i in range(3):
+                try:
+                    pid, _ = self.planTo("pointcloud")
+                except Exception as e :
+                    print(e)
+                    continue
+                if pid is not None:
+                    break
+            if pid is None:
+                print("Failed to go to transition config")
+                return False
+
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+            if flag =='n':
+                return False
+
+        res = self.demo_execute(pid, steps=False)
+        
+        print("\nGoing to calibration config...")
+        flag = None
+        while flag != 'y':
+            
+            for i in range(3):
+                try:
+                    pid, _ = self.planTo("calib")
+                except Exception as e :
+                    print(e)
+                    continue
+                if pid is not None:
+                    break
+            if pid is None:
+                print("Failed to go back to calib")
+                return False
+
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+            if flag =='n':
+                return False
+
+        res = self.demo_execute(pid, steps=False)
+        print("Demo done.")
+        return True
+    # Demo avec obstacles detection
+    def demoO(self, hole_list=[1,21,5,34], pointcloud_handles=[1,5,19,15],
+                steps=True, getPCatPreGrasp=False, execute=True):
         self.removePointCloud()
         res = self.demo_calib(steps=steps)
         if not res:
             print("Could not do calib.")
             return False
 
-        res = self.demo_pointcloud(configs=["pointcloud", "pointcloud2"], steps=steps)
+        res = self.demo_pointcloud(configs=["calib","pointcloudF","pointcloud", "pointcloud2"], steps=steps)
         # if not getPCatPreGrasp:
         #     res = self.demo_handle_pointcloud(handles=pointcloud_handles, steps=steps)
         if not res:
@@ -739,19 +879,47 @@ class PathGenerator(object):
                 res = self.demo_goToHolePointCloud(hole_id, steps=steps, pointcloud=False)
             time.sleep(0.2)
 
+        print("\nGoing to transition config...")
+        flag = None
+        while flag != 'y':
+            for i in range(3):
+                try:
+                    pid, _ = self.planTo("pointcloud")
+                except Exception as e :
+                    print(e)
+                    continue
+                if pid is not None:
+                    break
+            if pid is None:
+                print("Failed to go to transition config")
+                return False
+
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+            if flag =='n':
+                return False
+        res = self.demo_execute(pid, steps=False)
+
         print("\nGoing to calibration config...")
-        for i in range(3):
-            try:
-                pid, _ = self.planTo("calib")
-            except Exception as e :
-                print(e)
-                continue
-            if pid is not None:
-                break
-        if pid is None:
-            print("Failed to go back to calib")
-            return False
-        res = self.demo_execute(pid, steps=steps)
+        flag = None
+        while flag != 'y':
+            print("\nGoing to calibration config...")
+            for i in range(3):
+                try:
+                    pid, _ = self.planTo("calib")
+                except Exception as e :
+                    print(e)
+                    continue
+                if pid is not None:
+                    break
+            if pid is None:
+                print("Failed to go back to calib")
+                return False
+
+            flag = self.stepOther(pid, steps=steps, visualize=True)
+            if flag =='n':
+                return False
+
+        res = self.demo_execute(pid, steps=False)
         print("Demo done.")
         return True
 
