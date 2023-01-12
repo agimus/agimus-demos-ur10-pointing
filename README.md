@@ -100,7 +100,18 @@ gepetto-gui
 
 6. In terminal 5
 ```bash
-ipython -i script_hpp.py
+python -i script_hpp.py
+```
+7. on met le robot en configuration pour demarrer la localisation, move the sensor in front of the part, in python terminal : 
+```
+pg.planTo("calib")
+```
+TODO:
+in gepetto, look for the path : (file:///home/react/devel/install/share/doc/agimus-doc/doxygen-html/tutorial_gepetto-gui.html)
+
+TODO: launch widget
+```
+rosrun agimus rqt_path_execution
 ```
 
 ### III-3) Launch the vision module
