@@ -56,5 +56,12 @@ INSTALL(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/srdf
   )
 
+INSTALL(FILES
+  meshes/IMC.stl
+  meshes/ur10e_d435_mount.stl
+  meshes/ur10e_tip.stl
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/meshes
+  )
+
 INSTALL(DIRECTORY config DESTINATION
   ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing)
