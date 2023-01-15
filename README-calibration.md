@@ -29,12 +29,12 @@ In the terminal where script_hpp.py has been run, copy paste the
 following lines. 
 
 ```python
+q_init[-7:] = [1.3, 0, 0, 0, 0, 0, 1]
 from calibration import Calibration, generateDataForFigaroh, checkData
 
 calibration = Calibration(ps, graph, factory)
-calibration.nbConfigs = 30
 calibration.addStateToConstraintGraph()
-calibration.generateConfigurationsAndPaths(q0, filename="./data/calib-configs.csv")
+calibration.generateConfigurationsAndPaths(q_init, filename="./data/optimal-configs.csv")
 ```
 
 If no path appears in the "Path Player" of gepetto-gui after

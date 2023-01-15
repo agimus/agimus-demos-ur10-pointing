@@ -111,24 +111,68 @@ class Calibration(Parent):
 
         self.factory.generate()
         sm = SecurityMargins(ps, self.factory, ["ur10e", "part"])
-        sm.setSecurityMarginBetween("ur10e", "ur10e", 0.02)
-        sm.setSecurityMarginBetween("ur10e", "part", 0.1)
+        sm.setSecurityMarginBetween("ur10e", "ur10e", 0.0)
+        sm.setSecurityMarginBetween("ur10e", "part", 0.015)
         sm.defaultMargin = 0.01
         sm.apply()
         graph.initialize()
 
-    def generateConfigurationsAndPaths(self, q0, filename = None):
+    # Generate calibration configs and integrate them in a roadmap
+    #
+    #   The number of configurations to generate is given by member
+    #   nbConfigs.
+    #
+    #   After building a roadmap with those configurations, if all of
+    #   them are not in the same connected component, add random
+    #   configurations to the roadmap and add edges between those configurations
+    #   and previously existing configurations.
+    def generateConfigurationsAndPaths(self, q_init, filename = None):
         ri = RosInterface(self.ps.robot)
-        q_init = ri.getCurrentConfig(q0)
         if filename:
-            configs = self.readConfigsInFile(filename)
+            self.calibConfigs = self.readConfigsInFile(filename)
         else:
-            configs = self.generateValidConfigs(q0, self.nbConfigs, .3, .5)
-            self.writeConfigsInFile("/tmp/ur10-configs.csv", configs)
-        configs = [q_init] + configs
-        self.buildRoadmap(configs)
-        configs = self.orderConfigurations(configs)[:self.nbConfigs+1]
-        self.visitConfigurations(configs)
+            self.calibConfigs = self.generateValidConfigs\
+                (q_init, self.nbConfigs, .3, .5)
+        finished = False
+        configs = [q_init] + self.calibConfigs
+        # save transition
+        transition = self.transition
+        self.setTransition("Loop | f")
+        for q in configs:
+            res, msg = self.pathValidation.validateConfiguration(q)
+            if not res:
+                print (f"{q} is not valid")
+                return
+            res, err = self.graph.getConfigErrorForEdgeLeaf("Loop | f", q_init,
+                                                            q)
+            if not res:
+                print(f"{q} is not reachable from q_init")
+                return
+
+        while not finished:
+            self.buildRoadmap(configs)
+            # find connected component of q_init
+            for i in range(self.ps.numberConnectedComponents()):
+                cc = self.ps.nodesConnectedComponent(i)
+                if not q_init in cc:
+                    continue
+                print(f'number of nodes in q_init connected component: {len(cc)}')
+                # From here on, q_init is in cc
+                finished = True
+                count = 0
+                for q in self.calibConfigs:
+                    if q in cc:
+                        count +=1
+            if 2*count < len(self.calibConfigs): finished = False
+            # if half of the configurations are in the same connected component,
+            # get out of the while loop
+            if finished: break
+            # Otherwise generate another batch of random configurations
+            configs += self.shootRandomConfigs(q_init, 10)
+            self.buildRoadmap(configs, len(configs) - 10)
+        self.setTransition(transition)
+        configs = self.orderConfigurations([q_init] + self.calibConfigs)
+        self.visitConfigurations([q_init] + self.calibConfigs)
 
 # Generate a csv file with the following data for each configuration:
 #  x, y, z, phix, phiy, phiz,

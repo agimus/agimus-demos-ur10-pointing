@@ -70,7 +70,7 @@ except:
     print("reading generic URDF")
     from hpp.rostools import process_xacro, retrieve_resource
     Robot.urdfString = process_xacro\
-      ("package://agimus_demos/urdf/ur10_robot_sim.urdf.xacro",
+      ("package://agimus_demos/ur10/pointing/urdf/robot.urdf.xacro",
        "transmission_hw_interface:=hardware_interface/PositionJointInterface")
 Robot.srdfString = ""
 
@@ -116,6 +116,13 @@ jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
   ('ur10e/wrist_1_joint', [-3.2, 3.2]),
   ('ur10e/wrist_2_joint', [-3.2, 3.2]),
   ('ur10e/wrist_3_joint', [-3.2, 3.2])]
+# Bounds to generate calibration configurations
+jointBounds["calibration"] = [('ur10e/shoulder_pan_joint', [-2.5, 2.5]),
+  ('ur10e/shoulder_lift_joint', [-2.5, 2.5]),
+  ('ur10e/elbow_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_1_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_2_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_3_joint', [-2.5, 2.5])]
 setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
