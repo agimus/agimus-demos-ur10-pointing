@@ -39,15 +39,15 @@ UseAprilTagPlank = False
 useFOV = False
 
 class PartPlaque:
-    urdfFilename = "package://agimus_demos/urdf/plaque-tubes-with-table.urdf"
-    srdfFilename = "package://agimus_demos/srdf/plaque-tubes.srdf"
+    urdfFilename = "package://agimus_demos/ur10/pointing/urdf/plaque-tubes-with-table.urdf"
+    srdfFilename = "package://agimus_demos/ur10/pointing/srdf/plaque-tubes.srdf"
     rootJointType = "freeflyer"
 
 class AprilTagPlank:
     urdfFilename = "package://agimus_demos/urdf/april-tag-plank.urdf"
     srdfFilename = "package://agimus_demos/srdf/april-tag-plank.srdf"
     rootJointType = "freeflyer"
- 
+
 # parse arguments
 defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
@@ -70,7 +70,7 @@ except:
     print("reading generic URDF")
     from hpp.rostools import process_xacro, retrieve_resource
     Robot.urdfString = process_xacro\
-      ("package://agimus_demos/urdf/ur10_robot_sim.urdf.xacro",
+      ("package://agimus_demos/ur10/pointing/urdf/robot.urdf.xacro",
        "transmission_hw_interface:=hardware_interface/PositionJointInterface")
 Robot.srdfString = ""
 
@@ -116,6 +116,13 @@ jointBounds["limited"] = [('ur10e/shoulder_pan_joint', [-pi, pi]),
   ('ur10e/wrist_1_joint', [-3.2, 3.2]),
   ('ur10e/wrist_2_joint', [-3.2, 3.2]),
   ('ur10e/wrist_3_joint', [-3.2, 3.2])]
+# Bounds to generate calibration configurations
+jointBounds["calibration"] = [('ur10e/shoulder_pan_joint', [-2.5, 2.5]),
+  ('ur10e/shoulder_lift_joint', [-2.5, 2.5]),
+  ('ur10e/elbow_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_1_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_2_joint', [-2.5, 2.5]),
+  ('ur10e/wrist_3_joint', [-2.5, 2.5])]
 setRobotJointBounds("limited")
 ## Remove some collision pairs
 #
@@ -129,13 +136,17 @@ if UseAprilTagPlank:
 else:
     Part = PartPlaque
 vf.loadRobotModel (Part, "part")
-robot.setJointBounds('part/root_joint', [1, 1.5, -0.5, 0.5, -0.5, 0.5])
+
+# JESSY 07/12 change part/root_joint y: 1.5-> 1.75
+robot.setJointBounds('part/root_joint', [1, 1.75, -0.5, 0.5, -0.5, 0.5])
 print("Part loaded")
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
 
-partPose = [1.3, 0, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
+# VISUAL(modification pour voir le visual servoing sur Gazebo)
+# JESSY 07/12 change partPose[0]: 1.4 -> 1.6
+partPose = [1.6, 0.1, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
 
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
@@ -148,15 +159,37 @@ if UseAprilTagPlank:
 else:
     q0[r:r+7] = partPose
 ## Home configuration
-q_home = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
+q_homeLAAS = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
+
+## JESSY 14/12 New Home configuration
+q_home = [1.571, -1.575, 2.753, -2.622, -1.571, 0.0,1.3, 0, 0, 0, 0, -0.7071, 0.7071]
+
+# JESSY 15/12
+# config intermédiaire entre calib et les trous
+q_int = [1.431, -1.983, 2.243, -0.253, -1.014, 0.000,1.3, 0, 0, 0, 0, -0.7071, 0.7071]
+
+# JESSY 05/12 Add calib
 ## Calibration configuration: the part should be wholly visible
-q_calib = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
+q_calibLAAS = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
+# Saint Nazaire calib configuration
+q_calibSN = [1.3707, -3.1, 2.1, -2.32, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
+
 ## PointCloud position : the part should fit the field of view
+q_pointcloudF = [1.465, -2.058, 2.076, -0.436, 1.5, -3.14, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
 q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
-q_pointcloud2 = [1.480271816253662, -1.4792188129820762, 2.403522316609518, -0.9397409719279786, 1.503467082977295, -3.152398173009054, 1.166362251685465, 0.18398354959470994, -0.040275835859414855, -0.011115686791169354, 0.00903223476857969, -0.701584375075136, 0.7124424361958492]
+q_pointcloud2 = [1.465, -1.465, 2.39, -1.134, 1.5, -3.14, 1.166362251685465, 0.18398354959470994, -0.040275835859414855, -0.011115686791169354, 0.00903223476857969, -0.701584375075136, 0.7124424361958492]
+
 q_pc1 = [1.4802236557006836, -2.7792393169798792, 2.6035669485675257, 0.06014220296826167, 1.5035147666931152, -3.1523261705981653, 1.1430909403610665, 0.22893782415973665, -0.04789935128099243, -0.0033794390562739483, 0.008636413673842097, -0.6985826418521135, 0.7154692755481825]
 q_pc2 = [1.480247974395752, -2.7792188129820765, 2.6035461584674278, -0.13980153024707037, 1.5035266876220703, -3.1523383299456995, 1.1138463304333714, 0.23051956151197342, -0.040682700437678854, -0.00938303410217683, 0.013303913345295534, -0.7001874363145009, 0.7137734364544993]
 
+
+# JESSY 13/12
+# New configuration for pointCloud demo Saint-Nazaire
+# q_pc1SN = [-2,-35,-143,0,7,-95,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476] # DEG
+q_pc1SN = [-0.03490658503988659,-0.6108652381980153,-2.498091544796509,0,0.12217304763960307,-1.658062789394634,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
+
+# q_pc2SN = [-2,-121,122,0,2,-95,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476] # DEG
+q_pc2SN = [-0.03490658503988659,-2.111848398575904,2.129311522021689,0,0.03490658503988659,-1.658062789394634,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
 
 
 def norm(quaternion):
@@ -250,12 +283,26 @@ hidden_holes = [0,2,10,11,12,14,16,24,33]
 holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 pg.setIsClogged(None)
 ps.setTimeOutPathPlanning(10)
+
+# JESSY 05/12 change calib configuration
+pg.setConfig("homeLAAS", q_homeLAAS)
 pg.setConfig("home", q_home)
-pg.setConfig("calib", q_calib)
+pg.setConfig("calibLAAS", q_calibLAAS)
+pg.setConfig("calibSN", q_calibSN) # set calib configuration for Saint-Nazaire Demo
+pg.setConfig("calib", q_calibSN) # set calib configuration for Saint-Nazaire Demo
+pg.setConfig("inter", q_int) # set inter configuration for Saint-Nazaire Demo
+
 pg.setConfig("pointcloud", q_pointcloud)
 pg.setConfig("pointcloud2", q_pointcloud2)
 pg.setConfig("pointcloud_bas", q_pc1)
 pg.setConfig("pointcloud_haut", q_pc2)
+
+# JESSY 13/12 ADD pointCloud configurations for SN Demo
+pg.setConfig("pointcloudF", q_pointcloudF)
+pg.setConfig("pc1SN", q_pc1SN)
+pg.setConfig("pc2SN", q_pc2SN)
+# pg.setConfig("pc3SN", q_pc3SN)
+
 
 if useFOV:
     def configHPPtoFOV(q):

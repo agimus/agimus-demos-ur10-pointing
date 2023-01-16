@@ -43,6 +43,8 @@ class ObjectLocalization(object):
         self.sotrobot = sotrobot
         self.objectLocalization = factory.tasks.getGrasp(gripper, handle)\
                                   ['pregrasp'].objectLocalization
+        # JESSY 05/12 setVisualServoingMode to False.
+        self.objectLocalization.setVisualServoingMode(False)
 
         self.handle = handle
         self.localizationFailedTopic = "/agimus/status/localization_failed"
@@ -146,6 +148,12 @@ def makeSupervisorWithFactory(robot):
         # motion.
         ol = ObjectLocalization(robot, factory, g, h)
         supervisor.preActions[transitionName_12].preActions.append(ol)
+        # For calibration handles, relocalize in contact
+
+        # VISUAL Commented for visual servoing
+        #if h.find('calibration') != -1:
+        #   supervisor.postActions[transitionName_12][goalName].preActions.\
+        #        append(ol)
 
         id = factory.handles.index(h)
         transitionName_21 = '{} < {} | 0-{}_21'.format(g, h, id)

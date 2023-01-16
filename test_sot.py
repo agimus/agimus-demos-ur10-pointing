@@ -6,10 +6,14 @@ from dynamic_graph.sot.core.feature_pose import FeaturePose
 from agimus_sot.sot import ObjectLocalization
 from pinocchio import SE3
 
+OFFSET_X = 0.0070
+OFFSET_Y = 0.0102
+OFFSET_Z = -0.0086
+
 R = np.matrix([[0,1,0],[0,0,1],[1,0,0]])
 # x = up
 # y = towards the left (when looking at the part from the gripper)
-x = SE3(R, np.array([-0.0000,-0.0000,-0.0000]))
+x = SE3(R, np.array([OFFSET_X,OFFSET_Y,OFFSET_Z]))
 
 # ol = ObjectLocalization('part/base_link_measuredwrt_world_ol')
 # ol.trigger(robot.device.control.time)

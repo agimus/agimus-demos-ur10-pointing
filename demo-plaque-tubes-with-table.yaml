@@ -8,10 +8,10 @@ demo:
     part:
       urdf:
         package: agimus_demos
-        file: /urdf/plaque-tubes-with-table.urdf
+        file: /ur10/pointing/urdf/plaque-tubes-with-table.urdf
       srdf:
         package: agimus_demos
-        file: srdf/plaque-tubes.srdf
+        file: ur10/pointing/srdf/plaque-tubes.srdf
       contacts:
         []
   grippers:
