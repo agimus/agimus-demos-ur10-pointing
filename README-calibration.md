@@ -21,7 +21,6 @@ Start the demo with the following differences:
 
   - no need to start react_inria node,
   - roslaunch demo part:=april-tag-plank,
-  - in script_hpp.py, set "UseAprilTagPlank = True",
 
 Move the robot to the "calib" configuration.
 
