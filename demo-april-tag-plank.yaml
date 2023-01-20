@@ -6,6 +6,7 @@ demo:
         file: srdf/ur10_robot.srdf
   objects:
     part:
+      class_name: AprilTagPlank
       urdf:
         package: agimus_demos
         file: /urdf/april-tag-plank.urdf
