@@ -35,7 +35,6 @@ from hpp.gepetto import PathPlayer
 from hpp.gepetto.manipulation import ViewerFactory
 from tools_hpp import RosInterface, PathGenerator
 
-UseAprilTagPlank = False
 useFOV = False
 
 class PartPlaque:
@@ -131,15 +130,21 @@ ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
 ## Load P72
 #[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
-if UseAprilTagPlank:
-    Part = AprilTagPlank
-else:
-    Part = PartPlaque
+
+# Get class_name str from rosparam
+Part_name = rospy.get_param('/demo/objects/part/class_name');
+# Instanciate the Part
+try:
+    class_ = globals()[Part_name]
+except Exception as e:
+    raise ValueError("Probably unvalid part name, check yaml files or rosparam") from e
+Part = class_()
+
 vf.loadRobotModel (Part, "part")
 
 # JESSY 07/12 change part/root_joint y: 1.5-> 1.75
 robot.setJointBounds('part/root_joint', [1, 1.75, -0.5, 0.5, -0.5, 0.5])
-print("Part loaded")
+print(f"{Part.__class__.__name__} loaded")
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
@@ -153,7 +158,7 @@ q0 = robot.getCurrentConfig()
 # set the joint match with real robot
 q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 r = robot.rankInConfiguration['part/root_joint']
-if UseAprilTagPlank:
+if isinstance(Part,AprilTagPlank):
     # Initial configuration of AprilTagPlank
     q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
 else:
