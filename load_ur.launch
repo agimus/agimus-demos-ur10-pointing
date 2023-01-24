@@ -39,7 +39,7 @@ to describe the robot with end effector and sensors. -->
        include the ur_macro.xacro file into it. Then write a new .launch file
        to load it onto the parameter server.
   -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/urdf/ur10_pointing_ur.urdf.xacro'
+  <param name="robot_description" command="$(find xacro)/xacro '$(find agimus_demos)/ur10/pointing/urdf/robot.urdf.xacro'
     joint_limit_params:=$(arg joint_limit_params)
     kinematics_params:=$(arg kinematics_params)
     physical_params:=$(arg physical_params)
