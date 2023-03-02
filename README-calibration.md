@@ -29,16 +29,19 @@ following lines.
 
 ```python
 q_init[-7:] = [1.3, 0, 0, 0, 0, 0, 1]
-from calibration import Calibration, generateDataForFigaroh, checkData
+from calibration import Calibration, checkData
 
 calibration = Calibration(ps, graph, factory)
+calibration.robot_name = "ur10e"
+calibration.camera_frame = 'camera_color_optical_frame'
+calibration.chessboardCenter = (0, 0, 1.41)
 calibration.addStateToConstraintGraph()
-calibration.generateConfigurationsAndPaths(q_init, filename="./data/optimal-configs.csv")
+calibration.generateConfigurationsAndPaths(q_init, nbConfigs = 10, filename="./data/optimal-configs.csv")
 ```
 
 If no path appears in the "Path Player" of gepetto-gui after
-refreshing, re-execute the last line of the later script after
-increasing "calibration.nbConfigs".
+refreshing, re-execute the last line of the later script after increasing
+argument nbConfigs above.
 
 in a new terminal, cd into ur10/pointing and run
 ```python
@@ -117,7 +120,7 @@ See  https://visp-doc.inria.fr/doxygen/visp-daily/tutorial-calibration-extrinsic
 
 In the python terminal where `script_hpp.py` has been executed, type
 ```python
-generateDataForFigaroh(robot, './measurements', output_file, 30)
+calibration.generateDataForFigaroh('./measurements', output_file, 30)
 ```
 where `output_file` is the full path to
 `examples/ur10/data/calibration.csv` in `figaroh` source directory.
