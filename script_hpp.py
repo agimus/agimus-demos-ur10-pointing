@@ -37,16 +37,6 @@ from tools_hpp import RosInterface, PathGenerator
 
 useFOV = False
 
-class PartPlaque:
-    urdfFilename = "package://agimus_demos/ur10/pointing/urdf/plaque-tubes-with-table.urdf"
-    srdfFilename = "package://agimus_demos/ur10/pointing/srdf/plaque-tubes.srdf"
-    rootJointType = "freeflyer"
-
-class AprilTagPlank:
-    urdfFilename = "package://agimus_demos/urdf/april-tag-plank.urdf"
-    srdfFilename = "package://agimus_demos/srdf/april-tag-plank.srdf"
-    rootJointType = "freeflyer"
-
 # parse arguments
 defaultContext = "corbaserver"
 p = argparse.ArgumentParser (description=
@@ -61,10 +51,12 @@ def setRobotJointBounds(which):
     for jn, bound in jointBounds[which]:
         robot.setJointBounds(jn, bound)
 
+ros = False
 try:
     import rospy
     Robot.urdfString = rospy.get_param('robot_description')
     print("reading URDF from ROS param")
+    ros = True
 except:
     print("reading generic URDF")
     from hpp.rostools import process_xacro, retrieve_resource
@@ -128,74 +120,67 @@ setRobotJointBounds("limited")
 ur10JointNames = list(filter(lambda j: j.startswith("ur10/"), robot.jointNames))
 ur10LinkNames = [ robot.getLinkNames(j) for j in ur10JointNames ]
 
-## Load P72
-#[1., 0, 0.8,0,0,-sqrt(2)/2,sqrt(2)/2]
-
-# Get class_name str from rosparam
-Part_name = rospy.get_param('/demo/objects/part/class_name');
-# Instanciate the Part
-try:
-    class_ = globals()[Part_name]
-except Exception as e:
-    raise ValueError("Probably unvalid part name, check yaml files or rosparam") from e
-Part = class_()
+class Demo():
+    def __init__(self, yaml_data):
+        if yaml_data is None:
+            self.load_from_ros()
+        else:
+            self.load_from_yaml(yaml_data)
+    def load_from_yaml(self, yaml_data):
+        class Part:
+            name = yaml_data['demo']['objects']['part']['class_name']
+            urdfFilename = f"package://{yaml_data['demo']['objects']['part']['urdf']['package']}/{yaml_data['demo']['objects']['part']['urdf']['file']}"
+            srdfFilename = f"package://{yaml_data['demo']['objects']['part']['srdf']['package']}/{yaml_data['demo']['objects']['part']['srdf']['file']}"
+            rootJointType = yaml_data['demo']['objects']['part']['root_joint_type']
+            pose = yaml_data['demo']['objects']['part']['pose']
+            bounds = yaml_data['demo']['objects']['part']['bounds']
+            configs = yaml_data['demo']['configurations']
+        self.configs = yaml_data['demo']['configurations']
+        self.Part = Part()
+        
+    def load_from_ros(self):
+        class Part:
+            name = rospy.get_param('/demo/objects/part/class_name')
+            urdfFilename = f"package://{rospy.get_param('/demo/objects/part/urdf/package')}/{rospy.get_param('/demo/objects/part/urdf/file')}"
+            srdfFilename = f"package://{rospy.get_param('/demo/objects/part/srdf/package')}/{rospy.get_param('/demo/objects/part/srdf/file')}"
+            rootJointType = rospy.get_param('/demo/objects/part/root_joint_type')
+            pose = rospy.get_param('/demo/objects/part/pose')
+            bounds = rospy.get_param('/demo/objects/part/bounds')
+        self.configs = rospy.get_param('/demo/configurations')
+        self.Part = Part
+    
+if ros:
+    print("Loading part")
+    Demo = Demo(None)
+    Part = Demo.Part
+else:
+    import yaml
+    import glob
+    yaml_files = glob.glob("demo*.yaml")
+    print("Choose a yaml file:")
+    for i, f in enumerate(yaml_files):
+        print(f"{i}: {f}")
+    yaml_file = yaml_files[int(input())]
+    with open(yaml_file, 'r') as stream:
+        try:
+            demoData = yaml.safe_load(stream)
+            Demo = Demo(demoData)
+            Part = Demo.Part
+        except yaml.YAMLError as exc:
+            print(exc)
 
 vf.loadRobotModel (Part, "part")
-
-# JESSY 07/12 change part/root_joint y: 1.5-> 1.75
-robot.setJointBounds('part/root_joint', [1, 1.75, -0.5, 0.5, -0.5, 0.5])
-print(f"{Part.__class__.__name__} loaded")
+robot.setJointBounds('part/root_joint', Part.bounds)
+print(f"{Part.name} loaded")
 
 robot.client.manipulation.robot.insertRobotSRDFModel\
     ("ur10e", "package://agimus_demos/srdf/ur10_robot.srdf")
-
-# VISUAL(modification pour voir le visual servoing sur Gazebo)
-# JESSY 07/12 change partPose[0]: 1.4 -> 1.6
-partPose = [1.6, 0.1, 0,0,0,-sqrt(2)/2,sqrt(2)/2]
-
 ## Define initial configuration
 q0 = robot.getCurrentConfig()
 # set the joint match with real robot
 q0[:6] = [0, -pi/2, 0.89*pi,-pi/2, -pi, 0.5]
 r = robot.rankInConfiguration['part/root_joint']
-if isinstance(Part,AprilTagPlank):
-    # Initial configuration of AprilTagPlank
-    q0[r:r+7] = [1.3, 0, 0, 0, 0, -1, 0]
-else:
-    q0[r:r+7] = partPose
-## Home configuration
-q_homeLAAS = [-3.415742983037262e-05, -1.5411089223674317, 2.7125137487994593, -1.5707269471934815, -3.141557280217306, 6.67572021484375e-06, 1.3, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
-
-## JESSY 14/12 New Home configuration
-q_home = [1.571, -1.575, 2.753, -2.622, -1.571, 0.0,1.3, 0, 0, 0, 0, -0.7071, 0.7071]
-
-# JESSY 15/12
-# config intermédiaire entre calib et les trous
-q_int = [1.431, -1.983, 2.243, -0.253, -1.014, 0.000,1.3, 0, 0, 0, 0, -0.7071, 0.7071]
-
-# JESSY 05/12 Add calib
-## Calibration configuration: the part should be wholly visible
-q_calibLAAS = [1.5707, -3, 2.5, -2.8, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
-# Saint Nazaire calib configuration
-q_calibSN = [1.3707, -3.1, 2.1, -2.32, -1.57, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, -0.7071067811865476, 0.7071067811865476]
-
-## PointCloud position : the part should fit the field of view
-q_pointcloudF = [1.465, -2.058, 2.076, -0.436, 1.5, -3.14, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
-q_pointcloud = [1.4802236557006836, -1.7792146009257812, 2.4035003821002405, -0.9398099416545411, 1.5034907341003418, -3.1523403135882773, 1.2804980083956572, 0.11300105405990518, -0.031348192422114174, -0.008769144315009561, 0.004377057629846714, -0.7073469546030107, 0.7067985775935985]
-q_pointcloud2 = [1.465, -1.465, 2.39, -1.134, 1.5, -3.14, 1.166362251685465, 0.18398354959470994, -0.040275835859414855, -0.011115686791169354, 0.00903223476857969, -0.701584375075136, 0.7124424361958492]
-
-q_pc1 = [1.4802236557006836, -2.7792393169798792, 2.6035669485675257, 0.06014220296826167, 1.5035147666931152, -3.1523261705981653, 1.1430909403610665, 0.22893782415973665, -0.04789935128099243, -0.0033794390562739483, 0.008636413673842097, -0.6985826418521135, 0.7154692755481825]
-q_pc2 = [1.480247974395752, -2.7792188129820765, 2.6035461584674278, -0.13980153024707037, 1.5035266876220703, -3.1523383299456995, 1.1138463304333714, 0.23051956151197342, -0.040682700437678854, -0.00938303410217683, 0.013303913345295534, -0.7001874363145009, 0.7137734364544993]
-
-
-# JESSY 13/12
-# New configuration for pointCloud demo Saint-Nazaire
-# q_pc1SN = [-2,-35,-143,0,7,-95,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476] # DEG
-q_pc1SN = [-0.03490658503988659,-0.6108652381980153,-2.498091544796509,0,0.12217304763960307,-1.658062789394634,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
-
-# q_pc2SN = [-2,-121,122,0,2,-95,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476] # DEG
-q_pc2SN = [-0.03490658503988659,-2.111848398575904,2.129311522021689,0,0.03490658503988659,-1.658062789394634,1.5, 0, 0, 0, 0, -0.7071067811865476, 0.7071067811865476]
-
+q0[r:r+7] = Part.pose
 
 def norm(quaternion):
     return sqrt(sum([e*e for e in quaternion]))
@@ -234,26 +219,6 @@ def createConstraintGraph():
         graph.addConstraints(edge = loopEdge, constraints = Constraints
             (numConstraints=['part/root_joint']))
 
-    n = norm([-0.576, -0.002, 0.025, 0.817])
-    ps.createTransformationConstraint('look-at-part', 'part/base_link', 'ur10e/wrist_3_link',
-                                    [-0.126, -0.611, 1.209, -0.576/n, -0.002/n, 0.025/n, 0.817/n],
-                                    [True, True, True, True, True, True,])
-    graph.createNode(['look-at-part'])
-    graph.createEdge('free', 'look-at-part', 'go-look-at-part', 1, 'free')
-    graph.createEdge('look-at-part', 'free', 'stop-looking-at-part', 1, 'free')
-
-    graph.addConstraints(node='look-at-part',
-                        constraints = Constraints(numConstraints=['look-at-part']))
-    ps.createTransformationConstraint('placement/complement', '','part/base_link',
-                                    [0,0,0,0, 0, 0, 1],
-                                    [True, True, True, True, True, True,])
-    ps.setConstantRightHandSide('placement/complement', False)
-    graph.addConstraints(edge='go-look-at-part',
-                        constraints = Constraints(numConstraints=\
-                                                ['placement/complement']))
-    graph.addConstraints(edge='stop-looking-at-part',
-                        constraints = Constraints(numConstraints=\
-                                                ['placement/complement']))
     sm = SecurityMargins(ps, factory, ["ur10e", "part"])
     sm.setSecurityMarginBetween("ur10e", "part", 0.015)
     sm.setSecurityMarginBetween("ur10e", "ur10e", 0)
@@ -289,25 +254,9 @@ holes_to_do = [i for i in range(NB_holes) if i not in hidden_holes]
 pg.setIsClogged(None)
 ps.setTimeOutPathPlanning(10)
 
-# JESSY 05/12 change calib configuration
-pg.setConfig("homeLAAS", q_homeLAAS)
-pg.setConfig("home", q_home)
-pg.setConfig("calibLAAS", q_calibLAAS)
-pg.setConfig("calibSN", q_calibSN) # set calib configuration for Saint-Nazaire Demo
-pg.setConfig("calib", q_calibSN) # set calib configuration for Saint-Nazaire Demo
-pg.setConfig("inter", q_int) # set inter configuration for Saint-Nazaire Demo
-
-pg.setConfig("pointcloud", q_pointcloud)
-pg.setConfig("pointcloud2", q_pointcloud2)
-pg.setConfig("pointcloud_bas", q_pc1)
-pg.setConfig("pointcloud_haut", q_pc2)
-
-# JESSY 13/12 ADD pointCloud configurations for SN Demo
-pg.setConfig("pointcloudF", q_pointcloudF)
-pg.setConfig("pc1SN", q_pc1SN)
-pg.setConfig("pc2SN", q_pc2SN)
-# pg.setConfig("pc3SN", q_pc3SN)
-
+# loop through Demo.configs keys and set the config
+for key,config in Demo.configs.items():
+    pg.setConfig(key, config)
 
 if useFOV:
     def configHPPtoFOV(q):
