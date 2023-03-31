@@ -35,6 +35,7 @@ from agimus_hpp.plugin import Client as AgimusHppClient
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import tf2_ros, rospy
+import tf
 from hpp.gepetto import PathPlayer
 from std_msgs.msg import Empty as EmptyMsg, Bool, Int32, UInt32, String as StringMsg
 import time
@@ -924,6 +925,36 @@ class PathGenerator(object):
         print("Demo done.")
         return True
 
+
+    def getTargetConfig(self,target,frame,mask, qinit=None):
+        qinit = self.checkQInit(qinit)
+        self.ps.client.basic.problem.resetConstraints()
+        
+        # convert the target : [x,y,z,rx(rad),ry(rad),rz(rad)] to a [x,y,z,x,y,z,w] list
+        target = target[:3] + tf.transformations.quaternion_from_euler(target[3], target[4], target[5]).tolist()
+        print(mask)
+        self.ps.client.basic.problem.createTransformationConstraint(
+                            'go-target',
+                            '',
+                            f'ur10e/{frame}',
+                            target,
+                            mask)
+
+        self.ps.setConstantRightHandSide('go-target', False)
+        self.ps.addNumericalConstraints('config-projector', ['go-target'])
+        res, qgoal, err = self.ps.applyConstraints(qinit)
+        return res, qgoal, err
+
+    def planGoTarget(self,target,frame,mask):
+        res, qgoal, _ = self.getTargetConfig(target,frame,mask)
+        print(res)
+        if res:
+            pid,_ = self.planTo(qgoal)
+            print("Planning to target config with success and path id: ", pid)
+            return pid
+        else:
+            return False
+
 class RosInterface(object):
     nodeId = 0
     def __init__(self, robot):
@@ -985,3 +1016,31 @@ class RosInterface(object):
             qres[rk:rk+7] = SE3ToXYZQUAT (wMc * cMo)
 
         return qres
+
+
+    def getFrame(self, frame, euler=True, timeout=5.):
+        q0 = self.robot.getCurrentConfig()
+        try:
+            wMo = self.tfBuffer.lookup_transform('world',frame,
+                    rospy.Time(), rospy.Duration(timeout))
+            wMo = wMo.transform
+            # renormalize quaternion
+            x = wMo.rotation.x
+            y = wMo.rotation.y
+            z = wMo.rotation.z
+            w = wMo.rotation.w
+            n = sqrt(x*x+y*y+z*z+w*w)
+            rpy = tf.transformations.euler_from_quaternion([x/n, y/n, z/n, w/n])
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
+                tf2_ros.ExtrapolationException) as e:
+            print('could not get TF transform : ', e)
+            raise RuntimeError(str(e))
+        
+        if euler:
+            return [wMo.translation.x, wMo.translation.y, wMo.translation.z, rpy[0], rpy[1], rpy[2]]
+
+        else:
+            return [wMo.translation.x, wMo.translation.y,
+                                wMo.translation.z, wMo.rotation.x/n,
+                                wMo.rotation.y/n, wMo.rotation.z/n,
+                                wMo.rotation.w/n]
