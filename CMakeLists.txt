@@ -41,25 +41,31 @@ INSTALL(FILES
   supervisor.py
   demo-plaque-tubes-with-table.yaml
   demo-april-tag-plank.yaml
+  demo-april-tag.yaml
+  demo-aircraft.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing
   )
 
 INSTALL(FILES
   urdf/plaque-tubes-with-table.urdf
   urdf/robot.urdf.xacro
+  urdf/aircraft.urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/urdf
   )
 
 INSTALL(FILES
   srdf/plaque-tubes.srdf
   srdf/plaque-tubes.py
+  srdf/aircraft.srdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/srdf
   )
 
 INSTALL(FILES
-  meshes/IMC.stl
   meshes/ur10e_d435_mount.stl
   meshes/ur10e_tip.stl
+  meshes/RESOURCE_SNZ_IMC_PMU_SA_MSN09896_20230202.stl
+  meshes/PRODUCT_SNZ_IMC_PMU_SA_MSN09896_20230202.stl
+  
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ur10/pointing/meshes
   )
 
