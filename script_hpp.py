@@ -363,3 +363,12 @@ def doDemo():
 
 holist = [7,8,9,42,43,13]
 v(q_init)
+
+def launchTeachWidget():
+    from TeachWidget.MainWindow import MainWindow
+    from PyQt5 import QtWidgets
+    
+    app = QtWidgets.QApplication([])
+    window = MainWindow(pg=pg, ri=ri, robot=robot, ps=ps, qApplication= app)
+    window.show()
+    app.exec_()
