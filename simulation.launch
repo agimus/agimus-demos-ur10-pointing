@@ -18,7 +18,7 @@
   <arg name="debug" default="false"/>
   <arg name="part" default="plaque-tubes-with-table"/>
 <!-- <arg name="part_pose" default="-x 1.6 -Y -1.57079632679"/> -->
-<arg name="part_pose" default="-x 1.895 -y 8.008 -z 3.406 -Y -1.57079632679"/>
+<arg name="part_pose" default="-x 1.895 -y 8.008 -z 3.426 -Y -1.57079632679"/>
   <arg name="slower" default="false"/>
 
   <group if="$(arg slower)">
