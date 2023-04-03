@@ -54,37 +54,6 @@
 
    <link name="world" />
 
-   <link name="wall_link">
-   <inertial>
-        <mass value="1000"/>
-        <origin xyz="0 0 0.45"/>
-        <inertia ixx="50"  ixy="0"  ixz="0" iyy="50" iyz="0" izz="50" />
-      </inertial>
-
-      <visual>
-      <origin xyz="-3 -4.55 3.43" rpy="0 0 1.5708" />
-      <geometry>
-        <mesh filename="package://agimus_demos/ur10/pointing/meshes/IMC.stl" scale="0.001 0.001 0.001"/>
-      </geometry>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
-    </visual>
-    <collision>
-      <origin xyz="-3 -4.55 3.43" rpy="0 0 1.5708" />
-      <geometry>
-        <mesh filename="package://agimus_demos/ur10/pointing/meshes/IMC.stl" scale="0.001 0.001 0.001" />
-      </geometry>
-    </collision>
-
-   </link>
-
-   <joint name="wall_joint" type="fixed">
-     <parent link="world" />
-     <child link = "wall_link" />
-     <origin xyz="-1.4 0.0 0.0" rpy="0.0 0.0 0.0" />
-   </joint>
-
     <link name="support_link">
       <inertial>
         <mass value="200"/>
