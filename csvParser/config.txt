@@ -1,0 +1,17 @@
+// File containing the 3D coordinates of the rivets used for the initial pose computation
+// init_points_file : example.csv
+init_points_file : REACT_D53137297000-STD01-Patterns4Initialisation_20230131_HnF_Export.csv
+
+// File containing the 3D coordinates of the center of the tapes used for the initial pose computation
+// tapes_center_file : example.csv
+tapes_center_file : tapes_translated-leftside.csv
+
+// Files containing the 3D coordinates of the whole model
+// model_points_file : example.csv
+model_points_file : REACT_D53118641000-STD60_20230131_HnF_Export.csv
+model_points_file : REACT_D53137297000-STD01_20230131_HnF_Export.csv
+model_points_file : REACT_D53137357000-STD01_20230131_HnF_Export.csv
+
+// Default output Files path
+srdf_output_path : ../srdf/aircraft.srdf
+urdf_output_path : ../urdf/aircraft.urdf
